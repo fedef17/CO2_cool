@@ -13,8 +13,11 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/spect_robot/')
-sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/pythall/')
+# sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/SpectRobot/')
+# sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/pythall/')
+sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
+sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
+
 import spect_base_module as sbm
 import spect_classes as spcl
 
@@ -25,7 +28,8 @@ E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 #############################################################
 
-cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+# cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
 
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
@@ -127,6 +131,195 @@ def hr_from_xi_at_x0(xis, atm, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm
     return hr_somma
 
 
+def ab_from_xi_unifit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms):
+    """
+    Calculates the fitted acoeff and bcoeff, using the weights xis.
+    """
+
+    acoeff = all_coeffs[('mle', 1, 'acoeff')]
+    acoefftot = np.zeros(acoeff.shape)
+    bcoefftot = np.zeros(acoeff.shape)
+    xiiis = xis/np.sum(xis)
+
+    for atmprim, xi in zip(allatms, xiiis):
+        acoeff = all_coeffs[(atmprim, cco2, 'acoeff')]
+        bcoeff = all_coeffs[(atmprim, cco2, 'bcoeff')]
+        # asurf = all_coeffs[(atmprim, cco2, 'asurf')]
+        # bsurf = all_coeffs[(atmprim, cco2, 'bsurf')]
+
+        acoefftot += xi*acoeff
+        bcoefftot += xi*bcoeff
+
+    return acoefftot, bcoefftot
+
+
+def absurf_from_xi_unifit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms):
+    """
+    Calculates the fitted acoeff and bcoeff, using the weights xis.
+    """
+
+    asurf = all_coeffs[('mle', 1, 'asurf')]
+    asurftot = np.zeros(asurf.shape)
+    bsurftot = np.zeros(asurf.shape)
+
+    xiiis = xis/np.sum(xis)
+
+    for atmprim, xi in zip(allatms, xiiis):
+        asurf = all_coeffs[(atmprim, cco2, 'asurf')]
+        bsurf = all_coeffs[(atmprim, cco2, 'bsurf')]
+
+        asurftot += xi*asurf
+        bsurftot += xi*bsurf
+
+    return asurftot, bsurftot
+
+
+def ab_from_xi_varfit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms):
+    """
+    Calculates the fitted acoeff and bcoeff, using the weights xis.
+
+    xis is a dict with keys (cco2, ialt).
+    """
+
+    acoeff = all_coeffs[('mle', 1, 'acoeff')]
+    acoefftot = np.zeros(acoeff.shape)
+    bcoefftot = np.zeros(acoeff.shape)
+
+    for ialt in range(acoeff.shape[1]):
+        xiiis = xis[(cco2, ialt)]/np.sum(xis[(cco2, ialt)])
+        for atmprim, xi in zip(allatms, xiiis):
+            acoeff = all_coeffs[(atmprim, cco2, 'acoeff')]
+            bcoeff = all_coeffs[(atmprim, cco2, 'bcoeff')]
+
+            acoefftot[:, ialt] += xi*acoeff[:, ialt]
+            bcoefftot[:, ialt] += xi*bcoeff[:, ialt]
+
+    return acoefftot, bcoefftot
+
+
+def absurf_from_xi_varfit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms):
+    """
+    Calculates the fitted acoeff and bcoeff, using the weights xis.
+
+    xis is a dict with keys (cco2, ialt).
+    """
+
+    asurf = all_coeffs[('mle', 1, 'asurf')]
+    asurftot = np.zeros(asurf.shape)
+    bsurftot = np.zeros(asurf.shape)
+
+    for ialt in range(asurf.shape[0]):
+        xiiis = xis[(cco2, ialt)]/np.sum(xis[(cco2, ialt)])
+        for atmprim, xi in zip(allatms, xiiis):
+            asurf = all_coeffs[(atmprim, cco2, 'asurf')]
+            bsurf = all_coeffs[(atmprim, cco2, 'bsurf')]
+
+            asurftot[ialt] += xi*asurf[ialt]
+            bsurftot[ialt] += xi*bsurf[ialt]
+
+    return asurftot, bsurftot
+
+
+def linear_regre_witherr(x, y):
+    """
+    Makes a linear regression of dataset y in function of x using numpy.polyfit. Returns the coefficient m and c: y = mx + c. And their estimated error.
+    """
+
+    xord = np.argsort(x)
+    x = x[xord]
+    y = y[xord]
+
+    res = np.polyfit(x, y, deg = 1, cov = True)
+    m,c = res[0]
+    covmat = res[1]
+
+    err_m = np.sqrt(covmat[0,0])
+    err_c = np.sqrt(covmat[1,1])
+
+    return m, c, err_m, err_c
+
+
+def interp_coeff_logco2(coeffs, co2_profs):
+    """
+    Interpolates log(a/cco2)
+    """
+
+    ndim = coeffs[0].ndim
+    m_coeff = np.zeros(coeffs[0].shape)
+    errm_coeff = np.zeros(coeffs[0].shape)
+    c_coeff = np.zeros(coeffs[0].shape)
+    errc_coeff = np.zeros(coeffs[0].shape)
+
+    sign_coeff = np.zeros(coeffs[0].shape)
+
+    n_alts = coeffs[0].shape[0]
+
+    for ialt in range(n_alts):
+        co2p = np.array([co[ialt] for co in co2_profs])
+        if ndim == 2:
+            for j in range(n_alts):
+                cval = np.array([co[j, ialt] for co in coeffs])
+
+                if np.all(cval < 0):
+                    print('All values are negative! at ({},{})\n'.format(j, ialt))
+                    logcval = np.log(-cval/co2p)
+                    sign_coeff[j, ialt] = -1
+                elif np.any(cval < 0):
+                    raise ValueError('Only some value is negative! at ({},{})'.format(j, ialt))
+                else:
+                    logcval = np.log(cval/co2p)
+                    sign_coeff[j, ialt] = 1
+
+                m, c, errm, errc = linear_regre_witherr(co2p, logcval)
+                # if j == ialt:
+                #     print(j, ialt)
+                #     print(cval)
+                #     print(logcval)
+                #     print(m, c)
+
+                m_coeff[j, ialt] = m
+                c_coeff[j, ialt] = c
+                errm_coeff[j, ialt] = errm
+                errc_coeff[j, ialt] = errc
+        elif ndim == 1:
+            cval = np.array([co[ialt] for co in coeffs])
+
+            if np.all(cval < 0):
+                logcval = np.log(-cval/co2p)
+                sign_coeff[ialt] = -1
+            elif np.any(cval < 0):
+                raise ValueError('Only some value is negative! at ({})'.format(ialt))
+            else:
+                logcval = np.log(cval/co2p)
+                sign_coeff[ialt] = 1
+
+            m, c, errm, errc = linear_regre_witherr(co2p, logcval)
+
+            m_coeff[ialt] = m
+            c_coeff[ialt] = c
+            errm_coeff[ialt] = errm
+            errc_coeff[ialt] = errc
+        else:
+            raise ValueError('Not implemented for ndim = {}'.format(ndim))
+
+    return m_coeff, c_coeff, sign_coeff, errm_coeff, errc_coeff
+
+
+def coeff_from_interp(m_coeff, c_coeff, sign_coeff, co2_prof):
+    """
+    Reconstructs the acoeff.
+    """
+
+    coeff = np.zeros(m_coeff.shape)
+
+    n_alts = m_coeff.shape[0]
+
+    for ialt in range(n_alts):
+        coeff[..., ialt] = sign_coeff[..., ialt] * co2_prof[ialt] * np.exp(m_coeff[..., ialt]*co2_prof[ialt] + c_coeff[..., ialt])
+
+    return coeff
+
+
 def delta_xi(xis, cco2, n_alts = 40):
     """
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -157,6 +350,7 @@ def delta_xi_tot(xis, cco2, n_alts = 40):
     """
     Modified delta function at page 511 bottom. Gives a vector with differences for each atm profile.
     """
+    print('Questa è sbagliata perchè elevo al quadrato anche i pesi delle diverse atmosfere, è giusta delta_xi_tot_fomi\n')
 
     fu = np.zeros(len(allatms))
     for ialt in range(n_alts):
@@ -295,6 +489,10 @@ def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimd
             continue
         a1.plot(x - xs[0], y, color = col)
         a1.axvline(0., color = 'grey', alpha = 0.6)
+        a1.axvline(0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
+        a1.axvline(-0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
+        a1.axvline(1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
+        a1.axvline(-1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
 
     a0.axhline(70., color = 'red', alpha = 0.6, linestyle = '--')
     a0.axhline(85., color = 'orange', alpha = 0.6, linestyle = '--')

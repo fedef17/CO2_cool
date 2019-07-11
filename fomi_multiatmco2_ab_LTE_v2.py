@@ -12,8 +12,10 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/spect_robot/')
-sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/pythall/')
+# sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/spect_robot/')
+# sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/pythall/')
+sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
+sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
 import spect_base_module as sbm
 import spect_classes as spcl
 
@@ -24,7 +26,8 @@ E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 #############################################################
 
-cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+# cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
 
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
@@ -295,31 +298,33 @@ def jacdelta_xi_all_x0s_fast(xis, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt
 
 cco2 = 1
 
-tutti_cycle = dict()
-estval = 19
-estval2 = 1
-estval3 = 10
-estval4 = 3
+# xis = np.array([estval, estval2, estval2, estval3, estval4, estval4])
+# coso = delta_xi_tot_fomi(xis, cco2)
+# coso2 = np.mean(delta_xi_tot(xis, cco2))
+# print(coso,coso2)
 
-xis = np.array([estval, estval2, estval2, estval3, estval4, estval4])
-coso = delta_xi_tot_fomi(xis, cco2)
-coso2 = np.mean(delta_xi_tot(xis, cco2))
-print(coso,coso2)
-#
+############## MINIMUM WITH HEIGHT INDIPENDENT FIT #####################
+
+# tutti_cycle = dict()
 # best = dict()
-# sto = 7
-# #for n in [1., 0.1, 0.01]:
+#
 # for cco2 in range(1,7):
+#     estval = 19
+#     estval2 = 1
+#     estval3 = 10
+#     estval4 = 3
+#
 #     cosomin = 1.0
-#     for n in [1.0, 0.1]:
+#     for n, sto in zip([1.0, 0.1], [20, 5]):
+#         sto2 = 5
 #         tutti_n =  dict()
 #         for val in np.arange(-sto*n,(sto+1)*n,n):
 #             print(cco2, n, val)
-#             for val2 in np.arange(-sto*n,(sto+1)*n,n):
+#             for val2 in np.arange(-sto2*n,(sto2+1)*n,n):
 #                 for val3 in np.arange(-sto*n,(sto+1)*n,n):
-#                     for val4 in np.arange(-sto*n,(sto+1)*n,n):
+#                     for val4 in np.arange(-sto2*n,(sto2+1)*n,n):
 #                         xis = np.array([estval+val, estval2+val2, estval2+val2, estval3+val3, estval4+val4, estval4+val4])
-#                         if np.any(xis < 0.): continue
+#                         if np.any(xis <= 0.): continue
 #                         #coso = np.mean(delta_xi_tot(xis, cco2))
 #                         coso = delta_xi_tot_fomi(xis, cco2)
 #                         #print(xis, coso)
@@ -327,47 +332,62 @@ print(coso,coso2)
 #                             tutti_n[(estval+val, estval2+val2, estval3+val3, estval4+val4)] = coso
 #                             cosomin = coso
 #
-#         tutti_cycle[n] = tutti_n
+#             print(len(tutti_n))
+#         #tutti_cycle[n] = tutti_n
 #         tuttil = np.array(tutti_n.values())
-#         ind = tuttil.argmin()
+#         ordered = tuttil.argsort()
+#         tutti_cycle[n] = [(tutti_n.keys()[ind], tutti_n.values()[ind]) for ind in ordered[:20]]
+#         ind = ordered[0]
 #         keok = tutti_n.keys()[ind]
 #         print('best', keok, tutti_n[keok])
 #         estval, estval2, estval3, estval4 = keok
 #
 #     best[cco2] = np.array(keok)[[0,1,1,2,3,3]]
 #
-# pickle.dump(tutti_cycle, open(cart_out+'tutti_cycle_vals_allco2.p', 'w'))
-# pickle.dump(best, open(cart_out+'best_uniform_allco2.p', 'w'))
-# sys.exit()
+# pickle.dump(tutti_cycle, open(cart_out+'tutti_cycle_vals_allco2_v2.p', 'w'))
+# pickle.dump(best, open(cart_out+'best_uniform_allco2_v2.p', 'w'))
 
-sto = 7
-xis_best_uniform = np.array([0.5404814 , 0.00929978, 0.00929978, 0.26641138, 0.08725383, 0.08725383])
+############## MINIMUM WITH HEIGHT DEPENDENT FIT ###########################
+
 best_atx0 = dict()
-
 tutti_cycle_atx0 = dict()
-estval = 19.76
-estval2 = 0.34
-estval3 = 9.77
-estval4 = 3.19
 
-for cco2 in range(1,7):
-    for ialt in range(n_alts):
-        cosomin = 1.0
-        for n in [1., 0.1]:
+cco2_start = 3
+ialt_start = 50
+
+for cco2 in range(cco2_start, 7):
+    #for ialt in range(n_alts):
+    for ialt in range(n_alts, 66):
+        if cco2 == cco2_start and ialt < ialt_start:
+            continue
+        estval = 20
+        estval2 = 1
+        estval3 = 20
+        estval4 = 10
+
+        cosomin = -1
+        for n, sto in zip([1., 0.1], [20, 5]):
+            sto2 = 10
+            if sto2 > sto: sto2 = sto
+
             tutti_n =  []
             for val in np.arange(-sto*n,(sto+1)*n,n):
                 print(cco2, ialt, n, val)
-                for val2 in np.arange(-sto*n,(sto+1)*n,n):
+                for val2 in np.arange(-sto2*n,(sto2+1)*n,n):
                     for val3 in np.arange(-sto*n,(sto+1)*n,n):
-                        for val4 in np.arange(-sto*n,(sto+1)*n,n):
+                        for val4 in np.arange(-sto2*n,(sto2+1)*n,n):
                             xis = np.array([estval+val, estval2+val2, estval2+val2, estval3+val3, estval4+val4, estval4+val4])
-                            if np.any(xis < 0.): continue
+                            if np.any(xis <= 0.): continue
                             coso = np.mean(delta_xi_at_x0(xis, cco2, ialt, squared_residuals = True))
                             #print(xis, coso)
-                            if coso < cosomin:
+                            if cosomin < 0:
+                                cosomin = coso
+                                tutti_n.append((xis, coso))
+                            elif coso <= cosomin:
                                 tutti_n.append((xis, coso))
                                 cosomin = coso
 
+                print(len(tutti_n))
             tuttil = np.array([cu[1] for cu in tutti_n])
             #ind = tuttil.argmin()
             ordered = np.argsort(tuttil)
@@ -381,14 +401,14 @@ for cco2 in range(1,7):
 
 for cco2 in range(1,7):
     su = 0.
-    for ialt in range(n_alts):
+    for ialt in range(n_alts, 66):
         xis = best_atx0[(cco2, ialt)]
         su += np.mean(delta_xi_at_x0(xis, cco2, ialt, squared_residuals = True))
 
     print('final', su)
 
-pickle.dump(tutti_cycle_atx0, open(cart_out+'tutti_cycle_atx0_vals_allco2.p', 'w'))
-pickle.dump(best_atx0, open(cart_out+'best_atx0_allco2.p', 'w'))
+pickle.dump(tutti_cycle_atx0, open(cart_out+'tutti_cycle_atx0_vals_allco2_High.p', 'w'))
+pickle.dump(best_atx0, open(cart_out+'best_atx0_allco2_High.p', 'w'))
 sys.exit()
 ############################################################################
 
