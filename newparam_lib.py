@@ -17,11 +17,17 @@ from scipy.interpolate import PchipInterpolator as spline
 from subprocess import call
 
 import pickle
+import socket
 
-# sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/SpectRobot/')
-# sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/pythall/')
-sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
+if socket.gethostname() == 'ff-clevo':
+    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
+    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
+    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+else:
+    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
+    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
+    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+
 import spect_base_module as sbm
 import spect_classes as spcl
 
@@ -32,8 +38,6 @@ E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 #############################################################
 
-cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-# cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
 
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
@@ -201,7 +205,7 @@ def hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, x0):
     return epsilon_ab_tot
 
 
-def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, n_alts = 40):
+def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):#, n_alts = 40):
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis.
     """
@@ -209,7 +213,7 @@ def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms
     temp = atm_pt[(atm, 'temp')]
     surf_temp = atm_pt[(atm, 'surf_temp')]
 
-    hr_somma = np.zeros(n_alts, dtype = float)
+    hr_somma = np.zeros(len(temp), dtype = float)
     for atmprim, xi in zip(allatms, xis):
         acoeff = all_coeffs[(atmprim, cco2, 'acoeff')]
         bcoeff = all_coeffs[(atmprim, cco2, 'bcoeff')]
@@ -218,7 +222,7 @@ def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms
 
         h_ab = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp)
         #print(atm, xi, np.mean(h_ab))
-        hr_somma += xi * h_ab[:n_alts]
+        hr_somma += xi * h_ab#[:n_alts]
 
     hr_somma = hr_somma/np.sum(xis)
 
@@ -561,12 +565,24 @@ def delta_xi_at_x0(xis, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, at
         #hr_somma = hr_from_xi(xis, atm, cco2)[ialt]
         hr_somma = hr_from_xi_at_x0(xis, atm, cco2, ialt)
 
-        if not squared_residuals:
-            fu[i] += atmweigths[atm] * (hr_somma - hr)
-        else:
-            fu[i] += atmweigths[atm] * (hr_somma - hr)**2
+        # atmweights will be squared by the loss function inside least_quares
+        fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
+
+        # if not squared_residuals:
+        #     print(atm, atmweigths[atm])
+        #     fu[i] = atmweigths[atm] * (hr_somma - hr)
+        # else:
+        #     fu[i] = atmweigths[atm] * (hr_somma - hr)**2
 
     return fu
+
+#
+# def lossfu(resi, atmweigths = atmweigths):
+#     """
+#     Fomi loss function.
+#     """
+#
+#     return
 
 
 def delta_xi_at_x0_tot(xis, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, atmweigths = atmweigths, squared_residuals = True):
@@ -686,12 +702,14 @@ def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimd
         if i == 0:
             i+=1
             continue
+        if i == 1:
+            a1.axvline(0., color = 'grey', alpha = 0.6)
+            a1.axvline(0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
+            a1.axvline(-0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
+            a1.axvline(1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
+            a1.axvline(-1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
         a1.plot(x - xs[0], y, color = col)
-        a1.axvline(0., color = 'grey', alpha = 0.6)
-        a1.axvline(0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
-        a1.axvline(-0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
-        a1.axvline(1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
-        a1.axvline(-1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
+        i+=1
 
     a0.axhline(70., color = 'red', alpha = 0.6, linestyle = '--')
     a0.axhline(85., color = 'orange', alpha = 0.6, linestyle = '--')
