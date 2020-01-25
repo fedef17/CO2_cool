@@ -11,13 +11,17 @@ import matplotlib.cm as cm
 
 from scipy import io
 import scipy.constants as const
+from scipy import interpolate
+from scipy.interpolate import PchipInterpolator as spline
+
+from subprocess import call
+
 import pickle
 
 # sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/SpectRobot/')
 # sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/pythall/')
 sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
 sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-
 import spect_base_module as sbm
 import spect_classes as spcl
 
@@ -44,7 +48,85 @@ from scipy.optimize import Bounds, minimize, least_squares
 
 #############################################################
 
+
+def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
+    """
+    Calculates the new param, starting from interp_coeffs.
+    """
+    if surf_temp is None:
+        surf_temp = temp[0]
+
+    coeffs = []
+    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+        int_fun = interp_coeffs[(tip, nam, 'int_fun')]
+        sc = interp_coeffs[(tip, nam, 'signc')]
+
+        coeffs.append(coeff_from_interp(int_fun, sc, co2pr))
+
+    acoeff, bcoeff, asurf, bsurf = coeffs
+
+    hr_calc = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp)
+
+    return hr_calc
+
+
+def old_param(alts, temp, pres, CO2prof, cart_run_fomi = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/'):
+    """
+    Run the old param.
+
+    WARNING!!! CO2prof should be in concentration (not ppm!). Gets converted to ppm inside the routine.
+    """
+
+    fil_VMR = cart_run_fomi + 'gases_120.dat'
+    alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(fil_VMR, version = 2)
+
+    splCO2 = spline(alts, CO2prof)
+    CO2con = splCO2(alt_manuel)
+    print('piooo', np.median(CO2con))
+
+    splT = spline(alts, temp)
+    temp = splT(alt_manuel)
+
+    splP = spline(alts,np.log(pres))
+    pres = splP(alt_manuel)
+    pres = np.exp(pres)
+
+    filename = cart_run_fomi + 'atm_manuel.dat'
+    sbm.scriviinputmanuel(alt_manuel, temp, pres, filename)
+
+    mol_vmrs['CO2'] = CO2con*1.e6
+    filename = cart_run_fomi + 'vmr_atm_manuel.dat'
+    sbm.write_input_vmr_man(filename, alt_manuel, mol_vmrs, hit_gas_list = molist, hit_gas_num = molnums, version = 2)
+
+    wd = os.getcwd()
+    os.chdir(cart_run_fomi)
+    call('./fomi_mipas')
+    os.chdir(wd)
+    nomeout = cart_run_fomi + 'output__mipas.dat'
+    alt_fomi, cr_fomi = sbm.leggioutfomi(nomeout)
+
+    return alt_fomi, cr_fomi
+
+
+def get_interp_coeffs(tot_coeff_co2):
+    interp_coeffs = dict()
+    for tip in ['unifit', 'varfit']:
+        co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,7)]
+
+        for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+            coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,7)]
+
+            int_fun, signc = interp_coeff_logco2(coeffs, co2profs)
+            interp_coeffs[(tip, nam, 'int_fun')] = int_fun
+            interp_coeffs[(tip, nam, 'signc')] = signc
+
+    return interp_coeffs
+
+
 def hr_atm_calc(atm, cco2):
+    """
+    This is the reference LTE cooling rate for each atm/cco2.
+    """
     temp = atm_pt[(atm, 'temp')]
     surf_temp = atm_pt[(atm, 'surf_temp')]
 
@@ -58,6 +140,9 @@ def hr_atm_calc(atm, cco2):
     return hr
 
 def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp):
+    """
+    This is the LTE cooling rate given a certain set of a and b coefficients.
+    """
     n_alts = len(temp)
     epsilon_ab_tot = np.zeros(n_alts, dtype = float)
 
@@ -72,7 +157,40 @@ def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp):
     return epsilon_ab_tot
 
 
+def hr_LTE_FB_vs_ob(atm, cco2):
+    """
+    Gives the FB and rest-of-bands LTE CRs for a specific atm/cco2.
+    """
+
+    temp = atm_pt[(atm, 'temp')]
+    surf_temp = atm_pt[(atm, 'surf_temp')]
+
+    acoeff = all_coeffs[(atm, cco2, 'acoeff')]
+    bcoeff = all_coeffs[(atm, cco2, 'bcoeff')]
+    asurf = all_coeffs[(atm, cco2, 'asurf')]
+    bsurf = all_coeffs[(atm, cco2, 'bsurf')]
+
+    n_alts = len(temp)
+    epsilon_FB = np.zeros(n_alts, dtype = float)
+    epsilon_ob = np.zeros(n_alts, dtype = float)
+
+    phi_fun = np.exp(-E_fun/(kbc*temp))
+    phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
+
+    # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
+    for xi in range(n_alts):
+        epsilon_FB[xi] = np.sum(acoeff[:, xi] * phi_fun) # il contributo della colonna
+        epsilon_ob[xi] = np.sum(bcoeff[:, xi] * phi_fun[xi] * phi_fun) # il contributo della colonna
+        epsilon_FB[xi] += asurf[xi] * phi_fun_g
+        epsilon_ob[xi] += bsurf[xi] * phi_fun[xi] * phi_fun_g
+
+    return epsilon_FB, epsilon_ob
+
+
 def hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, x0):
+    """
+    As above, but at a single altitude.
+    """
     phi_fun = np.exp(-E_fun/(kbc*temp))
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
@@ -239,7 +357,7 @@ def linear_regre_witherr(x, y):
     return m, c, err_m, err_c
 
 
-def interp_coeff_logco2(coeffs, co2_profs):
+def linfit_coeff_logco2(coeffs, co2_profs):
     """
     Interpolates log(a/cco2)
     """
@@ -305,7 +423,76 @@ def interp_coeff_logco2(coeffs, co2_profs):
     return m_coeff, c_coeff, sign_coeff, errm_coeff, errc_coeff
 
 
-def coeff_from_interp(m_coeff, c_coeff, sign_coeff, co2_prof):
+def interp_coeff_logco2(coeffs, co2_profs):
+    """
+    Interpolates log(a/cco2)
+    """
+
+    ndim = coeffs[0].ndim
+    int_fun = np.empty(coeffs[0].shape, dtype = object)
+
+    sign_coeff = np.zeros(coeffs[0].shape)
+
+    n_alts = coeffs[0].shape[0]
+
+    for ialt in range(n_alts):
+        co2p = np.array([co[ialt] for co in co2_profs])
+        if ndim == 2:
+            for j in range(n_alts):
+                cval = np.array([co[j, ialt] for co in coeffs])
+
+                if np.all(cval < 0):
+                    print('All values are negative! at ({},{})\n'.format(j, ialt))
+                    logcval = np.log(-cval/co2p)
+                    sign_coeff[j, ialt] = -1
+                elif np.any(cval < 0):
+                    raise ValueError('Only some value is negative! at ({},{})'.format(j, ialt))
+                else:
+                    logcval = np.log(cval/co2p)
+                    sign_coeff[j, ialt] = 1
+
+                int_fun[j, ialt] = interpolate.interp1d(co2p, logcval)
+        elif ndim == 1:
+            cval = np.array([co[ialt] for co in coeffs])
+
+            if np.all(cval < 0):
+                logcval = np.log(-cval/co2p)
+                sign_coeff[ialt] = -1
+            elif np.any(cval < 0):
+                raise ValueError('Only some value is negative! at ({})'.format(ialt))
+            else:
+                logcval = np.log(cval/co2p)
+                sign_coeff[ialt] = 1
+
+            int_fun[ialt] = interpolate.interp1d(co2p, logcval)
+        else:
+            raise ValueError('Not implemented for ndim = {}'.format(ndim))
+
+    return int_fun, sign_coeff
+
+
+def coeff_from_interp(int_fun, sign_coeff, co2_prof):
+    """
+    Reconstructs the acoeff.
+    """
+
+    coeff = np.zeros(int_fun.shape)
+
+    n_alts = int_fun.shape[0]
+    ndim = int_fun.ndim
+
+    for ialt in range(n_alts):
+        if ndim == 1:
+            interplog = int_fun[ialt](co2_prof[ialt])
+        else:
+            interplog = np.array([intfu(co2_prof[ialt]) for intfu in int_fun[..., ialt]])
+
+        coeff[..., ialt] = sign_coeff[..., ialt] * co2_prof[ialt] * np.exp(interplog)
+
+    return coeff
+
+
+def coeff_from_linfit(m_coeff, c_coeff, sign_coeff, co2_prof):
     """
     Reconstructs the acoeff.
     """
@@ -378,6 +565,18 @@ def delta_xi_at_x0(xis, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, at
             fu[i] += atmweigths[atm] * (hr_somma - hr)
         else:
             fu[i] += atmweigths[atm] * (hr_somma - hr)**2
+
+    return fu
+
+
+def delta_xi_at_x0_tot(xis, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, atmweigths = atmweigths, squared_residuals = True):
+    """
+    Modified delta function at page 511 bottom. Gives a vector with differences for each atm profile.
+    """
+
+    fu = delta_xi_at_x0(xis, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, atmweigths = atmweigths, squared_residuals = squared_residuals)
+
+    fu = np.sum(fu)
 
     return fu
 
@@ -475,12 +674,12 @@ def plot_pdfpages(filename, figs, save_single_figs = True, fig_names = None):
     return
 
 
-def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None):
+def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None):
     """
     Plots plt.plot(x, y, lab) for each x in xs. Plots the differences of all xs wrt xs[0] in a side plot.
     """
     fig, (a0, a1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [3, 1]})
-    colors = color_set(len(xs))
+    if colors is None: colors = color_set(len(xs))
     i = 0
     for x, lab, col in zip(xs, labels, colors):
         a0.plot(x, y, label = lab, color = col)
