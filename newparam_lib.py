@@ -17,16 +17,17 @@ from scipy.interpolate import PchipInterpolator as spline
 from subprocess import call
 
 import pickle
-import socket
 
-if socket.gethostname() == 'ff-clevo':
+if os.uname()[1] == 'ff-clevo':
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
     cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
-else:
+elif os.uname()[1] == 'hobbes':
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
     cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+else:
+    raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
 
 import spect_base_module as sbm
 import spect_classes as spcl
@@ -553,7 +554,7 @@ def delta_xi_tot(xis, cco2, n_alts = 40):
 
     return fu
 
-def delta_xi_at_x0(xis, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, atmweigths = atmweigths, squared_residuals = False):
+def delta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt, squared_residuals = False):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -618,7 +619,7 @@ def jacdelta_xi_tot(xis, cco2, n_alts = 40):
     return J
 
 
-def jacdelta_xi_at_x0(xis, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, atmweigths = atmweigths):
+def jacdelta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
     """
     Jacobian of delta_xi_at_x0.
     """

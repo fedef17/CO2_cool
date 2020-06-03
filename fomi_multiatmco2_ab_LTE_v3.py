@@ -12,16 +12,16 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-import socket
-
-if socket.gethostname() == 'ff-clevo':
+if os.uname()[1] == 'ff-clevo':
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
     cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
-else:
+elif os.uname()[1] == 'hobbes':
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
     cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+else:
+    raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
 
 import spect_base_module as sbm
 import spect_classes as spcl
@@ -36,6 +36,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
+
+atmweigths2 = np.ones(6)/6.
+atmweigths2 = dict(zip(allatms, atmweigths2))
+
 allco2 = np.arange(1,7)
 
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v1.p'))
@@ -61,13 +65,17 @@ varfit_xis_2 = dict()
 
 for cco2 in range(1, 7):
     for ialt in range(66):
-        result = least_squares(npl.delta_xi_at_x0, np.ones(6), jac=npl.jacdelta_xi_at_x0, args=(cco2, ialt,), verbose=1, method = 'trf', bounds = bounds, gtol = None)
-        print(ialt, result.x)
-        allres_varfit[(cco2, ialt)] = result
+        # result = least_squares(npl.delta_xi_at_x0, np.ones(6), jac=npl.jacdelta_xi_at_x0, args=(cco2, ialt,), verbose=1, method = 'trf', bounds = bounds, gtol = None)
+        # print(ialt, result.x)
+        # allres_varfit[(cco2, ialt)] = result
+        # varfit_xis[(cco2, ialt)] = result.x
+
+        result = least_squares(npl.delta_xi_at_x0, start, jac=npl.jacdelta_xi_at_x0, args=(cco2, ialt, atmweigths, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+        print(cco2, ialt, result.x)
         varfit_xis[(cco2, ialt)] = result.x
 
-        result = least_squares(npl.delta_xi_at_x0, start, jac=npl.jacdelta_xi_at_x0, args=(cco2, ialt,), verbose=1, method = 'trf', bounds = bounds, gtol = None, xtol = None)
-        print(ialt, result.x)
+        result = least_squares(npl.delta_xi_at_x0, np.ones(6), jac=npl.jacdelta_xi_at_x0, args=(cco2, ialt, atmweigths2, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+        print(cco2, ialt, result.x)
         varfit_xis_2[(cco2, ialt)] = result.x
 
 print('######################################################')
