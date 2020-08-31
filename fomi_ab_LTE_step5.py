@@ -91,10 +91,10 @@ tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
 interp_coeffs = dict()
 for tip in ['unifit', 'varfit']:
 
-    co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,7)]
+    co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
     for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-        coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,7)]
+        coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,8)]
 
         int_fun, signc = npl.interp_coeff_logco2(coeffs, co2profs)
         interp_coeffs[(tip, nam, 'int_fun')] = int_fun
@@ -138,7 +138,7 @@ for tip in ['unifit', 'varfit']:
     a0s = []
     a1s = []
 
-    for cco2 in range(1,7):
+    for cco2 in range(1,8):
         co2pr = co2profs[cco2-1]
 
         # i coeffs universali:
@@ -217,7 +217,7 @@ for tip in ['unifit', 'varfit']:
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
 
-        hr_refs = [all_coeffs[(atm, cco2, 'hr_ref')][:n_alts] for cco2 in range(1, 7)]
+        hr_refs = [all_coeffs[(atm, cco2, 'hr_ref')][:n_alts] for cco2 in range(1,8)]
 
         # labels = ['ref', 'step 4', 'step 5']
         #fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
@@ -249,9 +249,9 @@ figs2 = []
 a0s = []
 a1s = []
 
-co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,7)]
+co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
-for cco2 in range(1,7):
+for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
 
     # i coeffs universali:
@@ -317,7 +317,7 @@ npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_univsvar_2.pdf', figs2)
 # plt.ion()
 #
 # fig = plt.figure()
-# for cco2 in range(1,7):
+# for cco2 in range(1,8):
 #     acoeff = tot_coeff_co2[('varfit', 'acoeff', cco2)]
 #
 #     plt.plot(abs(acoeff[:, 10][:n_alts]), alts, label = str(cco2))

@@ -63,7 +63,7 @@ allres_varfit = dict()
 varfit_xis = dict()
 varfit_xis_2 = dict()
 
-for cco2 in range(1, 7):
+for cco2 in range(1,8):
     for ialt in range(66):
         # result = least_squares(npl.delta_xi_at_x0, np.ones(6), jac=npl.jacdelta_xi_at_x0, args=(cco2, ialt,), verbose=1, method = 'trf', bounds = bounds, gtol = None)
         # print(ialt, result.x)

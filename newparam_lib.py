@@ -116,10 +116,10 @@ def old_param(alts, temp, pres, CO2prof, cart_run_fomi = '/home/fabiano/Research
 def get_interp_coeffs(tot_coeff_co2):
     interp_coeffs = dict()
     for tip in ['unifit', 'varfit']:
-        co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,7)]
+        co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
         for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-            coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,7)]
+            coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,8)]
 
             int_fun, signc = interp_coeff_logco2(coeffs, co2profs)
             interp_coeffs[(tip, nam, 'int_fun')] = int_fun

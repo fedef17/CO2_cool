@@ -308,7 +308,7 @@ cco2 = 1
 # tutti_cycle = dict()
 # best = dict()
 #
-# for cco2 in range(1,7):
+# for cco2 in range(1,8):
 #     estval = 19
 #     estval2 = 1
 #     estval3 = 10
@@ -399,7 +399,7 @@ for cco2 in range(cco2_start, 7):
             estval, estval2, estval3, estval4 = keok[[0,1,3,4]]
             best_atx0[(cco2, ialt)] = np.array(keok)
 
-for cco2 in range(1,7):
+for cco2 in range(1,8):
     su = 0.
     for ialt in range(n_alts, 66):
         xis = best_atx0[(cco2, ialt)]

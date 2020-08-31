@@ -85,9 +85,9 @@ figs2 = []
 a0s = []
 a1s = []
 
-co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,7)]
+co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
-for cco2 in range(1,7):
+for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
 
     for atm in allatms:
@@ -142,7 +142,7 @@ npl.adjust_ax_scale(a1s)
 npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_LEASTSQUARES_v2.pdf', figs2)
 
 
-for cco2 in range(1,7):
+for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
 
     for atm in allatms:
