@@ -70,7 +70,7 @@ for atm in allatms:
     for cco2 in allco2:
         print(atm, cco2)
         atmalts, atmtemp, atmpres = sbm.read_input_atm_man(cartatm+filatm.format(atm))
-        atmalts, mol_vmr = sbm.read_input_vmr_man(cartatm+filvmr.format(atm, cco2))
+        atmalts, mol_vmr, _, _ = sbm.read_input_vmr_man(cartatm+filvmr.format(atm, cco2))
 
         coso = io.readsav(cartsav+filsav.format(atm, cco2))['data']
         nomi = coso.dtype.names
