@@ -40,7 +40,7 @@ atmweigths = dict(zip(allatms, atmweigths))
 atmweigths2 = np.ones(6)/6.
 atmweigths2 = dict(zip(allatms, atmweigths2))
 
-allco2 = np.arange(1,7)
+allco2 = np.arange(1,8)
 
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))

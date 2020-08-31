@@ -43,7 +43,7 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,7)
+allco2 = np.arange(1,8)
 
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))

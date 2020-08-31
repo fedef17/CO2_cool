@@ -61,7 +61,7 @@ all_total_strengths = pickle.load(open(cart_out + 'line_strengths_CO2.p'))
 atm = 'mle'
 cco2 = 1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
-allco2 = np.arange(1,7)
+allco2 = np.arange(1,8)
 
 all_coeffs = dict()
 atm_pt = dict()
