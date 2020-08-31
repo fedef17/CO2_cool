@@ -13,13 +13,13 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-if socket.gethostname() == 'ff-clevo':
+if os.uname()[1] == 'ff-clevo':
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
     cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
     cartsav = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/sav/'
     cartatm = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/atm/'
-elif socket.gethostname() == 'hobbes':
+elif os.uname()[1] == 'hobbes':
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
     cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'

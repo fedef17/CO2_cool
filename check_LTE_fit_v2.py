@@ -14,9 +14,9 @@ import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
 
-import socket
 
-if socket.gethostname() == 'ff-clevo':
+
+if os.uname()[1] == 'ff-clevo':
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
     cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
