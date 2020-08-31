@@ -260,6 +260,7 @@ for atm in allatms:
         all_coeffs[(atm, cco2, 'A_cm')] = A_cm
         all_coeffs[(atm, cco2, 'A_surf')] = A_surf
         all_coeffs[(atm, cco2, 'hr_ref')] = hr_sum
+        all_coeffs[(atm, cco2, 'lspace')] = lspace
 
 pickle.dump(all_coeffs, open(cart_out + 'all_coeffs_LTE_v2.p', 'w'))
 pickle.dump(atm_pt, open(cart_out + 'atm_pt_v2.p', 'w'))
