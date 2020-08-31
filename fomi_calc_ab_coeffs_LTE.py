@@ -23,7 +23,7 @@ elif os.uname()[1] == 'hobbes':
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
     cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cartatm = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sent6_cm_v3/atm/'
+    cartatm = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sent6_cm_v3/atm/cira_v3/'
     cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sent6_cm_v3/sav_v3/'
 
 import spect_base_module as sbm
