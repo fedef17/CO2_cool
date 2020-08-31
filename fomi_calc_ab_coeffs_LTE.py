@@ -13,8 +13,19 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/spect_robot/')
-sys.path.insert(0, '/home/fedefab/Scrivania/Research/Dotto/Git/pythall/')
+if socket.gethostname() == 'ff-clevo':
+    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
+    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
+    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+    cartsav = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/sav/'
+    cartatm = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/atm/'
+elif socket.gethostname() == 'hobbes':
+    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
+    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
+    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+    cartatm = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sent6_cm_v3/atm/'
+    cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sent6_cm_v3/sav_v3/'
+
 import spect_base_module as sbm
 import spect_classes as spcl
 
@@ -24,10 +35,6 @@ kboltz = 1.38064853e-23 # J/K
 cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 #############################################################
 ###################################################################
-
-cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
-cartsav = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/sav/'
-cartatm = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/atm/'
 
 filsav = 'data_cira_{}_co2_{}.sav'
 filvmr = 'vmr_cira_{}_co2_{}.prf'
@@ -254,8 +261,8 @@ for atm in allatms:
         all_coeffs[(atm, cco2, 'A_surf')] = A_surf
         all_coeffs[(atm, cco2, 'hr_ref')] = hr_sum
 
-pickle.dump(all_coeffs, open(cart_out + 'all_coeffs_LTE_v1.p', 'w'))
-pickle.dump(atm_pt, open(cart_out + 'atm_pt.p', 'w'))
+pickle.dump(all_coeffs, open(cart_out + 'all_coeffs_LTE_v2.p', 'w'))
+pickle.dump(atm_pt, open(cart_out + 'atm_pt_v2.p', 'w'))
 
 # STEP 4 pagina 511: facciamo la media pesata tra le diverse atmosfere
 # new_file

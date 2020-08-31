@@ -42,8 +42,8 @@ atmweigths2 = dict(zip(allatms, atmweigths2))
 
 allco2 = np.arange(1,7)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v1.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 n_alts = 40
 
 from scipy.optimize import Bounds, minimize, least_squares
