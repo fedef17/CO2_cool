@@ -30,4 +30,4 @@ Lista files vari:
 Per la param LTE:
 1 - fomi_calc_ab_coeffs_LTE.py
 2 - fomi_multiatmco2_ab_LTE_v3.py
-3 - check_LTE_fit_V2.py
+3 - check_LTE_fit_v2.py

@@ -45,12 +45,6 @@ atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 
 n_alts = 54
 
-best_unif = pickle.load(open(cart_out+'best_uniform_allco2.p'))
-best_unif_v2 = pickle.load(open(cart_out+'best_uniform_allco2_v2.p'))
-best_var = pickle.load(open(cart_out+'best_atx0_allco2.p'))
-
-best_var.update(pickle.load(open(cart_out+'best_atx0_allco2_High.p')))
-
 all_alts = atm_pt[('mle', 'alts')]
 alts = atm_pt[('mle', 'alts')][:n_alts]
 
@@ -62,8 +56,8 @@ a1s = []
 
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
 
-varfit_xis = pickle.load(open(cart_out+'varfit_LTE_v2.p', 'rb'))
-varfit_xis_2 = pickle.load(open(cart_out+'varfit_LTE_v3.p', 'rb'))
+varfit_xis = pickle.load(open(cart_out+'varfit_LTE_v2b.p', 'rb'))
+varfit_xis_2 = pickle.load(open(cart_out+'varfit_LTE_v3b.p', 'rb'))
 
 for cco2 in allco2:
     acoeff, bcoeff = npl.ab_from_xi_varfit(varfit_xis, cco2)

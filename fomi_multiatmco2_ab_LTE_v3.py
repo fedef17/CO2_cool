@@ -79,5 +79,5 @@ for cco2 in range(1, 7):
         varfit_xis_2[(cco2, ialt)] = result.x
 
 print('######################################################')
-pickle.dump(varfit_xis, open(cart_out+'varfit_LTE_v2.p', 'wb'))
-pickle.dump(varfit_xis_2, open(cart_out+'varfit_LTE_v3.p', 'wb'))
+pickle.dump(varfit_xis, open(cart_out+'varfit_LTE_v2b.p', 'wb'))
+pickle.dump(varfit_xis_2, open(cart_out+'varfit_LTE_v3b.p', 'wb'))
