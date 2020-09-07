@@ -53,6 +53,7 @@ a0s = []
 a1s = []
 
 tot_coeff_co2_old = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
+tot_coeff_co2 = dict()
 
 varfit_xis = pickle.load(open(cart_out+'varfit_LTE_v2b.p', 'rb'))
 varfit_xis_2 = pickle.load(open(cart_out+'varfit_LTE_v3b.p', 'rb'))
