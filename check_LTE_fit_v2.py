@@ -14,8 +14,6 @@ import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
 
-
-
 if os.uname()[1] == 'ff-clevo':
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
@@ -54,7 +52,7 @@ figs = []
 a0s = []
 a1s = []
 
-tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
+tot_coeff_co2_old = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
 
 varfit_xis = pickle.load(open(cart_out+'varfit_LTE_v2b.p', 'rb'))
 varfit_xis_2 = pickle.load(open(cart_out+'varfit_LTE_v3b.p', 'rb'))
@@ -75,6 +73,14 @@ for cco2 in allco2:
     tot_coeff_co2[('varfit3', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit3', 'asurf', cco2)] = asurf
     tot_coeff_co2[('varfit3', 'bsurf', cco2)] = bsurf
+
+    # PATCH: the old version only had 6 co2 profiles, setting the lowest profile to nan
+    for cotip in ['unifit', 'varfit']:
+        for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+            if cco2 == 1:
+                tot_coeff_co2[(cotip, conam, cco2)] = np.nan * tot_coeff_co2_old[(cotip, conam, 1)]
+            else:
+                tot_coeff_co2[(cotip, conam, cco2)] = tot_coeff_co2_old[(cotip, conam, cco2-1)]
 
 pickle.dump(tot_coeff_co2, open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'wb'))
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
