@@ -237,11 +237,10 @@ def coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = None, all_coeffs = all_coef
     if cnam is None:
         raise ValueError('Specify coeff setting cnam')
 
-    a_somma = 0. * all_coeffs[(allatms[0], 1, cnam)]
+    a_somma = 0. * all_coeffs[(allatms[0], 1, cnam)][..., 0]
     for atmprim, xi in zip(allatms, xis):
-        acoeff = all_coeffs[(atmprim, cco2, cnam)]
+        acoeff = all_coeffs[(atmprim, cco2, cnam)][..., ialt]
         a_somma += xi * acoeff
-        print(cnam, acoeff)
 
     a_somma = a_somma/np.sum(xis)
 
@@ -769,6 +768,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
             print(np.sqrt(atmweigths[allatms[i]])/np.sum(xis))
 
             J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * ajac
+            sys.exit()
 
     return J
 
