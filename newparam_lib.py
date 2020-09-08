@@ -230,6 +230,23 @@ def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms
     return hr_somma
 
 
+def coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = None, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
+    """
+    Calculates the acoeff/asurf/bcoeff/bsurf from the respective coeffs of the different atmospheres, using the weights xis.
+    """
+    if cnam is None:
+        raise ValueError('Specify coeff setting cnam')
+
+    a_somma = 0. * all_coeffs[(allatms[0], 1, cnam)]
+    for atmprim, xi in zip(allatms, xis):
+        acoeff = all_coeffs[(atmprim, cco2, cnam)]
+        a_somma += xi * acoeff
+
+    a_somma = a_somma/np.sum(xis)
+
+    return a_somma
+
+
 def hr_from_xi_at_x0(xis, atm, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis.
@@ -252,6 +269,50 @@ def hr_from_xi_at_x0(xis, atm, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm
     hr_somma = hr_somma/np.sum(xis)
 
     return hr_somma
+
+
+def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
+    """
+    Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
+    """
+    temp = atm_pt[(atm, 'temp')]
+    surf_temp = atm_pt[(atm, 'surf_temp')]
+
+    agn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'acoeff')
+    agn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'asurf')
+
+    if xis_b is None:
+        bcoeff = all_coeffs[(atm, cco2, 'bcoeff')]
+        bsurf = all_coeffs[(atm, cco2, 'bsurf')]
+    else:
+        bcoeff = coeff_from_xi_at_x0(xis_b, atm, cco2, ialt, cnam = 'bcoeff')
+        bsurf = coeff_from_xi_at_x0(xis_b, atm, cco2, ialt, cnam = 'bsurf')
+
+    h_ab = hr_from_ab_at_x0(agn, bcoeff, agn_surf, bsurf, temp, surf_temp, ialt)
+
+    return h_ab
+
+
+def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
+    """
+    Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
+    """
+    temp = atm_pt[(atm, 'temp')]
+    surf_temp = atm_pt[(atm, 'surf_temp')]
+
+    bgn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bcoeff')
+    bgn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bsurf')
+
+    if xis_a is None:
+        acoeff = all_coeffs[(atm, cco2, 'acoeff')]
+        asurf = all_coeffs[(atm, cco2, 'asurf')]
+    else:
+        acoeff = coeff_from_xi_at_x0(xis_a, atm, cco2, ialt, cnam = 'acoeff')
+        asurf = coeff_from_xi_at_x0(xis_a, atm, cco2, ialt, cnam = 'asurf')
+
+    h_ab = hr_from_ab_at_x0(acoeff, bgn, asurf, bgn_surf, temp, surf_temp, ialt)
+
+    return h_ab
 
 
 def ab_from_xi_unifit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms):
@@ -577,6 +638,40 @@ def delta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_co
 
     return fu
 
+
+def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+    """
+    This is done for a single altitude x0.
+    The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
+    """
+
+    fu = np.zeros(len(allatms))
+    for i, atm in enumerate(allatms):
+        hr = all_coeffs[(atm, cco2, 'hr_ref')][ialt]
+        hr_somma = hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b)
+
+        # atmweights will be squared by the loss function inside least_quares
+        fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
+
+    return fu
+
+
+def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+    """
+    This is done for a single altitude x0.
+    The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
+    """
+
+    fu = np.zeros(len(allatms))
+    for i, atm in enumerate(allatms):
+        hr = all_coeffs[(atm, cco2, 'hr_ref')][ialt]
+        hr_somma = hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a)
+
+        # atmweights will be squared by the loss function inside least_quares
+        fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
+
+    return fu
+
 #
 # def lossfu(resi, atmweigths = atmweigths):
 #     """
@@ -637,6 +732,66 @@ def jacdelta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all
             bsurf = all_coeffs[(allatms[k], cco2, 'bsurf')]
             J[i,k] = atmweigths[allatms[i]]/np.sum(xis) * (hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, ialt) - hr_from_xi(xis, allatms[i], cco2)[ialt])
             #J[i,k] = atmweigths[allatms[i]] * hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, ialt)
+
+    return J
+
+
+def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+    """
+    Jacobian of delta_xi_at_x0_afit.
+    xis_b is not used, but the code expects the same parameters that are used by delta_xi_at_x0_afit
+    """
+
+    J = np.empty((len(allatms), len(xis)))
+
+    for i in range(len(allatms)):
+        temp = atm_pt[(allatms[i], 'temp')]
+        surf_temp = atm_pt[(allatms[i], 'surf_temp')]
+
+        phi_fun = np.exp(-E_fun/(kbc*temp))
+        phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
+
+        agn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'acoeff')
+        agn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'asurf')
+
+        for k in range(len(xis)):
+            acoeff = all_coeffs[(allatms[k], cco2, 'acoeff')]
+            asurf = all_coeffs[(allatms[k], cco2, 'asurf')]
+
+            ajac = np.sum((acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
+            ajac += (asurf[ialt] - agn_surf) * phi_fun_g
+
+            J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * ajac
+
+    return J
+
+
+def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+    """
+    Jacobian of delta_xi_at_x0_bfit.
+    xis_a is not used, but the code expects the same parameters that are used by delta_xi_at_x0_bfit
+    """
+
+    J = np.empty((len(allatms), len(xis)))
+
+    for i in range(len(allatms)):
+        temp = atm_pt[(allatms[i], 'temp')]
+        surf_temp = atm_pt[(allatms[i], 'surf_temp')]
+
+        phi_fun = np.exp(-E_fun/(kbc*temp))
+        phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
+
+        bgn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bcoeff')
+        bgn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bsurf')
+
+        for k in range(len(xis)):
+            bcoeff = all_coeffs[(allatms[k], cco2, 'bcoeff')]
+            bsurf = all_coeffs[(allatms[k], cco2, 'bsurf')]
+
+            bjac = np.sum((bcoeff[:, ialt] - bgn) * phi_fun) # il contributo della colonna
+            bjac += (bsurf[ialt] - bgn_surf) * phi_fun_g
+
+            J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * phi_fun[ialt] * ajac
 
     return J
 

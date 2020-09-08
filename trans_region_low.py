@@ -52,3 +52,13 @@ tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 
 # Now. We are in the low transition region and need to adjust the LTE coeffs to non-LTE.
 nlte_coeffs = dict()
+
+# per ogni atm faccio:
+a_nlte = a * h_ref/h_lte
+b_nlte = b * h_ref/h_lte
+
+# Poi devo ripetere la roba di fomi_multiatmco2_ab_LTE_v3 per a e b separatamente.
+# Cioè. tengo b della singola atm, b_nlte, e fitto i weights delle diverse atms per a.
+# con questi weights ottengo un a per tutte le atm. Tengo ora fisso questo a e cerco i weights per b. Quindi i weights di a e b saranno diversi.
+
+Mi serve:
