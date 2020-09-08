@@ -762,6 +762,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
             print(ajac)
             print(len(acoeff[:, ialt]), len(agn), len(phi_fun))
             ajac += (asurf[ialt] - agn_surf) * phi_fun_g
+            print(asurf[ialt], agn_surf, phi_fun_g)
             print('aaaaa')
             print(ajac, agn, acoeff[:, ialt], phi_fun)
             print(np.sqrt(atmweigths[allatms[i]])/np.sum(xis))
