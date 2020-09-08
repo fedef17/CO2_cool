@@ -705,7 +705,7 @@ def jacdelta_xi_tot(xis, cco2, n_alts = 40):
     for ialt in range(n_alts):
         alldeltas.append(delta_xi_at_x0(xis, cco2, ialt))
 
-    for i in range(len(allatms)):
+    for i, atm in enumerate(allatms):
         for k in range(len(xis)):
             #print(i,k)
             J[i,k] = 1/(delta[i]) * np.sum([alldeltas[ialt][i]*jacall[i,k,ialt] for ialt in range(n_alts)])
@@ -721,7 +721,7 @@ def jacdelta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all
 
     J = np.empty((len(allatms), len(xis)))
 
-    for i in range(len(allatms)):
+    for i, atm in enumerate(allatms):
         temp = atm_pt[(allatms[i], 'temp')]
         surf_temp = atm_pt[(allatms[i], 'surf_temp')]
 
@@ -744,7 +744,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
 
     J = np.empty((len(allatms), len(xis)))
 
-    for i in range(len(allatms)):
+    for i, atm in enumerate(allatms):
         temp = atm_pt[(allatms[i], 'temp')]
         surf_temp = atm_pt[(allatms[i], 'surf_temp')]
 
@@ -774,7 +774,7 @@ def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_
 
     J = np.empty((len(allatms), len(xis)))
 
-    for i in range(len(allatms)):
+    for i, atm in enumerate(allatms):
         temp = atm_pt[(allatms[i], 'temp')]
         surf_temp = atm_pt[(allatms[i], 'surf_temp')]
 
@@ -803,7 +803,7 @@ def jacdelta_xi_all_x0s_fast(xis, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt
 
     J = np.empty((len(allatms), len(xis), n_alts))
 
-    for i in range(len(allatms)):
+    for i, atm in enumerate(allatms):
         temp = atm_pt[(allatms[i], 'temp')]
         surf_temp = atm_pt[(allatms[i], 'surf_temp')]
 
