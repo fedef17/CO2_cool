@@ -760,6 +760,9 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
 
             ajac = np.sum((acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
             ajac += (asurf[ialt] - agn_surf) * phi_fun_g
+            print('aaaaa')
+            print(ajac)
+            print(np.sqrt(atmweigths[allatms[i]])/np.sum(xis))
 
             J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * ajac
 
