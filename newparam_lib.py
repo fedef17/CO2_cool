@@ -769,16 +769,16 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
             asurf = all_coeffs[(allatms[k], cco2, 'asurf')]
 
             ajac = np.sum((acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
-            print(ajac)
-            print(len(acoeff[:, ialt]), len(agn), len(phi_fun))
-            ajac += (asurf[ialt] - agn_surf) * phi_fun_g
-            print(asurf[ialt], agn_surf, phi_fun_g)
-            print('aaaaa')
-            print(ajac, agn, acoeff[:, ialt], phi_fun)
-            print(np.sqrt(atmweigths[allatms[i]])/np.sum(xis))
+            # print(ajac)
+            # print(len(acoeff[:, ialt]), len(agn), len(phi_fun))
+            # ajac += (asurf[ialt] - agn_surf) * phi_fun_g
+            # print(asurf[ialt], agn_surf, phi_fun_g)
+            # print('aaaaa')
+            # print(ajac, agn, acoeff[:, ialt], phi_fun)
+            # print(np.sqrt(atmweigths[allatms[i]])/np.sum(xis))
 
             J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * ajac
-            sys.exit()
+            # sys.exit()
 
     return J
 
