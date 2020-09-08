@@ -241,6 +241,7 @@ def coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = None, all_coeffs = all_coef
     for atmprim, xi in zip(allatms, xis):
         acoeff = all_coeffs[(atmprim, cco2, cnam)]
         a_somma += xi * acoeff
+        print(cnam, acoeff)
 
     a_somma = a_somma/np.sum(xis)
 
