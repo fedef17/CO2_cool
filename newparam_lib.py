@@ -808,7 +808,7 @@ def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_
             bjac = np.sum((bcoeff[:, ialt] - bgn) * phi_fun) # il contributo della colonna
             bjac += (bsurf[ialt] - bgn_surf) * phi_fun_g
 
-            J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * phi_fun[ialt] * ajac
+            J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * phi_fun[ialt] * bjac
 
     return J
 
