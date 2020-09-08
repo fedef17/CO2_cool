@@ -282,15 +282,20 @@ def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, 
     agn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'asurf')
 
     if xis_b is None:
-        bcoeff = all_coeffs[(atm, cco2, 'bcoeff')]
-        bsurf = all_coeffs[(atm, cco2, 'bsurf')]
+        bcoeff = all_coeffs[(atm, cco2, 'bcoeff')][:, ialt]
+        bsurf = all_coeffs[(atm, cco2, 'bsurf')][ialt]
     else:
         bcoeff = coeff_from_xi_at_x0(xis_b, atm, cco2, ialt, cnam = 'bcoeff')
         bsurf = coeff_from_xi_at_x0(xis_b, atm, cco2, ialt, cnam = 'bsurf')
 
-    h_ab = hr_from_ab_at_x0(agn, bcoeff, agn_surf, bsurf, temp, surf_temp, ialt)
+    phi_fun = np.exp(-E_fun/(kbc*temp))
+    phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
-    return h_ab
+    # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
+    epsilon_ab_tot = np.sum((agn + bcoeff* phi_fun[ialt]) * phi_fun) # il contributo della colonna
+    epsilon_ab_tot += (agn_surf + bsurf* phi_fun[ialt]) * phi_fun_g
+
+    return epsilon_ab_tot
 
 
 def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
@@ -310,9 +315,14 @@ def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, 
         acoeff = coeff_from_xi_at_x0(xis_a, atm, cco2, ialt, cnam = 'acoeff')
         asurf = coeff_from_xi_at_x0(xis_a, atm, cco2, ialt, cnam = 'asurf')
 
-    h_ab = hr_from_ab_at_x0(acoeff, bgn, asurf, bgn_surf, temp, surf_temp, ialt)
+    phi_fun = np.exp(-E_fun/(kbc*temp))
+    phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
-    return h_ab
+    # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
+    epsilon_ab_tot = np.sum((acoeff + bgn* phi_fun[ialt]) * phi_fun) # il contributo della colonna
+    epsilon_ab_tot += (asurf + bgn_surf* phi_fun[ialt]) * phi_fun_g
+
+    return epsilon_ab_tot
 
 
 def ab_from_xi_unifit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms):
