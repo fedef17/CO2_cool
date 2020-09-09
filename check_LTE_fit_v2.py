@@ -178,7 +178,15 @@ for sco in ['lte', 'lte+trans']:
         allsco.append(np.nanmean(fit_score[(tip, sco)]))
         print(tip, sco, np.mean(fit_score[(tip, sco)]), np.nanmean(fit_score[(tip, sco)]))
 
-    print('BEST TIP: ', tip[np.argmin(allsco)], '\n')
+    print('BEST TIP: ', alltips[np.argmin(allsco)], '\n')
+
+    allsco = []
+    for tip in alltips:
+        allsco.append(np.nanmean(fit_score[(tip, sco)][-2:]))
+        print(tip, sco, np.mean(fit_score[(tip, sco)][-2:]), np.nanmean(fit_score[(tip, sco)][-2:]))
+
+    print('BEST TIP FOR SAS/SAW: ', alltips[np.argmin(allsco)], '\n')
+
 
 for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
