@@ -113,7 +113,8 @@ fit_score = dict()
 alltips = ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']
 for tip in alltips:
     for sco in ['lte', 'lte+trans']:
-        fit_score[(tip, sco)] = []
+        for cos in ['std', 'max']:
+            fit_score[(tip, sco, cos)] = []
 
 for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
@@ -137,8 +138,11 @@ for cco2 in range(1,8):
 
             hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
             hr_calcs.append(hr_calc)
-            fit_score[(tip, 'lte')].append(np.sqrt(np.mean((hr_calc[:n_alts_lte]-hr_ref[:n_alts_lte])**2)))
-            fit_score[(tip, 'lte+trans')].append(np.sqrt(np.mean((hr_calc-hr_ref)**2)))
+            fit_score[(tip, 'lte', 'std')].append(np.sqrt(np.mean((hr_calc[:n_alts_lte]-hr_ref[:n_alts_lte])**2)))
+            fit_score[(tip, 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_calc-hr_ref)**2)))
+
+            fit_score[(tip, 'lte', 'max')].append(np.max(np.abs(hr_calc[:n_alts_lte]-hr_ref[:n_alts_lte])))
+            fit_score[(tip, 'lte+trans', 'max')].append(np.max(np.abs(hr_calc-hr_ref)))
 
         # pres = atm_pt[(atm, 'pres')]
         # print(np.median(co2pr))
@@ -171,22 +175,36 @@ npl.adjust_ax_scale(a1s)
 
 npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_LEASTSQUARES_v3_abfit.pdf', figs2)
 
-for sco in ['lte', 'lte+trans']:
-    print('---------------- \n')
-    print(sco + ' region \n')
-    allsco = []
-    for tip in alltips:
-        allsco.append(np.nanmean(fit_score[(tip, sco)]))
-        print('{} {}: {:6.3f}'.format(tip, sco, np.nanmean(fit_score[(tip, sco)])))
+for cos in ['std', 'max']:
+    if cos == 'std':
+        print('Average stddev of param in region.\n')
+    else:
+        print('Max absolute error of param in region.\n')
 
-    print('BEST TIP: {} \n'.format(alltips[np.argmin(allsco)]))
+    for sco in ['lte', 'lte+trans']:
+        print('---------------- \n')
+        print(sco + ' region \n')
+        allsco = []
+        for tip in alltips:
+            if cos == 'std':
+                allsco.append(np.nanmean(fit_score[(tip, sco)]))
+                print('{} {}: {:6.3f} K'.format(tip, sco, allsco[-1]))
+            else:
+                allsco.append(np.nanmax(fit_score[(tip, sco)]))
+                print('{} {}: {:6.3f} K'.format(tip, sco, allsco[-1]))
 
-    allsco = []
-    for tip in alltips:
-        allsco.append(np.nanmean(fit_score[(tip, sco)][-2:]))
-        print('{} {}: {:6.3f}'.format(tip, sco, np.nanmean(fit_score[(tip, sco)][-2:])))
+        print('BEST TIP: {} \n'.format(alltips[np.argmin(allsco)]))
 
-    print('BEST TIP FOR SAS and SAW: {} \n'.format(alltips[np.argmin(allsco)]))
+        allsco = []
+        for tip in alltips:
+            if cos == 'std':
+                allsco.append(np.nanmean(fit_score[(tip, sco)][-2:]))
+                print('{} {}: {:6.3f}'.format(tip, sco, allsco[-1]))
+            else:
+                allsco.append(np.nanmax(fit_score[(tip, sco)][-2:]))
+                print('{} {}: {:6.3f}'.format(tip, sco, allsco[-1]))
+
+        print('BEST TIP FOR SAS and SAW: {} \n'.format(alltips[np.argmin(allsco)]))
 
 
 for cco2 in range(1,8):
