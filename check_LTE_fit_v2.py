@@ -172,7 +172,8 @@ npl.adjust_ax_scale(a1s)
 npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_LEASTSQUARES_v3_abfit.pdf', figs2)
 
 for sco in ['lte', 'lte+trans']:
-    print(sco)
+    print('---------------- \n')
+    print(sco + ' region \n')
     allsco = []
     for tip in alltips:
         allsco.append(np.nanmean(fit_score[(tip, sco)]))
@@ -185,7 +186,7 @@ for sco in ['lte', 'lte+trans']:
         allsco.append(np.nanmean(fit_score[(tip, sco)][-2:]))
         print('{} {}: {:6.3f}'.format(tip, sco, np.nanmean(fit_score[(tip, sco)][-2:])))
 
-    print('BEST TIP: {} \n'.format(alltips[np.argmin(allsco)]))
+    print('BEST TIP FOR SAS and SAW: {} \n'.format(alltips[np.argmin(allsco)]))
 
 
 for cco2 in range(1,8):
