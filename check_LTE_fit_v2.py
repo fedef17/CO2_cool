@@ -109,6 +109,12 @@ a1s = []
 
 co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
+fit_score = dict()
+alltips = ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']
+for tip in alltips:
+    for sco in ['lte', 'lte+trans']:
+        fit_score[(tip, sco)] = []
+
 for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
 
@@ -131,6 +137,8 @@ for cco2 in range(1,8):
 
             hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
             hr_calcs.append(hr_calc)
+            fit_score[(tip, 'lte')].append(np.sqrt(np.mean((hr_calc[:n_alts_lte]-hr_ref[:n_alts_lte])**2)))
+            fit_score[(tip, 'lte+trans')].append(np.sqrt(np.mean((hr_calc-hr_ref)**2)))
 
         # pres = atm_pt[(atm, 'pres')]
         # print(np.median(co2pr))
@@ -163,6 +171,14 @@ npl.adjust_ax_scale(a1s)
 
 npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_LEASTSQUARES_v3_abfit.pdf', figs2)
 
+for sco in ['lte', 'lte+trans']:
+    print(sco)
+    allsco = []
+    for tip in alltips:
+        allsco.append(np.nanmean(fit_score[(tip, sco)]))
+        print(tip, sco, np.mean(fit_score[(tip, sco)]), np.nanmean(fit_score[(tip, sco)]))
+
+    print('BEST TIP: ', tip[np.argmin(allsco)], '\n')
 
 for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]

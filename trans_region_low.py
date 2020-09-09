@@ -51,11 +51,39 @@ n_alts_lte = 40
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 
 # Now. We are in the low transition region and need to adjust the LTE coeffs to non-LTE.
-nlte_coeffs = dict()
+filsav = 'data_cira_{}_co2_{}.sav'
+all_coeffs_nlte = dict()
+
+for atm in allatms:
+    for cco2 in range(1,8):
+        coso = io.readsav(cartsav+filsav.format(atm, cco2))['data']
+        nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM'
+        nomi = nomi.split()
+        for nom in nomi:
+            all_coeffs_nlte[(atm, cco2, nom.lower())] = getattr(coso, nom)[0]
 
 # per ogni atm faccio:
+for atm in allatms:
+    for cco2 in range(1,8):
+        hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][:n_alts]
+        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')][:n_alts]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')][:n_alts]
+        hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')][:n_alts]
+        hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts]
+
+        hr_calc
+        for tip in ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']:
+        acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
+        bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
+        asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
+        bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
+
+            hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
+        for cnam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*h_ref/h_lte
 a_nlte = a * h_ref/h_lte
 b_nlte = b * h_ref/h_lte
+
+pickle.dump(open(cart_out + 'all_coeffs_NLTE.p', 'wb'))
 
 # Poi devo ripetere la roba di fomi_multiatmco2_ab_LTE_v3 per a e b separatamente.
 # Cioè. tengo b della singola atm, b_nlte, e fitto i weights delle diverse atms per a.
