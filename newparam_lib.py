@@ -230,7 +230,7 @@ def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms
     return hr_somma
 
 
-def coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = None, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
+def coeff_from_xi_at_x0(xis, cco2, ialt, cnam = None, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
     """
     Calculates the acoeff/asurf/bcoeff/bsurf from the respective coeffs of the different atmospheres, using the weights xis.
     """
@@ -278,15 +278,15 @@ def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, 
     temp = atm_pt[(atm, 'temp')]
     surf_temp = atm_pt[(atm, 'surf_temp')]
 
-    agn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'acoeff')
-    agn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'asurf')
+    agn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'acoeff')
+    agn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'asurf')
 
     if xis_b is None:
         bcoeff = all_coeffs[(atm, cco2, 'bcoeff')][:, ialt]
         bsurf = all_coeffs[(atm, cco2, 'bsurf')][ialt]
     else:
-        bcoeff = coeff_from_xi_at_x0(xis_b, atm, cco2, ialt, cnam = 'bcoeff')
-        bsurf = coeff_from_xi_at_x0(xis_b, atm, cco2, ialt, cnam = 'bsurf')
+        bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff')
+        bsurf = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf')
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
@@ -305,15 +305,15 @@ def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, 
     temp = atm_pt[(atm, 'temp')]
     surf_temp = atm_pt[(atm, 'surf_temp')]
 
-    bgn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bcoeff')
-    bgn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bsurf')
+    bgn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bcoeff')
+    bgn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bsurf')
 
     if xis_a is None:
         acoeff = all_coeffs[(atm, cco2, 'acoeff')]
         asurf = all_coeffs[(atm, cco2, 'asurf')]
     else:
-        acoeff = coeff_from_xi_at_x0(xis_a, atm, cco2, ialt, cnam = 'acoeff')
-        asurf = coeff_from_xi_at_x0(xis_a, atm, cco2, ialt, cnam = 'asurf')
+        acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff')
+        asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf')
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
@@ -366,6 +366,38 @@ def absurf_from_xi_unifit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms)
         bsurftot += xi*bsurf
 
     return asurftot, bsurftot
+
+
+def ab_from_xi_abfit(xis_ab, cco2, all_coeffs = all_coeffs, allatms = allatms):
+    """
+    Calculates the fitted acoeff and bcoeff, using the weights xis_a and xis_b.
+
+    xis is a dict with keys (cco2, ialt).
+    """
+
+    acoeff = all_coeffs[('mle', 1, 'acoeff')]
+    agn = np.zeros(acoeff.shape)
+    bgn = np.zeros(acoeff.shape)
+    asurf = all_coeffs[('mle', 1, 'asurf')]
+    agn_surf = np.zeros(asurf.shape)
+    bgn_surf = np.zeros(asurf.shape)
+
+    nalt = acoeff.shape[1]
+    for ialt in range(nalt):
+        xis_a = xis_ab[(cco2, ialt, 'afit')]/np.sum(xis_ab[(cco2, ialt, 'afit')])
+        xis_b = xis_ab[(cco2, ialt, 'bfit')]/np.sum(xis_ab[(cco2, ialt, 'bfit')])
+
+        acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff')
+        asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf')
+        bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff')
+        bsurf = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf')
+
+        agn[:, ialt] = acoeff
+        agn_surf[ialt] = asurf
+        bgn[:, ialt] = bcoeff
+        bgn_surf[ialt] = bsurf
+
+    return agn, bgn, agn_surf, bgn_surf
 
 
 def ab_from_xi_varfit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms):
@@ -761,8 +793,8 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
         phi_fun = np.exp(-E_fun/(kbc*temp))
         phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
-        agn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'acoeff')
-        agn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'asurf')
+        agn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'acoeff')
+        agn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'asurf')
 
         for k in range(len(xis)):
             acoeff = all_coeffs[(allatms[k], cco2, 'acoeff')]
@@ -798,8 +830,8 @@ def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_
         phi_fun = np.exp(-E_fun/(kbc*temp))
         phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
-        bgn = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bcoeff')
-        bgn_surf = coeff_from_xi_at_x0(xis, atm, cco2, ialt, cnam = 'bsurf')
+        bgn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bcoeff')
+        bgn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bsurf')
 
         for k in range(len(xis)):
             bcoeff = all_coeffs[(allatms[k], cco2, 'bcoeff')]

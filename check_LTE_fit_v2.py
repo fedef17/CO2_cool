@@ -58,6 +58,9 @@ tot_coeff_co2 = dict()
 varfit_xis = pickle.load(open(cart_out+'varfit_LTE_v2b.p', 'rb'))
 varfit_xis_2 = pickle.load(open(cart_out+'varfit_LTE_v3b.p', 'rb'))
 
+varfit_xis_4 = pickle.load(open(cart_out+'varfit_LTE_v4.p', 'rb'))
+varfit_xis_5 = pickle.load(open(cart_out+'varfit_LTE_v5.p', 'rb'))
+
 for cco2 in allco2:
     acoeff, bcoeff = npl.ab_from_xi_varfit(varfit_xis, cco2)
     asurf, bsurf = npl.absurf_from_xi_varfit(varfit_xis, cco2)
@@ -82,6 +85,18 @@ for cco2 in allco2:
                 tot_coeff_co2[(cotip, conam, cco2)] = np.nan * tot_coeff_co2_old[(cotip, conam, 1)]
             else:
                 tot_coeff_co2[(cotip, conam, cco2)] = tot_coeff_co2_old[(cotip, conam, cco2-1)]
+
+    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit(varfit_xis_4, cco2)
+    tot_coeff_co2[('varfit4', 'acoeff', cco2)] = acoeff
+    tot_coeff_co2[('varfit4', 'bcoeff', cco2)] = bcoeff
+    tot_coeff_co2[('varfit4', 'asurf', cco2)] = asurf
+    tot_coeff_co2[('varfit4', 'bsurf', cco2)] = bsurf
+
+    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit(varfit_xis_5, cco2)
+    tot_coeff_co2[('varfit5', 'acoeff', cco2)] = acoeff
+    tot_coeff_co2[('varfit5', 'bcoeff', cco2)] = bcoeff
+    tot_coeff_co2[('varfit5', 'asurf', cco2)] = asurf
+    tot_coeff_co2[('varfit5', 'bsurf', cco2)] = bsurf
 
 pickle.dump(tot_coeff_co2, open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'wb'))
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
@@ -108,7 +123,7 @@ for cco2 in range(1,8):
         hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
 
         hr_calcs = []
-        for tip in ['unifit', 'varfit', 'varfit2', 'varfit3']:
+        for tip in ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']:
             acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
             bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
             asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
@@ -135,7 +150,7 @@ for cco2 in range(1,8):
         # a1s.append(a1)
 
         hrs = [hr_ref] + hr_calcs
-        labels = ['ref', 'unifit', 'varfit', 'varfit2', 'varfit3']
+        labels = ['ref', 'unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
 
         figs2.append(fig)
@@ -146,7 +161,7 @@ npl.adjust_ax_scale(a0s)
 npl.adjust_ax_scale(a1s)
 # npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_newvsold.pdf', figs)
 
-npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_LEASTSQUARES_v2.pdf', figs2)
+npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_LEASTSQUARES_v3_abfit.pdf', figs2)
 
 
 for cco2 in range(1,8):
