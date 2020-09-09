@@ -188,10 +188,10 @@ for cos in ['std', 'max']:
         for tip in alltips:
             if cos == 'std':
                 allsco.append(np.nanmean(fit_score[(tip, sco, cos)]))
-                print('{} {}: {:6.3f} K'.format(tip, sco, cos, allsco[-1]))
+                print('{} {}: {:6.3f} K'.format(tip, sco, allsco[-1]))
             else:
                 allsco.append(np.nanmax(fit_score[(tip, sco, cos)]))
-                print('{} {}: {:6.3f} K'.format(tip, sco, cos, allsco[-1]))
+                print('{} {}: {:6.3f} K'.format(tip, sco, allsco[-1]))
 
         print('BEST TIP: {} \n'.format(alltips[np.argmin(allsco)]))
 
@@ -199,10 +199,10 @@ for cos in ['std', 'max']:
         for tip in alltips:
             if cos == 'std':
                 allsco.append(np.nanmean(fit_score[(tip, sco, cos)][-2:]))
-                print('{} {}: {:6.3f}'.format(tip, sco, cos, allsco[-1]))
+                print('{} {}: {:6.3f} K'.format(tip, sco, allsco[-1]))
             else:
                 allsco.append(np.nanmax(fit_score[(tip, sco, cos)][-2:]))
-                print('{} {}: {:6.3f}'.format(tip, sco, cos, allsco[-1]))
+                print('{} {}: {:6.3f} K'.format(tip, sco, allsco[-1]))
 
         print('BEST TIP FOR SAS and SAW: {} \n'.format(alltips[np.argmin(allsco)]))
 
