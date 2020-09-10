@@ -62,7 +62,11 @@ for atm in allatms:
         nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM'
         nomi = nomi.split()
         for nom in nomi:
-            all_coeffs_nlte[(atm, cco2, nom.lower())] = getattr(coso, nom)[0]
+            vara = getattr(coso, nom)[0]
+            if 'HR' in nom:
+                all_coeffs_nlte[(atm, cco2, nom.lower())] = -vara
+            else:
+                all_coeffs_nlte[(atm, cco2, nom.lower())] = vara
 
 # per ogni atm faccio:
 for atm in allatms:
