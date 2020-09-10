@@ -22,6 +22,7 @@ else:
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
     cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
 
 import newparam_lib as npl
 
@@ -66,27 +67,21 @@ for atm in allatms:
 for atm in allatms:
     for cco2 in range(1,8):
         hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][:n_alts]
-        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')][:n_alts]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')][:n_alts]
+        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')][:n_alts]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')][:n_alts])
         hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')][:n_alts]
         hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts]
 
-        hr_calc
-        for tip in ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']:
-        acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
-        bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
-        asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
-        bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
+        # for cnam in ['acoeff', 'asurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_fun/hr_lte
+        # for cnam in ['bcoeff', 'bsurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_hot/hr_lte
 
-            hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
-        for cnam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*h_ref/h_lte
-a_nlte = a * h_ref/h_lte
-b_nlte = b * h_ref/h_lte
+        for cnam in ['acoeff', 'asurf', 'bcoeff', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte/hr_lte
 
-pickle.dump(open(cart_out + 'all_coeffs_NLTE.p', 'wb'))
+pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
+all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
-# Poi devo ripetere la roba di fomi_multiatmco2_ab_LTE_v3 per a e b separatamente.
+# Poi devo ripetere la roba di fomi_multiatmco2_ab_LTE_v4 per a e b separatamente.
 # Cioè. tengo b della singola atm, b_nlte, e fitto i weights delle diverse atms per a.
 # con questi weights ottengo un a per tutte le atm. Tengo ora fisso questo a e cerco i weights per b. Quindi i weights di a e b saranno diversi.
-
-Mi serve:

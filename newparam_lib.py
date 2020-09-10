@@ -681,7 +681,7 @@ def delta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_co
     return fu
 
 
-def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -689,8 +689,8 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
-        hr = all_coeffs[(atm, cco2, 'hr_ref')][ialt]
-        hr_somma = hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b)
+        hr = all_coeffs[(atm, cco2, hr_ref_nam)][ialt]
+        hr_somma = hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs)
 
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
@@ -698,7 +698,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
     return fu
 
 
-def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -706,8 +706,8 @@ def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coe
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
-        hr = all_coeffs[(atm, cco2, 'hr_ref')][ialt]
-        hr_somma = hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a)
+        hr = all_coeffs[(atm, cco2, hr_ref_nam)][ialt]
+        hr_somma = hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs)
 
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
@@ -778,7 +778,7 @@ def jacdelta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all
     return J
 
 
-def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
     """
     Jacobian of delta_xi_at_x0_afit.
     xis_b is not used, but the code expects the same parameters that are used by delta_xi_at_x0_afit
@@ -793,8 +793,8 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
         phi_fun = np.exp(-E_fun/(kbc*temp))
         phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
-        agn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'acoeff')
-        agn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'asurf')
+        agn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
+        agn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
 
         for k in range(len(xis)):
             acoeff = all_coeffs[(allatms[k], cco2, 'acoeff')]
@@ -815,7 +815,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
     return J
 
 
-def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, atm_pt = atm_pt):
+def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
     """
     Jacobian of delta_xi_at_x0_bfit.
     xis_a is not used, but the code expects the same parameters that are used by delta_xi_at_x0_bfit
@@ -830,8 +830,8 @@ def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_
         phi_fun = np.exp(-E_fun/(kbc*temp))
         phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
-        bgn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bcoeff')
-        bgn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bsurf')
+        bgn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
+        bgn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
 
         for k in range(len(xis)):
             bcoeff = all_coeffs[(allatms[k], cco2, 'bcoeff')]
