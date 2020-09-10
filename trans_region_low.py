@@ -53,7 +53,7 @@ tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 
 # Now. We are in the low transition region and need to adjust the LTE coeffs to non-LTE.
 cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sav_v3.2/'
-filsav = 'data_cira_{}_co2_{}.sav'
+filsav = 'cr_nlte_{}_co2_{}.sav'
 all_coeffs_nlte = dict()
 
 for atm in allatms:
