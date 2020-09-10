@@ -67,18 +67,20 @@ for atm in allatms:
 # per ogni atm faccio:
 for atm in allatms:
     for cco2 in range(1,8):
-        hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][:n_alts]
-        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')][:n_alts]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')][:n_alts]
-        hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')][:n_alts]
-        hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts]
+        hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
+        hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
+        hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
 
         # for cnam in ['acoeff', 'asurf']:
         #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_fun/hr_lte
         # for cnam in ['bcoeff', 'bsurf']:
         #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_hot/hr_lte
 
-        for cnam in ['acoeff', 'asurf', 'bcoeff', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte/hr_lte
+        for cnam in ['acoeff', 'bcoeff']:
+            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)[np.newaxis, :]
+        for cnam in ['asurf', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)
 
 pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
