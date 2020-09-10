@@ -29,5 +29,10 @@ Lista files vari:
 
 Per la param LTE:
 1 - fomi_calc_ab_coeffs_LTE.py
-2 - fomi_multiatmco2_ab_LTE_v3.py
-3 - check_LTE_fit_v2.py
+2 - fomi_multiatmco2_ab_LTE_v4.py (was: fomi_multiatmco2_ab_LTE_v3.py) -> varfit4, varfit5
+3 - check_LTE_fit_v2.py -> check_newparam_LTE_final_LEASTSQUARES_v3_abfit.pdf
+
+Per la param NLTE low trans:
+4 - trans_region_low.py -> all_coeffs_NLTE.p
+5 - fomi_multiatmco2_ab_NLTE.py -> varfit4_nlte, varfit5_nlte
+6 - check_NLTE_fit_low.py -> check_newparam_NLTE_lowtrans.pdf
