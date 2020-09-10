@@ -42,6 +42,8 @@ allco2 = np.arange(1,8)
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 
+all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
+
 n_alts = 54
 
 all_alts = atm_pt[('mle', 'alts')]
