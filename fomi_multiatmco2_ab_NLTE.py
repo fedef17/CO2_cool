@@ -65,7 +65,8 @@ allres_varfit = dict()
 varfit_xis = dict()
 varfit_xis_2 = dict()
 
-thresloop = 0.01
+thresloop = 0.001
+nloops = 10
 
 ##### Rescaling both a and b by hr_nlte/hr_lte
 for cco2 in range(1,8):
@@ -75,7 +76,7 @@ for cco2 in range(1,8):
         xis_b = None
 
         # Fomichev's atm weights
-        while doloop and jloop < 5: # loop on a and b fit
+        while doloop and jloop < nloops: # loop on a and b fit
             cnam = 'afit'
             result = least_squares(npl.delta_xi_at_x0_afit, start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
             print(cco2, ialt, cnam, jloop, result.x)
@@ -110,7 +111,7 @@ for cco2 in range(1,8):
         jloop = 1
         xis_b = None
         # Equal atm weights
-        while doloop and jloop < 5: # loop on a and b fit
+        while doloop and jloop < nloops: # loop on a and b fit
             cnam = 'afit'
             result = least_squares(npl.delta_xi_at_x0_afit, np.ones(6), jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
             print(cco2, ialt, cnam, jloop, result.x)

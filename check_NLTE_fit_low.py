@@ -42,12 +42,17 @@ allco2 = np.arange(1,8)
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 
-all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
-
 n_alts = 54
 
 all_alts = atm_pt[('mle', 'alts')]
 alts = atm_pt[('mle', 'alts')][:n_alts]
+
+pres = atm_pt[('mle', 'pres')]
+x = np.log(1000./pres)
+n_alts_trlo = np.sum(x < 12.5)
+print('low trans at {}'.format(alts[n_alts_trlo]))
+
+all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 n_alts_lte = 40
 
@@ -112,11 +117,11 @@ for cco2 in range(1,8):
 
             hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
             hr_calcs.append(hr_calc)
-            fit_score[(tip, 'trans', 'std')].append(np.sqrt(np.mean((hr_calc[n_alts_lte:]-hr_ref[n_alts_lte:])**2)))
-            fit_score[(tip, 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_calc-hr_ref)**2)))
+            fit_score[(tip, 'trans', 'std')].append(np.sqrt(np.mean((hr_calc[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])**2)))
+            fit_score[(tip, 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_calc[:n_alts_trlo]-hr_ref[:n_alts_trlo])**2)))
 
-            fit_score[(tip, 'trans', 'max')].append(np.max(np.abs(hr_calc[n_alts_lte:]-hr_ref[n_alts_lte:])))
-            fit_score[(tip, 'lte+trans', 'max')].append(np.max(np.abs(hr_calc-hr_ref)))
+            fit_score[(tip, 'trans', 'max')].append(np.max(np.abs(hr_calc[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])))
+            fit_score[(tip, 'lte+trans', 'max')].append(np.max(np.abs(hr_calc[:n_alts_trlo]-hr_ref[:n_alts_trlo])))
 
         # pres = atm_pt[(atm, 'pres')]
         # print(np.median(co2pr))
