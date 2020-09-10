@@ -54,8 +54,8 @@ a0s = []
 a1s = []
 
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
-varfit_xis_4_nlte = pickle.load(open(cart_out+'varfit_NLTE_v4.p', 'rb'))
-varfit_xis_5_nlte = pickle.load(open(cart_out+'varfit_NLTE_v5.p', 'rb'))
+varfit_xis_4_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v4.p', 'rb'))
+varfit_xis_5_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v5.p', 'rb'))
 
 for cco2 in allco2:
     acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit(varfit_xis_4_nlte, cco2)
@@ -70,8 +70,8 @@ for cco2 in allco2:
     tot_coeff_co2[('varfit5_nlte', 'asurf', cco2)] = asurf
     tot_coeff_co2[('varfit5_nlte', 'bsurf', cco2)] = bsurf
 
-pickle.dump(tot_coeff_co2, open(cart_out + 'tot_coeffs_co2_NLTE.p', 'wb'))
-tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_NLTE.p', 'rb'))
+pickle.dump(tot_coeff_co2, open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'wb'))
+tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 # poi fai un check please con npl.coeff_from_interp()
 figs = []
@@ -145,7 +145,7 @@ npl.adjust_ax_scale(a0s)
 npl.adjust_ax_scale(a1s)
 # npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_newvsold.pdf', figs)
 
-npl.plot_pdfpages(cart_out + 'check_newparam_NLTE_lowtrans.pdf', figs2)
+npl.plot_pdfpages(cart_out_2 + 'check_newparam_NLTE_lowtrans.pdf', figs2)
 
 for cos in ['std', 'max']:
     if cos == 'std':

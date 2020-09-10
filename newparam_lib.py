@@ -871,7 +871,7 @@ def jacdelta_xi_all_x0s_fast(xis, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt
 
 ###########################################################
 
-def plot_pdfpages(filename, figs, save_single_figs = True, fig_names = None):
+def plot_pdfpages(filename, figs, save_single_figs = False, fig_names = None):
     """
     Saves a list of figures to a pdf file.
     """

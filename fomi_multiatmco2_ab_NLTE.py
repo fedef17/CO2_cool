@@ -102,7 +102,7 @@ for cco2 in range(1,8):
             jloop += 1
 
 print('######################################################')
-pickle.dump(varfit_xis, open(cart_out+'varfit_NLTE_v4.p', 'wb'))
+pickle.dump(varfit_xis, open(cart_out_2+'varfit_NLTE_v4.p', 'wb'))
 
 for cco2 in range(1,8):
     for ialt in range(66):
@@ -137,6 +137,6 @@ for cco2 in range(1,8):
             jloop += 1
 
 print('######################################################')
-pickle.dump(varfit_xis_2, open(cart_out+'varfit_NLTE_v5.p', 'wb'))
+pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 
 ##### Rescaling a hr_nlte_fun+iso/hr_lte_fun+iso and b by hr_nlte_hot/hr_lte_hot ?
