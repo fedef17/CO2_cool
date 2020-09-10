@@ -68,7 +68,7 @@ for atm in allatms:
 for atm in allatms:
     for cco2 in range(1,8):
         hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][:n_alts]
-        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')][:n_alts]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')][:n_alts])
+        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')][:n_alts]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')][:n_alts]
         hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')][:n_alts]
         hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts]
 
