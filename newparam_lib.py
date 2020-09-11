@@ -280,7 +280,8 @@ def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, 
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
-    if NLTE_DEBUG and 'hr_nlte' not in all_coeffs.keys():
+    if NLTE_DEBUG and ('tro', 1, 'hr_nlte') not in all_coeffs.keys():
+        print(all_coeffs.keys())
         raise ValueError('NOT the right coeffs!')
 
     temp = atm_pt[(atm, 'temp')]
@@ -310,7 +311,8 @@ def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, 
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
-    if NLTE_DEBUG and 'hr_nlte' not in all_coeffs.keys():
+    if NLTE_DEBUG and ('tro', 1, 'hr_nlte') not in all_coeffs.keys():
+        print(all_coeffs.keys())
         raise ValueError('NOT the right coeffs!')
 
     temp = atm_pt[(atm, 'temp')]
