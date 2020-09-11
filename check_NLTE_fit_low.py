@@ -139,9 +139,18 @@ for cco2 in range(1,8):
         # figs.append(fig)
         # a0s.append(a0)
         # a1s.append(a1)
+        hr_ab_rescaled = []
+        for pio in ['', '_new']:
+            acoeff_cco2 = all_coeffs_nlte[(atm, cco2, 'acoeff'+pio)]
+            bcoeff_cco2 = all_coeffs_nlte[(atm, cco2, 'bcoeff'+pio)]
+            asurf_cco2 = all_coeffs_nlte[(atm, cco2, 'asurf'+pio)]
+            bsurf_cco2 = all_coeffs_nlte[(atm, cco2, 'bsurf'+pio)]
 
-        hrs = [hr_ref] + hr_calcs
-        labels = ['ref'] + alltips
+            hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
+            hr_ab_rescaled.append(hr_calc)
+
+        hrs = [hr_ref] + hr_calcs + hr_ab_rescaled
+        labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'new rescale (no fit)']
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
 
         figs2.append(fig)
