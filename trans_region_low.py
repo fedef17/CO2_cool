@@ -78,9 +78,9 @@ for atm in allatms:
 
         hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
 
-        for cnam in ['acoeff', 'asurf']:
+        for cnam in ['acoeff', 'bcoeff']:
             all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_fun/hr_lte_fun)[np.newaxis, :]
-        for cnam in ['bcoeff', 'bsurf']:
+        for cnam in ['asurf', 'bsurf']:
             all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_hot/hr_lte_hot)
 
         for cnam in ['acoeff', 'bcoeff']:
