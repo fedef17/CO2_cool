@@ -37,6 +37,8 @@ kboltz = 1.38064853e-23 # J/K
 E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 
 cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
+
+NLTE_DEBUG = True
 #############################################################
 
 
@@ -230,10 +232,13 @@ def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms
     return hr_somma
 
 
-def coeff_from_xi_at_x0(xis, cco2, ialt, cnam = None, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
+def coeff_from_xi_at_x0(xis, cco2, ialt, cnam = None, all_coeffs = None, atm_pt = atm_pt, allatms = allatms):
     """
     Calculates the acoeff/asurf/bcoeff/bsurf from the respective coeffs of the different atmospheres, using the weights xis.
     """
+    if all_coeffs is None:
+        raise ValueError('Specify all_coeffs to use (LTE or NLTE)')
+
     if cnam is None:
         raise ValueError('Specify coeff setting cnam')
 
@@ -275,18 +280,21 @@ def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, 
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
+    if NLTE_DEBUG and 'hr_nlte' not in all_coeffs.keys():
+        raise ValueError('NOT the right coeffs!')
+
     temp = atm_pt[(atm, 'temp')]
     surf_temp = atm_pt[(atm, 'surf_temp')]
 
-    agn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'acoeff')
-    agn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'asurf')
+    agn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
+    agn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
 
     if xis_b is None:
         bcoeff = all_coeffs[(atm, cco2, 'bcoeff')][:, ialt]
         bsurf = all_coeffs[(atm, cco2, 'bsurf')][ialt]
     else:
-        bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff')
-        bsurf = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf')
+        bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
+        bsurf = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
@@ -302,18 +310,21 @@ def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, 
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
+    if NLTE_DEBUG and 'hr_nlte' not in all_coeffs.keys():
+        raise ValueError('NOT the right coeffs!')
+
     temp = atm_pt[(atm, 'temp')]
     surf_temp = atm_pt[(atm, 'surf_temp')]
 
-    bgn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bcoeff')
-    bgn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bsurf')
+    bgn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
+    bgn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
 
     if xis_a is None:
         acoeff = all_coeffs[(atm, cco2, 'acoeff')]
         asurf = all_coeffs[(atm, cco2, 'asurf')]
     else:
-        acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff')
-        asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf')
+        acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
+        asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
@@ -387,10 +398,10 @@ def ab_from_xi_abfit(xis_ab, cco2, all_coeffs = all_coeffs, allatms = allatms):
         xis_a = xis_ab[(cco2, ialt, 'afit')]/np.sum(xis_ab[(cco2, ialt, 'afit')])
         xis_b = xis_ab[(cco2, ialt, 'bfit')]/np.sum(xis_ab[(cco2, ialt, 'bfit')])
 
-        acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff')
-        asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf')
-        bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff')
-        bsurf = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf')
+        acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
+        asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
+        bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
+        bsurf = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
 
         agn[:, ialt] = acoeff
         agn_surf[ialt] = asurf

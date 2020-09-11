@@ -77,9 +77,9 @@ for atm in allatms:
         hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
 
         # for cnam in ['acoeff', 'asurf']:
-        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_fun/hr_lte
+        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_fun/hr_lte 1.0
         # for cnam in ['bcoeff', 'bsurf']:
-        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_hot/hr_lte
+        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*hr_nlte_hot/hr_lte hr_nlte/hr_lte
 
         for cnam in ['acoeff', 'bcoeff']:
             all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)[np.newaxis, :]
