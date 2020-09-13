@@ -61,9 +61,13 @@ a0s = []
 a1s = []
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
+
+cco2 = 4
+
+
 from matplotlib.colors import LogNorm
 fig = plt.figure()
-coef = all_coeffs[('mls', 4, 'acoeff')]
+coef = all_coeffs[('mls', cco2, 'acoeff')]
 plt.imshow(np.abs(coef), norm=LogNorm(vmin=0.01, vmax=20000))
 fig.savefig(cart_out_2 + 'check_acoeff_LTE.pdf')
 
@@ -71,7 +75,7 @@ fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
 axes = np.squeeze(np.reshape(axes, (1,6)))
 for ii, atm in enumerate(allatms):
     ax = axes[ii]
-    coef1 = all_coeffs_nlte[(atm, 4, 'acoeff')]
+    coef1 = all_coeffs_nlte[(atm, cco2, 'acoeff')]
     ax.imshow(np.abs(coef1), norm=LogNorm(vmin=0.01, vmax=20000))
     ax.set_title(atm)
 fig.savefig(cart_out_2 + 'check_acoeff_NLTE.pdf')
@@ -81,12 +85,12 @@ fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
 axes = np.squeeze(np.reshape(axes, (1,6)))
 for ii, atm in enumerate(allatms):
     ax = axes[ii]
-    hr_nlte_fun = all_coeffs_nlte[(atm, 4, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
-    hr_nlte_hot = all_coeffs_nlte[(atm, 4, 'hr_nlte_hot')]
-    hr_nlte = all_coeffs_nlte[(atm, 4, 'hr_nlte')]
-    hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, 4)
-    hr_lte = all_coeffs_nlte[(atm, 4, 'hr_lte')]
-    hr_ref = all_coeffs[(atm, 4, 'hr_ref')]
+    hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
+    hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
+    hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+    hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
+    hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
+    hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
     cols = npl.color_set(5)
     ax.plot(hr_lte_fun, all_alts, label = 'LTE fun', color = cols[0])
     ax.plot(hr_lte_hot, all_alts, label = 'LTE hot', color = cols[2])
@@ -109,12 +113,12 @@ fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
 axes = np.squeeze(np.reshape(axes, (1,6)))
 for ii, atm in enumerate(allatms):
     ax = axes[ii]
-    hr_nlte_fun = all_coeffs_nlte[(atm, 4, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
-    hr_nlte_hot = all_coeffs_nlte[(atm, 4, 'hr_nlte_hot')]
-    hr_nlte = all_coeffs_nlte[(atm, 4, 'hr_nlte')]
-    hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, 4)
-    hr_lte = all_coeffs_nlte[(atm, 4, 'hr_lte')]
-    hr_ref = all_coeffs[(atm, 4, 'hr_ref')]
+    hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
+    hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
+    hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+    hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
+    hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
+    hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
     cols = npl.color_set(5)
 
     ratio1 = hr_nlte/hr_lte
