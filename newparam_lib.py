@@ -200,6 +200,15 @@ def running_mean(var, wnd, remove_nans = False, keep_length = False):
     return rollpi_temp
 
 
+def custom_legend(fig, colors, labels, loc = 'lower center', ncol = None, fontsize = 15, bottom_margin_per_line = 0.05):
+    if ncol is None:
+        ncol = int(np.ceil(len(labels)/2.0))
+    plt.subplots_adjust(bottom = bottom_margin_per_line*np.ceil(1.0*len(labels)/ncol))
+    proxy = [plt.Rectangle((0,0),1,1, fc = col) for col in colors]
+    fig.legend(proxy, labels, loc = loc, ncol = ncol, fontsize = fontsize)
+    return fig
+
+
 def hr_LTE_FB_vs_ob(atm, cco2):
     """
     Gives the FB and rest-of-bands LTE CRs for a specific atm/cco2.

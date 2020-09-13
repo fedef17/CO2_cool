@@ -104,7 +104,8 @@ for ii, atm in enumerate(allatms):
     ax.set_xlim(-20, 20)
     ax.grid()
 
-plt.legend()
+plt.subplots_adjust(bottom = 0.1)
+plt.legend(loc = 'lower center')
 fig.savefig(cart_out_2 + 'check_HRs_NLTE.pdf')
 
 
@@ -146,17 +147,18 @@ for ii, atm in enumerate(allatms):
     ax.plot(ratio4b, all_alts, label = 'ratio new run b', color = cols[4])
 
     ax.set_title(atm)
-    ax.set_ylim(20, 90)
+    #ax.set_ylim(20, 90)
     ax.set_xscale('log')
     ax.set_xlim(0.1, 1000)
     ax.grid()
 
-plt.legend()
+plt.subplots_adjust(bottom = 0.1)
+plt.legend(loc = 'lower center')
 fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr.pdf')
 
 for ax in axes:
-    ax.set_xscale('linear')
-    ax.set_xlim(0, 20)
+    #ax.set_xscale('linear')
+    ax.set_ylim(40, 90)
 fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr_zoom.pdf')
 
 
