@@ -133,11 +133,11 @@ for ii, atm in enumerate(allatms):
 
     pio = signal.find_peaks(ratio3a, threshold = 5)
     pio2 = signal.find_peaks(1/ratio3a, threshold = 5)
-    for co in np.append([pio[0], pio2[0]]):
+    for co in np.append(pio[0], pio2[0]):
         ratio3a[co] = np.mean([ratio3a[co-1], ratio3a[co+1]])
     pio = signal.find_peaks(ratio3b, threshold = 5)
     pio2 = signal.find_peaks(1/ratio3b, threshold = 5)
-    for co in np.append([pio[0], pio2[0]]):
+    for co in np.append(pio[0], pio2[0]):
         ratio3b[co] = np.mean([ratio3b[co-1], ratio3b[co+1]])
 
     ratio4a = npl.running_mean(ratio3a, 8, remove_nans = True, keep_length = True)
