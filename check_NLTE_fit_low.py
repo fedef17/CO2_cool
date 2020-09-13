@@ -68,13 +68,13 @@ all_coeffs_nlte_v4 = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE_fitv4.p', 'r
 all_coeffs_nlte_v5 = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'rb'))
 
 for cco2 in allco2:
-    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit(varfit_xis_4_nlte, cco2, all_coeffs = all_coeffs_nlte_v4)
+    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_4_nlte, cco2, all_coeffs = all_coeffs_nlte_v4)
     tot_coeff_co2[('varfit4_nlte', 'acoeff', cco2)] = acoeff
     tot_coeff_co2[('varfit4_nlte', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit4_nlte', 'asurf', cco2)] = asurf
     tot_coeff_co2[('varfit4_nlte', 'bsurf', cco2)] = bsurf
 
-    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit(varfit_xis_5_nlte, cco2, all_coeffs = all_coeffs_nlte_v5)
+    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_5_nlte, cco2, all_coeffs = all_coeffs_nlte_v5)
     tot_coeff_co2[('varfit5_nlte', 'acoeff', cco2)] = acoeff
     tot_coeff_co2[('varfit5_nlte', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit5_nlte', 'asurf', cco2)] = asurf

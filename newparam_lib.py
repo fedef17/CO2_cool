@@ -426,7 +426,25 @@ def absurf_from_xi_unifit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms)
     return asurftot, bsurftot
 
 
-def ab_from_xi_abfit(xis_ab, cco2, all_coeffs = all_coeffs, allatms = allatms):
+def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = allatms):
+    """
+    Calculates the fitted acoeff and bcoeff, using the weights xis_a and xis_b.
+
+    xis is a dict with keys (cco2, ialt).
+    """
+
+    acoeff = all_coeffs[('mle', 1, 'acoeff')]
+    nalt = acoeff.shape[1]
+
+    xis_a_alts = [xis_ab[(cco2, ialt, 'afit')] for ialt in nalt]
+    xis_b_alts = [xis_ab[(cco2, ialt, 'bfit')] for ialt in nalt]
+
+    agn, bgn, agn_surf, bgn_surf = ab_from_xi_abfit(xis_a_alts, xis_b_alts, cco2, all_coeffs = all_coeffs, allatms = allatms)
+
+    return agn, bgn, agn_surf, bgn_surf
+
+
+def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = allatms):
     """
     Calculates the fitted acoeff and bcoeff, using the weights xis_a and xis_b.
 
@@ -441,10 +459,7 @@ def ab_from_xi_abfit(xis_ab, cco2, all_coeffs = all_coeffs, allatms = allatms):
     bgn_surf = np.zeros(asurf.shape)
 
     nalt = acoeff.shape[1]
-    for ialt in range(nalt):
-        xis_a = xis_ab[(cco2, ialt, 'afit')]/np.sum(xis_ab[(cco2, ialt, 'afit')])
-        xis_b = xis_ab[(cco2, ialt, 'bfit')]/np.sum(xis_ab[(cco2, ialt, 'bfit')])
-
+    for xia, xib, ialt in zip(range(nalt), xis_a, xis_b):
         acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
         asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
         bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
