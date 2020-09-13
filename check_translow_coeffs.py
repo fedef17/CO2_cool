@@ -147,11 +147,17 @@ for ii, atm in enumerate(allatms):
 
     ax.set_title(atm)
     ax.set_ylim(20, 90)
-    #ax.set_xlim(-20, 20)
+    ax.xscale('log')
+    ax.set_xlim(0.1, 1000)
     ax.grid()
 
 plt.legend()
 fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr.pdf')
+
+for ax in axes:
+    ax.xscale('lin')
+    ax.set_xlim(0, 20)
+fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr_zoom.pdf')
 
 
 pres = atm_pt[('mle', 'pres')]
