@@ -106,7 +106,7 @@ for ii, atm in enumerate(allatms):
     ax.grid()
 
 plt.subplots_adjust(bottom = 0.1)
-plt.legend(loc = 'lower center')
+fig.legend(loc = 'lower center')
 fig.savefig(cart_out_2 + 'check_HRs_NLTE.pdf')
 
 
@@ -132,10 +132,12 @@ for ii, atm in enumerate(allatms):
     ratio3b = np.abs(hr_nlte_hot)/np.abs(hr_lte_hot)
 
     pio = signal.find_peaks(ratio3a, threshold = 5)
-    for co in pio[0]:
+    pio2 = signal.find_peaks(1/ratio3a, threshold = 5)
+    for co in np.append([pio[0], pio2[0]):
         ratio3a[co] = np.mean([ratio3a[co-1], ratio3a[co+1]])
     pio = signal.find_peaks(ratio3b, threshold = 5)
-    for co in pio[0]:
+    pio2 = signal.find_peaks(1/ratio3b, threshold = 5)
+    for co in np.append([pio[0], pio2[0]):
         ratio3b[co] = np.mean([ratio3b[co-1], ratio3b[co+1]])
 
     ratio4a = npl.running_mean(ratio3a, 8, remove_nans = True, keep_length = True)
@@ -158,7 +160,7 @@ for ii, atm in enumerate(allatms):
     ax.grid()
 
 plt.subplots_adjust(bottom = 0.1)
-plt.legend(loc = 'lower center')
+fig.legend(loc = 'lower center')
 fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr.pdf')
 
 for ax in axes:
