@@ -160,8 +160,8 @@ for cco2 in range(1,8):
 
         ratio4a = npl.running_mean(ratio3a, 10, remove_nans = True, keep_length = True)
         ratio4b = npl.running_mean(ratio3b, 10, remove_nans = True, keep_length = True)
-        ratiooo[(atm, cco2, 'new a')] = ratio4a
-        ratiooo[(atm, cco2, 'new b')] = ratio4b
+        ratiooo[(atm, cco2, 'new_a')] = ratio4a
+        ratiooo[(atm, cco2, 'new_b')] = ratio4b
 
         #ax.plot(ratio1, all_alts, label = 'ratio fomi', color = cols[0])
         ax.plot(ratio1abs, all_alts, label = 'ratio fomi abs', color = cols[0], linestyle = '--')

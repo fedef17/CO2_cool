@@ -51,6 +51,8 @@ n_alts_lte = 40
 
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 
+ratiooo = pickle.load(open(cart_out_2 + 'ratios_NLTE_smooth.p', 'rb'))
+
 # Now. We are in the low transition region and need to adjust the LTE coeffs to non-LTE.
 cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sav_v3.2/'
 filsav = 'cr_nlte_{}_co2_{}.sav'
@@ -71,22 +73,32 @@ for atm in allatms:
 # per ogni atm faccio:
 for atm in allatms:
     for cco2 in range(1,8):
-        hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
-        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
-        hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
-        hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
-
-        hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
+        for cnam in ['acoeff', 'bcoeff']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*ratiooo[(atm, cco2, 'new_'+cnam[0])][np.newaxis, :]
+        for cnam in ['asurf', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*ratiooo[(atm, cco2, 'new_'+cnam[0])]
 
         for cnam in ['acoeff', 'bcoeff']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_fun/hr_lte_fun)[np.newaxis, :]
+            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*ratiooo[(atm, cco2, 'fomi')][np.newaxis, :]
         for cnam in ['asurf', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_hot/hr_lte_hot)
+            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*ratiooo[(atm, cco2, 'fomi')]
 
-        for cnam in ['acoeff', 'bcoeff']:
-            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)[np.newaxis, :]
-        for cnam in ['asurf', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)
+        # hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+        # hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
+        # hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
+        # hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
+        #
+        # hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
+
+        # for cnam in ['acoeff', 'bcoeff']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_fun/hr_lte_fun)[np.newaxis, :]
+        # for cnam in ['asurf', 'bsurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_hot/hr_lte_hot)
+        #
+        # for cnam in ['acoeff', 'bcoeff']:
+        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)[np.newaxis, :]
+        # for cnam in ['asurf', 'bsurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)
 
 pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
