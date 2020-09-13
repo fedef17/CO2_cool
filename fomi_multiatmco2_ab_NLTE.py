@@ -104,6 +104,9 @@ for cco2 in range(1,8):
 
 print('######################################################')
 pickle.dump(varfit_xis, open(cart_out_2+'varfit_NLTE_v4.p', 'wb'))
+pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv4.p', 'wb'))
+
+all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 for cco2 in range(1,8):
     for ialt in range(66):
@@ -139,5 +142,6 @@ for cco2 in range(1,8):
 
 print('######################################################')
 pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
+pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'wb'))
 
 ##### Rescaling a hr_nlte_fun+iso/hr_lte_fun+iso and b by hr_nlte_hot/hr_lte_hot ?
