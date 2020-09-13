@@ -175,6 +175,7 @@ def running_mean(var, wnd, remove_nans = False, keep_length = False):
         tempser = pd.Series(var)
         rollpi_temp = tempser.rolling(wnd, center = True).mean()
         if remove_nans:
+            rollpi_temp = np.array(rollpi_temp)
             okvals = ~np.isnan(rollpi_temp)
             coso = rollpi_temp[okvals]
             if keep_length:
