@@ -13,6 +13,7 @@ from scipy import io
 import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
+import scipy.signal as signal
 
 if os.uname()[1] == 'ff-clevo':
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
@@ -129,12 +130,16 @@ for ii, atm in enumerate(allatms):
     ratio2b = hr_nlte_hot/hr_lte_hot
     ratio3a = np.abs(hr_nlte_fun)/np.abs(hr_lte_fun)
     ratio3b = np.abs(hr_nlte_hot)/np.abs(hr_lte_hot)
-    #sp3a = spline(all_alts, ratio3a)
-    ratio4a = 1.0*ratio3a
-    ratio4b = 1.0*ratio3b
 
-    ratio4a = npl.running_mean(ratio4a, 5, remove_nans = True, keep_length = True)
-    ratio4b = npl.running_mean(ratio4b, 5, remove_nans = True, keep_length = True)
+    pio = signal.find_peaks(ratio3a, threshold = 5)
+    for co in pio[0]:
+        ratio3a[co] = np.mean([ratio3a[co-1], ratio3a[co+1]])
+    pio = signal.find_peaks(ratio3b, threshold = 5)
+    for co in pio[0]:
+        ratio3b[co] = np.mean([ratio3b[co-1], ratio3b[co+1]])
+
+    ratio4a = npl.running_mean(ratio3a, 8, remove_nans = True, keep_length = True)
+    ratio4b = npl.running_mean(ratio3b, 8, remove_nans = True, keep_length = True)
 
     #ax.plot(ratio1, all_alts, label = 'ratio fomi', color = cols[0])
     ax.plot(ratio1abs, all_alts, label = 'ratio fomi abs', color = cols[0], linestyle = '--')
