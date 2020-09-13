@@ -93,13 +93,22 @@ for ii, atm in enumerate(allatms):
     hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
     hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
     cols = npl.color_set(5)
-    ax.plot(hr_lte_fun, all_alts, label = 'LTE fun', color = cols[0])
-    ax.plot(hr_lte_hot, all_alts, label = 'LTE hot', color = cols[2])
-    ax.plot(hr_lte, all_alts, label = 'LTE', color = cols[4])
-    ax.plot(hr_nlte_fun, all_alts, label = 'NLTE fun', color = cols[0], linestyle = '--')
-    ax.plot(hr_nlte_hot, all_alts, label = 'NLTE hot', color = cols[2], linestyle = '--')
-    ax.plot(hr_nlte, all_alts, label = 'NLTE', color = cols[4], linestyle = '--')
-    ax.plot(hr_ref, all_alts, label = 'LTE ref', color = cols[3])
+    if ii == 0:
+        ax.plot(hr_lte_fun, all_alts, label = 'LTE fun', color = cols[0])
+        ax.plot(hr_lte_hot, all_alts, label = 'LTE hot', color = cols[2])
+        ax.plot(hr_lte, all_alts, label = 'LTE', color = cols[4])
+        ax.plot(hr_nlte_fun, all_alts, label = 'NLTE fun', color = cols[0], linestyle = '--')
+        ax.plot(hr_nlte_hot, all_alts, label = 'NLTE hot', color = cols[2], linestyle = '--')
+        ax.plot(hr_nlte, all_alts, label = 'NLTE', color = cols[4], linestyle = '--')
+        ax.plot(hr_ref, all_alts, label = 'LTE ref', color = cols[3])
+    else:
+        ax.plot(hr_lte_fun, all_alts, color = cols[0])
+        ax.plot(hr_lte_hot, all_alts, color = cols[2])
+        ax.plot(hr_lte, all_alts, color = cols[4])
+        ax.plot(hr_nlte_fun, all_alts, color = cols[0], linestyle = '--')
+        ax.plot(hr_nlte_hot, all_alts, color = cols[2], linestyle = '--')
+        ax.plot(hr_nlte, all_alts, color = cols[4], linestyle = '--')
+        ax.plot(hr_ref, all_alts, color = cols[3])
     ax.set_title(atm)
     ax.set_ylim(20, 90)
     ax.set_xlim(-20, 20)
@@ -107,67 +116,78 @@ for ii, atm in enumerate(allatms):
 
 plt.subplots_adjust(bottom = 0.1)
 fig.legend(loc = 'lower center')
+#npl.custom_legend(fig, cols[::2], ['fomi', 'new a', 'new b'])
 fig.savefig(cart_out_2 + 'check_HRs_NLTE.pdf')
 
 
-fig = plt.figure()
-fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
-axes = np.squeeze(np.reshape(axes, (1,6)))
-for ii, atm in enumerate(allatms):
-    ax = axes[ii]
-    hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
-    hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
-    hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
-    hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
-    hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
-    hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
-    cols = npl.color_set(5)
+ratiooo = dict()
+for cco2 in range(1,8):
+    fig = plt.figure()
+    fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+    axes = np.squeeze(np.reshape(axes, (1,6)))
+    for ii, atm in enumerate(allatms):
+        ax = axes[ii]
+        hr_nlte_fun = all_coeffs_nlte[(atm, cco2, 'hr_nlte_fb')]+all_coeffs_nlte[(atm, cco2, 'hr_nlte_iso')]
+        hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
+        hr_nlte = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+        hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
+        hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
+        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
+        cols = npl.color_set(5)
 
-    ratio1 = hr_nlte/hr_lte
-    ratio1abs = np.abs(hr_nlte)/np.abs(hr_lte)
-    ratio1run = npl.running_mean(ratio1abs, 5, remove_nans = True, keep_length = True)
-    ratio2a = hr_nlte_fun/hr_lte_fun
-    ratio2b = hr_nlte_hot/hr_lte_hot
-    ratio3a = np.abs(hr_nlte_fun)/np.abs(hr_lte_fun)
-    ratio3b = np.abs(hr_nlte_hot)/np.abs(hr_lte_hot)
+        ratio1 = hr_nlte/hr_lte
+        ratio1abs = np.abs(hr_nlte)/np.abs(hr_lte)
+        pio = signal.find_peaks(ratio1abs, threshold = 5)
+        pio2 = signal.find_peaks(1/ratio1abs, threshold = 5)
+        for co in np.append(pio[0], pio2[0]):
+            ratio1abs[co] = np.mean([ratio1abs[co-1], ratio1abs[co+1]])
+        ratio1run = npl.running_mean(ratio1abs, 5, remove_nans = True, keep_length = True)
+        ratiooo[(atm, cco2, 'fomi')] = ratio1run
 
-    pio = signal.find_peaks(ratio3a, threshold = 5)
-    pio2 = signal.find_peaks(1/ratio3a, threshold = 5)
-    for co in np.append(pio[0], pio2[0]):
-        ratio3a[co] = np.mean([ratio3a[co-1], ratio3a[co+1]])
-    pio = signal.find_peaks(ratio3b, threshold = 5)
-    pio2 = signal.find_peaks(1/ratio3b, threshold = 5)
-    for co in np.append(pio[0], pio2[0]):
-        ratio3b[co] = np.mean([ratio3b[co-1], ratio3b[co+1]])
+        ratio2a = hr_nlte_fun/hr_lte_fun
+        ratio2b = hr_nlte_hot/hr_lte_hot
+        ratio3a = np.abs(hr_nlte_fun)/np.abs(hr_lte_fun)
+        ratio3b = np.abs(hr_nlte_hot)/np.abs(hr_lte_hot)
 
-    ratio4a = npl.running_mean(ratio3a, 8, remove_nans = True, keep_length = True)
-    ratio4b = npl.running_mean(ratio3b, 8, remove_nans = True, keep_length = True)
+        pio = signal.find_peaks(ratio3a, threshold = 5)
+        pio2 = signal.find_peaks(1/ratio3a, threshold = 5)
+        for co in np.append(pio[0], pio2[0]):
+            ratio3a[co] = np.mean([ratio3a[co-1], ratio3a[co+1]])
+        pio = signal.find_peaks(ratio3b, threshold = 5)
+        pio2 = signal.find_peaks(1/ratio3b, threshold = 5)
+        for co in np.append(pio[0], pio2[0]):
+            ratio3b[co] = np.mean([ratio3b[co-1], ratio3b[co+1]])
 
-    #ax.plot(ratio1, all_alts, label = 'ratio fomi', color = cols[0])
-    ax.plot(ratio1abs, all_alts, label = 'ratio fomi abs', color = cols[0], linestyle = '--')
-    ax.plot(ratio1run, all_alts, label = 'ratio fomi run', color = cols[0])
+        ratio4a = npl.running_mean(ratio3a, 10, remove_nans = True, keep_length = True)
+        ratio4b = npl.running_mean(ratio3b, 10, remove_nans = True, keep_length = True)
+        ratiooo[(atm, cco2, 'new a')] = ratio4a
+        ratiooo[(atm, cco2, 'new b')] = ratio4b
 
-    ax.plot(ratio3a, all_alts, label = 'ratio new abs a', color = cols[2], linestyle = '--')
-    ax.plot(ratio3b, all_alts, label = 'ratio new abs b', color = cols[4], linestyle = '--')
+        #ax.plot(ratio1, all_alts, label = 'ratio fomi', color = cols[0])
+        ax.plot(ratio1abs, all_alts, label = 'ratio fomi abs', color = cols[0], linestyle = '--')
+        ax.plot(ratio1run, all_alts, label = 'ratio fomi run', color = cols[0])
 
-    ax.plot(ratio4a, all_alts, label = 'ratio new run a', color = cols[2])
-    ax.plot(ratio4b, all_alts, label = 'ratio new run b', color = cols[4])
+        ax.plot(ratio3a, all_alts, label = 'ratio new abs a', color = cols[2], linestyle = '--')
+        ax.plot(ratio3b, all_alts, label = 'ratio new abs b', color = cols[4], linestyle = '--')
 
-    ax.set_title(atm)
-    #ax.set_ylim(20, 90)
-    ax.set_xscale('log')
-    ax.set_xlim(0.1, 1000)
-    ax.grid()
+        ax.plot(ratio4a, all_alts, label = 'ratio new run a', color = cols[2])
+        ax.plot(ratio4b, all_alts, label = 'ratio new run b', color = cols[4])
 
-plt.subplots_adjust(bottom = 0.1)
-fig.legend(loc = 'lower center')
-fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr.pdf')
+        ax.set_title(atm)
+        #ax.set_ylim(20, 90)
+        ax.set_xscale('log')
+        ax.set_xlim(0.1, 1000)
+        ax.grid()
 
-for ax in axes:
-    #ax.set_xscale('linear')
-    ax.set_ylim(40, 90)
-fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr_zoom.pdf')
+    npl.custom_legend(fig, cols[::2], ['fomi', 'new a', 'new b'])
+    fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr_cco2_{}.pdf'.format(cco2))
 
+    # for ax in axes:
+    #     #ax.set_xscale('linear')
+    #     ax.set_ylim(40, 90)
+    # fig.savefig(cart_out_2 + 'check_ratios_NLTE_lotr_zoom.pdf')
+
+pickle.dump(ratiooo, open(cart_out_2 + 'ratios_NLTE_smooth.p', 'wb'))
 
 pres = atm_pt[('mle', 'pres')]
 x = np.log(1000./pres)
