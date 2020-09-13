@@ -17,6 +17,7 @@ from scipy.interpolate import PchipInterpolator as spline
 from subprocess import call
 
 import pickle
+import pandas as pd
 
 if os.uname()[1] == 'ff-clevo':
     sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
@@ -162,6 +163,40 @@ def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp):
         epsilon_ab_tot[xi] += (asurf[xi] + bsurf[xi]* phi_fun[xi]) * phi_fun_g
 
     return epsilon_ab_tot
+
+
+def running_mean(var, wnd, remove_nans = False, keep_length = False):
+    """
+    Performs a running mean (if multidim, the mean is done on the first axis).
+
+    < wnd > : is the window length.
+    """
+    if var.ndim == 1:
+        tempser = pd.Series(var)
+        rollpi_temp = tempser.rolling(wnd, center = True).mean()
+        if remove_nans:
+            okvals = ~np.isnan(rollpi_temp)
+            coso = rollpi_temp[okvals]
+            if keep_length:
+                for ii in range(wnd):
+                    if np.isnan(rollpi_temp[ii]):
+                        rollpi_temp[ii] = coso[0]
+                    if np.isnan(rollpi_temp[-ii]):
+                        rollpi_temp[-ii] = coso[-1]
+            else:
+                rollpi_temp = coso
+    else:
+        rollpi_temp = []
+        for i in range(len(var)):
+            if i-wnd//2 < 0 or i + wnd//2 > len(var)-1:
+                if remove_nans: continue
+                rollpi_temp.append(np.nan*np.ones(var[0].shape))
+            else:
+                rollpi_temp.append(np.mean(var[i-wnd//2:i+wnd//2+1, ...], axis = 0))
+
+        rollpi_temp = np.stack(rollpi_temp)
+
+    return rollpi_temp
 
 
 def hr_LTE_FB_vs_ob(atm, cco2):
