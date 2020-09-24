@@ -137,10 +137,10 @@ for cco2 in range(1,8):
                     doloop = False
 
             varfit_xis_2[(cco2, ialt, cnam)] = xis_a
-            agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
-            agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
-            all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
-            all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
+            # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
+            # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
+            # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
+            # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
 
             cnam = 'bfit'
             result = least_squares(npl.delta_xi_at_x0_bfit, np.ones(6), jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
@@ -153,10 +153,10 @@ for cco2 in range(1,8):
                     doloop = False
 
             varfit_xis_2[(cco2, ialt, cnam)] = xis_b
-            bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
-            bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
-            all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
-            all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
+            # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
+            # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
+            # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
+            # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
 
             jloop += 1
 
