@@ -73,7 +73,7 @@ for cco2 in range(1,8):
 # per ogni atm faccio:
 for cco2 in range(1,8):
     for atm in allatms:
-        print(atm, cco2)
+        #print(atm, cco2)
         # for cnam in ['acoeff', 'bcoeff']:
         #     all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*ratiooo[(atm, cco2, 'new_'+cnam[0])][np.newaxis, :]
         # for cnam in ['asurf', 'bsurf']:
@@ -91,10 +91,11 @@ for cco2 in range(1,8):
 
         hr_lte_old = all_coeffs[(atm, cco2, 'hr_ref')]
 
-        if np.sum(np.abs(hr_lte_old-hr_lte)) < 0.01:
+        ksk = np.sum(np.abs(hr_lte_old-hr_lte))
+        if ksk < 0.01:
             print(cco2, atm, 'OK!')
         else:
-            print('---------> ', cco2, atm, 'NOUUUUUUU')
+            print('---------> ', cco2, atm, 'NOUUUUUUU [{:.0f}]'.format(ksk))
             if np.sum(np.abs(hr_lte_old+hr_lte)) < 0.01:
                 print('-----------> ok!! this is crazyyyy')
 
