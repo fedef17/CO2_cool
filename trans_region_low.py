@@ -95,7 +95,7 @@ for cco2 in range(1,8):
         if ksk < 0.01:
             print(cco2, atm, 'OK!')
         else:
-            print('---------> ', cco2, atm, 'NOUUUUUUU [{:.0f}]'.format(ksk))
+            print('---------> ', cco2, atm, 'NOUUUUUUU [{:.0f}]'.format(ksk), np.mean(hr_lte_old), np.mean(hr_lte))
             if np.sum(np.abs(hr_lte_old+hr_lte)) < 0.01:
                 print('-----------> ok!! this is crazyyyy')
 
