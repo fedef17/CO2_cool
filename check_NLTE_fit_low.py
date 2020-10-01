@@ -7,6 +7,8 @@ import os
 
 from matplotlib import pyplot as plt
 from matplotlib import cm
+from matplotlib import rcParams
+rcParams['figure.max_open_warning'] = 100
 #import climtools_lib as ctl
 
 from scipy import io
