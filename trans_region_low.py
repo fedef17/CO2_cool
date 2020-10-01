@@ -96,8 +96,17 @@ for cco2 in range(1,8):
             print(cco2, atm, 'OK!')
         else:
             print('---------> ', cco2, atm, 'NOUUUUUUU [{:.0f}]'.format(ksk), np.mean(hr_lte_old), np.mean(hr_lte))
-            if np.sum(np.abs(hr_lte_old+hr_lte)) < 0.01:
-                print('-----------> ok!! this is crazyyyy')
+
+            if cco2 == 4:
+                hr_lte_old = all_coeffs[(atm, 5, 'hr_ref')]
+                ksk = np.sum(np.abs(hr_lte_old-hr_lte))
+                if ksk < 0.01:
+                    print('-----------------> ok!! this is crazyyyy')
+            elif cco2 == 5:
+                hr_lte_old = all_coeffs[(atm, 4, 'hr_ref')]
+                ksk = np.sum(np.abs(hr_lte_old-hr_lte))
+                if ksk < 0.01:
+                    print('-----------------> ok!! this is crazyyyy')
 
         hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
 
