@@ -436,8 +436,8 @@ def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = a
     acoeff = all_coeffs[('mle', 1, 'acoeff')]
     nalt = acoeff.shape[1]
 
-    xis_a_alts = [xis_ab[(cco2, ialt, 'afit')] for ialt in nalt]
-    xis_b_alts = [xis_ab[(cco2, ialt, 'bfit')] for ialt in nalt]
+    xis_a_alts = [xis_ab[(cco2, ialt, 'afit')] for ialt in range(nalt)]
+    xis_b_alts = [xis_ab[(cco2, ialt, 'bfit')] for ialt in range(nalt)]
 
     agn, bgn, agn_surf, bgn_surf = ab_from_xi_abfit(xis_a_alts, xis_b_alts, cco2, all_coeffs = all_coeffs, allatms = allatms)
 
