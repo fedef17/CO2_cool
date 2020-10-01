@@ -156,10 +156,11 @@ for cco2 in range(1,8):
             hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
             hr_ab_rescaled.append(hr_calc)
 
-        if np.sum(np.abs(hr_ref-hr_ab_rescaled[0])) < 0.01:
+        ksk = np.sum(np.abs(hr_ref-hr_ab_rescaled[0]))
+        if ksk < 0.01:
             print(cco2, atm, 'OK!')
         else:
-            print('---------> ', cco2, atm, 'NOUUUUUUU')
+            print('---------> ', cco2, atm, 'NOUUUUUUU [{:.0f}]'.format(ksk), np.mean(hr_ab_rescaled[0]), np.mean(hr_ref))
             if np.sum(np.abs(hr_ref+hr_ab_rescaled[0])) < 0.01:
                 print('-----------> ok!! this is crazyyyy')
 
