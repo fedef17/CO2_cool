@@ -437,9 +437,9 @@ def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = a
     acoeff = all_coeffs[('mle', 1, 'acoeff')]
     nalt = acoeff.shape[1]
 
-    xis_a_alts = np.stack([xis_ab[(cco2, ialt, 'afit')] for ialt in range(nalt)])
-    xis_b_alts = np.stack([xis_ab[(cco2, ialt, 'bfit')] for ialt in range(nalt)])
-    print(xis_a_alts, xis_b_alts)
+    xis_a_alts = [xis_ab[(cco2, ialt, 'afit')] for ialt in range(nalt)]
+    xis_b_alts = [xis_ab[(cco2, ialt, 'bfit')] for ialt in range(nalt)]
+    #print(xis_a_alts, xis_b_alts)
 
     agn, bgn, agn_surf, bgn_surf = ab_from_xi_abfit(xis_a_alts, xis_b_alts, cco2, all_coeffs = all_coeffs, allatms = allatms)
 
@@ -461,7 +461,7 @@ def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = alla
     bgn_surf = np.zeros(asurf.shape)
 
     nalt = acoeff.shape[1]
-    for xia, xib, ialt in zip(range(nalt), xis_a, xis_b):
+    for xia, xib, ialt in zip(xis_a, xis_b, range(nalt)):
         acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
         asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
         bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
