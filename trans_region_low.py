@@ -64,14 +64,13 @@ for cco2 in range(1,8):
         nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM'
         nomi = nomi.split()
 
+        savcco2 = cco2
         if atm in ['mle', 'mls', 'mlw', 'sas']:
             # THIS IS TO CORRECT THE SWITCH IN THE DATA
             if cco2 == 4:
                 savcco2 = 5
             elif cco2 == 5:
                 savcco2 = 4
-            else:
-                savcco2 = cco2
 
         for nom in nomi:
             vara = getattr(coso, nom)[0]
