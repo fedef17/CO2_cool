@@ -90,10 +90,10 @@ for cco2 in range(1,8):
             varfit_xis[(cco2, ialt, cnam)] = xis_a
             # xis_a_alts = [varfit_xis[(cco2, ialt, 'afit')] for ialt in nalt]
             # xis_b_alts = [varfit_xis[(cco2, ialt, 'bfit')] for ialt in nalt]
-            agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
-            agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
-            all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
-            all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
+            # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
+            # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
+            # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
+            # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
 
             cnam = 'bfit'
             result = least_squares(npl.delta_xi_at_x0_bfit, start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
@@ -106,16 +106,16 @@ for cco2 in range(1,8):
                     doloop = False
 
             varfit_xis[(cco2, ialt, cnam)] = xis_b
-            bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
-            bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
-            all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
-            all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
+            # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
+            # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
+            # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
+            # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
 
             jloop += 1
 
 print('######################################################')
 pickle.dump(varfit_xis, open(cart_out_2+'varfit_NLTE_v4.p', 'wb'))
-pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv4.p', 'wb'))
+# pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv4.p', 'wb'))
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
@@ -162,6 +162,6 @@ for cco2 in range(1,8):
 
 print('######################################################')
 pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
-pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'wb'))
+# pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'wb'))
 
 ##### Rescaling a hr_nlte_fun+iso/hr_lte_fun+iso and b by hr_nlte_hot/hr_lte_hot ?
