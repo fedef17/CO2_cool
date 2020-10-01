@@ -281,7 +281,7 @@ def coeff_from_xi_at_x0(xis, cco2, ialt, cnam = None, all_coeffs = None, atm_pt 
     """
     Calculates the acoeff/asurf/bcoeff/bsurf from the respective coeffs of the different atmospheres, using the weights xis.
     """
-    print(ialt)
+    print(xis, cco2, ialt)
     if all_coeffs is None:
         raise ValueError('Specify all_coeffs to use (LTE or NLTE)')
 
