@@ -154,6 +154,11 @@ for cco2 in range(1,8):
             hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
             hr_ab_rescaled.append(hr_calc)
 
+        if np.sum(hr_ref-hr_ab_rescaled[0]) == 0:
+            print(cco2, atm, 'OK!')
+        else:
+            print('---------> ', cco2, atm, 'NOUUUUUUU')
+
         hrs = [hr_ref] + hr_calcs + hr_ab_rescaled
         labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'new rescale (no fit)']
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
