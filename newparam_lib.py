@@ -281,9 +281,10 @@ def coeff_from_xi_at_x0(xis, cco2, ialt, cnam = None, all_coeffs = None, atm_pt 
     """
     Calculates the acoeff/asurf/bcoeff/bsurf from the respective coeffs of the different atmospheres, using the weights xis.
     """
-    print(xis, cco2, ialt)
-    xis = np.stack(xis)
-    print(xis.shape)
+    #print(xis, cco2, ialt)
+    #xis = np.stack(xis)
+    #print(xis.shape)
+    
     if all_coeffs is None:
         raise ValueError('Specify all_coeffs to use (LTE or NLTE)')
 
@@ -464,10 +465,10 @@ def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = alla
 
     nalt = acoeff.shape[1]
     for xia, xib, ialt in zip(xis_a, xis_b, range(nalt)):
-        acoeff = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
-        asurf = coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
-        bcoeff = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
-        bsurf = coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
+        acoeff = coeff_from_xi_at_x0(xia, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
+        asurf = coeff_from_xi_at_x0(xia, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
+        bcoeff = coeff_from_xi_at_x0(xib, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
+        bsurf = coeff_from_xi_at_x0(xib, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
 
         agn[:, ialt] = acoeff
         agn_surf[ialt] = asurf
