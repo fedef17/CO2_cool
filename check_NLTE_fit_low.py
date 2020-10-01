@@ -158,6 +158,9 @@ for cco2 in range(1,8):
             print(cco2, atm, 'OK!')
         else:
             print('---------> ', cco2, atm, 'NOUUUUUUU')
+            if np.sum(np.abs(hr_ref+hr_ab_rescaled[0])) < 0.01:
+                print('-----------> ok!! this is crazyyyy')
+
 
         hrs = [hr_ref] + hr_calcs + hr_ab_rescaled
         labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'new rescale (no fit)']
