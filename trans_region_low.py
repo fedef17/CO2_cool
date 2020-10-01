@@ -89,6 +89,15 @@ for atm in allatms:
         hr_nlte_hot = all_coeffs_nlte[(atm, cco2, 'hr_nlte_hot')]
         hr_lte = all_coeffs_nlte[(atm, cco2, 'hr_lte')]
 
+        hr_lte_old = all_coeffs[(atm, cco2, 'hr_ref')]
+
+        if np.sum(np.abs(hr_lte_old-hr_lte)) < 0.01:
+            print(cco2, atm, 'OK!')
+        else:
+            print('---------> ', cco2, atm, 'NOUUUUUUU')
+            if np.sum(np.abs(hr_lte_old+hr_lte)) < 0.01:
+                print('-----------> ok!! this is crazyyyy')
+
         hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
 
         for cnam in ['acoeff', 'bcoeff']:
