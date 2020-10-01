@@ -58,8 +58,8 @@ cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sav_v3.2/'
 filsav = 'cr_nlte_{}_co2_{}.sav'
 all_coeffs_nlte = dict()
 
-for atm in allatms:
-    for cco2 in range(1,8):
+for cco2 in range(1,8):
+    for atm in allatms:
         coso = io.readsav(cartsav+filsav.format(atm, cco2))['data']
         nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM'
         nomi = nomi.split()
@@ -71,8 +71,8 @@ for atm in allatms:
                 all_coeffs_nlte[(atm, cco2, nom.lower())] = vara
 
 # per ogni atm faccio:
-for atm in allatms:
-    for cco2 in range(1,8):
+for cco2 in range(1,8):
+    for atm in allatms:
         print(atm, cco2)
         # for cnam in ['acoeff', 'bcoeff']:
         #     all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*ratiooo[(atm, cco2, 'new_'+cnam[0])][np.newaxis, :]
