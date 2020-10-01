@@ -63,12 +63,22 @@ for cco2 in range(1,8):
         coso = io.readsav(cartsav+filsav.format(atm, cco2))['data']
         nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM'
         nomi = nomi.split()
+
+        if atm in ['mle', 'mls', 'mlw', 'sas']:
+            # THIS IS TO CORRECT THE SWITCH IN THE DATA
+            if cco2 == 4:
+                savcco2 = 5
+            elif cco2 == 5:
+                savcco2 = 4
+            else:
+                savcco2 = cco2
+
         for nom in nomi:
             vara = getattr(coso, nom)[0]
             if 'HR' in nom:
-                all_coeffs_nlte[(atm, cco2, nom.lower())] = -vara
+                all_coeffs_nlte[(atm, savcco2, nom.lower())] = -vara
             else:
-                all_coeffs_nlte[(atm, cco2, nom.lower())] = vara
+                all_coeffs_nlte[(atm, savcco2, nom.lower())] = vara
 
 # per ogni atm faccio:
 for cco2 in range(1,8):
@@ -102,6 +112,7 @@ for cco2 in range(1,8):
                 ksk = np.sum(np.abs(hr_lte_old-hr_lte))
                 if ksk < 0.01:
                     print('-----------------> ok!! this is crazyyyy')
+
             elif cco2 == 5:
                 hr_lte_old = all_coeffs[(atm, 4, 'hr_ref')]
                 ksk = np.sum(np.abs(hr_lte_old-hr_lte))
