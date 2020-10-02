@@ -136,6 +136,14 @@ for cco2 in range(1,8):
         alt_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2pr)
         oldco = spline(alt_fomi, hr_fomi)
         hr_fomi = oldco(alts)
+
+        fit_score[('fomi', 'trans', 'std')].append(np.sqrt(np.mean((hr_fomi[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])**2)))
+        fit_score[('fomi', 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_fomi[:n_alts_trlo]-hr_ref[:n_alts_trlo])**2)))
+
+        fit_score[('fomi', 'trans', 'max')].append(np.max(np.abs(hr_fomi[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])))
+        fit_score[('fomi', 'lte+trans', 'max')].append(np.max(np.abs(hr_fomi[:n_alts_trlo]-hr_ref[:n_alts_trlo])))
+
+
         #
         # hr_calc = npl.new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = surf_temp)[:n_alts]
         #
@@ -182,6 +190,8 @@ npl.adjust_ax_scale(a1s)
 # npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_newvsold.pdf', figs)
 
 npl.plot_pdfpages(cart_out_2 + 'check_newparam_NLTE_lowtrans.pdf', figs2)
+
+alltips.append('fomi')
 
 for cos in ['std', 'max']:
     if cos == 'std':
