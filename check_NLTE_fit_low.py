@@ -245,9 +245,7 @@ for cos in ['std', 'max']:
         iooo = 0
         for cco2 in range(1, 8):
             for atm in allatms:
-                print(cco2, atm)
-
                 lui1 = fit_score[(alltips[0], sco, cos)][iooo]
                 lui2 = fit_score[(alltips[1], sco, cos)][iooo]
-                print('{} vs fomi:   {:6.3f} - {:6.3f}  K  -----------> mejor? {}'.format(alltips[0], lui1, lui2, lui1 < lui2))
+                print('{}, {}.   {:6.3f} - {:6.3f}  K  -----------> mejor? {}'.format(cco2, atm, lui1, lui2, lui1 < lui2))
                 iooo += 1
