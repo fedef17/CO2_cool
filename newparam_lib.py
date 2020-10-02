@@ -284,7 +284,7 @@ def coeff_from_xi_at_x0(xis, cco2, ialt, cnam = None, all_coeffs = None, atm_pt 
     #print(xis, cco2, ialt)
     #xis = np.stack(xis)
     #print(xis.shape)
-    
+
     if all_coeffs is None:
         raise ValueError('Specify all_coeffs to use (LTE or NLTE)')
 
@@ -449,7 +449,7 @@ def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = a
     return agn, bgn, agn_surf, bgn_surf
 
 
-def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = allatms):
+def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = allatms, usevar = '_smoo'):
     """
     Calculates the fitted acoeff and bcoeff, using the weights xis_a and xis_b.
 
@@ -465,10 +465,10 @@ def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = alla
 
     nalt = acoeff.shape[1]
     for xia, xib, ialt in zip(xis_a, xis_b, range(nalt)):
-        acoeff = coeff_from_xi_at_x0(xia, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
-        asurf = coeff_from_xi_at_x0(xia, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
-        bcoeff = coeff_from_xi_at_x0(xib, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
-        bsurf = coeff_from_xi_at_x0(xib, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
+        acoeff = coeff_from_xi_at_x0(xia, cco2, ialt, cnam = 'acoeff'+usevar, all_coeffs = all_coeffs)
+        asurf = coeff_from_xi_at_x0(xia, cco2, ialt, cnam = 'asurf'+usevar, all_coeffs = all_coeffs)
+        bcoeff = coeff_from_xi_at_x0(xib, cco2, ialt, cnam = 'bcoeff'+usevar, all_coeffs = all_coeffs)
+        bsurf = coeff_from_xi_at_x0(xib, cco2, ialt, cnam = 'bsurf'+usevar, all_coeffs = all_coeffs)
 
         agn[:, ialt] = acoeff
         agn_surf[ialt] = asurf
