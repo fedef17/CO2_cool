@@ -96,7 +96,8 @@ a1s = []
 co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
 fit_score = dict()
-alltips = ['varfit4', 'varfit5', 'varfit4_nlte', 'varfit5_nlte']
+#alltips = ['varfit4', 'varfit5', 'varfit4_nlte', 'varfit5_nlte']
+alltips = ['varfit4_nlte', 'varfit5_nlte']
 for tip in alltips:
     for sco in ['trans', 'lte+trans']:
         for cos in ['std', 'max']:
@@ -130,11 +131,11 @@ for cco2 in range(1,8):
             fit_score[(tip, 'trans', 'max')].append(np.max(np.abs(hr_calc[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])))
             fit_score[(tip, 'lte+trans', 'max')].append(np.max(np.abs(hr_calc[:n_alts_trlo]-hr_ref[:n_alts_trlo])))
 
-        # pres = atm_pt[(atm, 'pres')]
-        # print(np.median(co2pr))
-        # alt_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2pr)
-        # oldco = spline(alt_fomi, hr_fomi)
-        # hr_fomi = oldco(alts)
+        pres = atm_pt[(atm, 'pres')]
+        print(np.median(co2pr))
+        alt_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2pr)
+        oldco = spline(alt_fomi, hr_fomi)
+        hr_fomi = oldco(alts)
         #
         # hr_calc = npl.new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = surf_temp)[:n_alts]
         #
@@ -147,7 +148,8 @@ for cco2 in range(1,8):
         # a0s.append(a0)
         # a1s.append(a1)
         hr_ab_rescaled = []
-        for pio in ['', '_new']:
+        #for pio in ['', '_new']:
+        for pio in ['']:
             acoeff_cco2 = all_coeffs_nlte[(atm, cco2, 'acoeff'+pio)]
             bcoeff_cco2 = all_coeffs_nlte[(atm, cco2, 'bcoeff'+pio)]
             asurf_cco2 = all_coeffs_nlte[(atm, cco2, 'asurf'+pio)]
@@ -156,7 +158,7 @@ for cco2 in range(1,8):
             hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
             hr_ab_rescaled.append(hr_calc)
 
-        ksk = np.sum(np.abs(hr_ref-hr_ab_rescaled[0]))
+        ksk = np.mean(np.abs(hr_ref-hr_ab_rescaled[0]))
         if ksk < 0.01:
             print(cco2, atm, 'OK!')
         else:
@@ -165,8 +167,10 @@ for cco2 in range(1,8):
                 print('-----------> ok!! this is crazyyyy')
 
 
-        hrs = [hr_ref] + hr_calcs + hr_ab_rescaled
-        labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'new rescale (no fit)']
+        #hrs = [hr_ref] + hr_calcs + hr_ab_rescaled
+        #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'new rescale (no fit)']
+        hrs = [hr_ref] + hr_calcs + hr_ab_rescaled + [hr_fomi]
+        labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
 
         figs2.append(fig)
