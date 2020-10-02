@@ -227,3 +227,27 @@ for cos in ['std', 'max']:
                 print('{} {}: {:6.3f} K'.format(tip, sco, allsco[-1]))
 
         print('BEST TIP FOR SAS and SAW: {} \n'.format(alltips[np.argmin(allsco)]))
+
+
+print('\n\n -------------------------------- \n\n')
+alltips = ['varfit4_nlte', 'fomi']
+
+for cos in ['std', 'max']:
+    if cos == 'std':
+        print('Average stddev of param in region.\n')
+    else:
+        print('Max absolute error of param in region.\n')
+
+    for sco in ['trans', 'lte+trans']:
+        print('---------------- \n')
+        print(sco + ' region \n')
+
+        iooo = 0
+        for cco2 in range(1, 8):
+            for atm in allatms:
+                print(cco2, atm)
+
+                lui1 = fit_score[(alltips[0], sco, cos)][iooo]
+                lui2 = fit_score[(alltips[1], sco, cos)][iooo]
+                print('{} vs fomi:   {:6.3f} - {:6.3f}  K  -----------> mejor? {}'.format(alltips[0], lui1, lui2, lui1 < lui2))
+                iooo += 1
