@@ -142,6 +142,12 @@ for cco2 in range(1,8):
             all_coeffs_nlte[(atm, cco2, cnam+'_smoo')] = all_coeffs[(atm, cco2, cnam)]*ratsmoo
 
         ratscut = hr_nlte/hr_lte
+        for cnam in ['acoeff', 'bcoeff']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_inv')] = all_coeffs[(atm, cco2, cnam)]*ratscut[:, np.newaxis]
+        for cnam in ['asurf', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_inv')] = all_coeffs[(atm, cco2, cnam)]*ratscut
+
+        ratscut = hr_nlte/hr_lte
         ratscut[n_alts_trlo:] = 1.
         for cnam in ['acoeff', 'bcoeff']:
             all_coeffs_nlte[(atm, cco2, cnam+'_cut')] = all_coeffs[(atm, cco2, cnam)]*ratscut[np.newaxis, :]
