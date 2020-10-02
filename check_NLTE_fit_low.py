@@ -84,6 +84,12 @@ for cco2 in allco2:
     tot_coeff_co2[('varfit5_nlte', 'asurf', cco2)] = asurf
     tot_coeff_co2[('varfit5_nlte', 'bsurf', cco2)] = bsurf
 
+    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_5_nlte, cco2, all_coeffs = all_coeffs_nlte, faircoeff = True)
+    tot_coeff_co2[('faircoeff_nlte', 'acoeff', cco2)] = acoeff
+    tot_coeff_co2[('faircoeff_nlte', 'bcoeff', cco2)] = bcoeff
+    tot_coeff_co2[('faircoeff_nlte', 'asurf', cco2)] = asurf
+    tot_coeff_co2[('faircoeff_nlte', 'bsurf', cco2)] = bsurf
+
 pickle.dump(tot_coeff_co2, open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'wb'))
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
@@ -97,7 +103,7 @@ co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
 fit_score = dict()
 #alltips = ['varfit4', 'varfit5', 'varfit4_nlte', 'varfit5_nlte']
-alltips = ['varfit4_nlte', 'varfit5_nlte']
+alltips = ['varfit4_nlte', 'varfit5_nlte', 'faircoeff_nlte']
 for tip in alltips:
     for sco in ['trans', 'lte+trans']:
         for cos in ['std', 'max']:
@@ -162,7 +168,7 @@ for cco2 in range(1,8):
         # a0s.append(a0)
         # a1s.append(a1)
         hr_ab_rescaled = []
-        for pio in ['', '_smoo', '_cut']:
+        for pio in ['']:#, '_smoo', '_cut']:
             acoeff_cco2 = all_coeffs_nlte[(atm, cco2, 'acoeff'+pio)]
             bcoeff_cco2 = all_coeffs_nlte[(atm, cco2, 'bcoeff'+pio)]
             asurf_cco2 = all_coeffs_nlte[(atm, cco2, 'asurf'+pio)]
@@ -181,7 +187,7 @@ for cco2 in range(1,8):
 
 
         #hrs = [hr_ref] + hr_calcs + hr_ab_rescaled
-        labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'rescale smoo', 'rescale cut', 'old param']
+        labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         hrs = [hr_ref] + hr_calcs + hr_ab_rescaled + [hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))

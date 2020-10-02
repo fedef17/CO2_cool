@@ -430,11 +430,13 @@ def absurf_from_xi_unifit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms)
     return asurftot, bsurftot
 
 
-def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = allatms):
+def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = allatms, faircoeff = False):
     """
     Calculates the fitted acoeff and bcoeff, using the weights xis_a and xis_b.
 
     xis is a dict with keys (cco2, ialt).
+
+    NOTE!!! -------> faircoeff sets all xis to 1/6.
     """
 
     acoeff = all_coeffs[('mle', 1, 'acoeff')]
@@ -443,6 +445,9 @@ def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = a
     xis_a_alts = [xis_ab[(cco2, ialt, 'afit')] for ialt in range(nalt)]
     xis_b_alts = [xis_ab[(cco2, ialt, 'bfit')] for ialt in range(nalt)]
     #print(xis_a_alts, xis_b_alts)
+    if faircoeff:
+        xis_a_alts = [1./6.*np.ones(6)]*nalt
+        xis_b_alts = [1./6.*np.ones(6)]*nalt
 
     agn, bgn, agn_surf, bgn_surf = ab_from_xi_abfit(xis_a_alts, xis_b_alts, cco2, all_coeffs = all_coeffs, allatms = allatms)
 
