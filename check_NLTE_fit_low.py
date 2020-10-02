@@ -236,9 +236,9 @@ alltips = ['varfit4_nlte', 'fomi']
 
 for cos in ['std', 'max']:
     if cos == 'std':
-        print('Average stddev of param in region.\n')
+        print('\n\nAverage stddev of param in region.\n')
     else:
-        print('Max absolute error of param in region.\n')
+        print('\n\nMax absolute error of param in region.\n')
 
     for sco in ['trans', 'lte+trans']:
         print('---------------- \n')
@@ -246,6 +246,7 @@ for cos in ['std', 'max']:
 
         iooo = 0
         for cco2 in range(1, 8):
+            print('\n')
             for atm in allatms:
                 lui1 = fit_score[(alltips[0], sco, cos)][iooo]
                 lui2 = fit_score[(alltips[1], sco, cos)][iooo]
