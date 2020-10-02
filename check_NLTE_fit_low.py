@@ -107,6 +107,8 @@ for sco in ['trans', 'lte+trans']:
     for cos in ['std', 'max']:
         fit_score[('fomi', sco, cos)] = []
 
+alt0 = 8
+
 for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
 
@@ -130,10 +132,10 @@ for cco2 in range(1,8):
             hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
             hr_calcs.append(hr_calc)
             fit_score[(tip, 'trans', 'std')].append(np.sqrt(np.mean((hr_calc[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])**2)))
-            fit_score[(tip, 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_calc[:n_alts_trlo]-hr_ref[:n_alts_trlo])**2)))
+            fit_score[(tip, 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_calc[alt0:n_alts_trlo]-hr_ref[alt0:n_alts_trlo])**2)))
 
             fit_score[(tip, 'trans', 'max')].append(np.max(np.abs(hr_calc[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])))
-            fit_score[(tip, 'lte+trans', 'max')].append(np.max(np.abs(hr_calc[:n_alts_trlo]-hr_ref[:n_alts_trlo])))
+            fit_score[(tip, 'lte+trans', 'max')].append(np.max(np.abs(hr_calc[alt0:n_alts_trlo]-hr_ref[alt0:n_alts_trlo])))
 
         pres = atm_pt[(atm, 'pres')]
         print(np.median(co2pr))
@@ -142,10 +144,10 @@ for cco2 in range(1,8):
         hr_fomi = oldco(alts)
 
         fit_score[('fomi', 'trans', 'std')].append(np.sqrt(np.mean((hr_fomi[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])**2)))
-        fit_score[('fomi', 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_fomi[:n_alts_trlo]-hr_ref[:n_alts_trlo])**2)))
+        fit_score[('fomi', 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_fomi[alt0:n_alts_trlo]-hr_ref[alt0:n_alts_trlo])**2)))
 
         fit_score[('fomi', 'trans', 'max')].append(np.max(np.abs(hr_fomi[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])))
-        fit_score[('fomi', 'lte+trans', 'max')].append(np.max(np.abs(hr_fomi[:n_alts_trlo]-hr_ref[:n_alts_trlo])))
+        fit_score[('fomi', 'lte+trans', 'max')].append(np.max(np.abs(hr_fomi[alt0:n_alts_trlo]-hr_ref[alt0:n_alts_trlo])))
 
 
         #
