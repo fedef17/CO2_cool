@@ -190,7 +190,7 @@ for cco2 in range(1,8):
         labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         hrs = [hr_ref] + hr_calcs + hr_ab_rescaled + [hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5), xlim = (-40, 10), ylim = (50, 90))
 
         figs2.append(fig)
         a0s.append(a0)
