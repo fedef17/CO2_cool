@@ -147,7 +147,7 @@ def hr_atm_calc(atm, cco2):
 
     return hr
 
-def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp):
+def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51):
     """
     This is the LTE cooling rate given a certain set of a and b coefficients.
     """
@@ -159,7 +159,7 @@ def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp):
 
     # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
     for xi in range(n_alts):
-        epsilon_ab_tot[xi] = np.sum((acoeff[:, xi] + bcoeff[:, xi]* phi_fun[xi]) * phi_fun) # il contributo della colonna
+        epsilon_ab_tot[xi] = np.sum((acoeff[:max_alts, xi] + bcoeff[:max_alts, xi]* phi_fun[xi]) * phi_fun) # il contributo della colonna
         epsilon_ab_tot[xi] += (asurf[xi] + bsurf[xi]* phi_fun[xi]) * phi_fun_g
 
     return epsilon_ab_tot
@@ -209,7 +209,7 @@ def custom_legend(fig, colors, labels, loc = 'lower center', ncol = None, fontsi
     return fig
 
 
-def hr_LTE_FB_vs_ob(atm, cco2):
+def hr_LTE_FB_vs_ob(atm, cco2, max_alts = 51):
     """
     Gives the FB and rest-of-bands LTE CRs for a specific atm/cco2.
     """
@@ -231,15 +231,15 @@ def hr_LTE_FB_vs_ob(atm, cco2):
 
     # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
     for xi in range(n_alts):
-        epsilon_FB[xi] = np.sum(acoeff[:, xi] * phi_fun) # il contributo della colonna
-        epsilon_ob[xi] = np.sum(bcoeff[:, xi] * phi_fun[xi] * phi_fun) # il contributo della colonna
+        epsilon_FB[xi] = np.sum(acoeff[:max_alts, xi] * phi_fun) # il contributo della colonna
+        epsilon_ob[xi] = np.sum(bcoeff[:max_alts, xi] * phi_fun[xi] * phi_fun) # il contributo della colonna
         epsilon_FB[xi] += asurf[xi] * phi_fun_g
         epsilon_ob[xi] += bsurf[xi] * phi_fun[xi] * phi_fun_g
 
     return epsilon_FB, epsilon_ob
 
 
-def hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, x0):
+def hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, x0, max_alts = 51):
     """
     As above, but at a single altitude.
     """
@@ -247,7 +247,7 @@ def hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, x0):
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
     # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
-    epsilon_ab_tot = np.sum((acoeff[:, x0] + bcoeff[:, x0]* phi_fun[x0]) * phi_fun) # il contributo della colonna
+    epsilon_ab_tot = np.sum((acoeff[:max_alts, x0] + bcoeff[:max_alts, x0]* phi_fun[x0]) * phi_fun) # il contributo della colonna
     epsilon_ab_tot += (asurf[x0] + bsurf[x0]* phi_fun[x0]) * phi_fun_g
 
     return epsilon_ab_tot
@@ -325,7 +325,7 @@ def hr_from_xi_at_x0(xis, atm, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm
     return hr_somma
 
 
-def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
+def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = 51):
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
@@ -350,13 +350,13 @@ def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, 
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
     # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
-    epsilon_ab_tot = np.sum((agn + bcoeff* phi_fun[ialt]) * phi_fun) # il contributo della colonna
+    epsilon_ab_tot = np.sum((agn[:max_alts] + bcoeff[:max_alts]* phi_fun[ialt]) * phi_fun) # il contributo della colonna
     epsilon_ab_tot += (agn_surf + bsurf* phi_fun[ialt]) * phi_fun_g
 
     return epsilon_ab_tot
 
 
-def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):
+def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = 51):
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
@@ -381,7 +381,7 @@ def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, 
     phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
 
     # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
-    epsilon_ab_tot = np.sum((acoeff + bgn* phi_fun[ialt]) * phi_fun) # il contributo della colonna
+    epsilon_ab_tot = np.sum((acoeff[:max_alts] + bgn[:max_alts]* phi_fun[ialt]) * phi_fun) # il contributo della colonna
     epsilon_ab_tot += (asurf + bgn_surf* phi_fun[ialt]) * phi_fun_g
 
     return epsilon_ab_tot
@@ -449,7 +449,7 @@ def ab_from_xi_abfit_fromdict(xis_ab, cco2, all_coeffs = all_coeffs, allatms = a
     return agn, bgn, agn_surf, bgn_surf
 
 
-def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = allatms, usevar = '_smoo'):
+def ab_from_xi_abfit(xis_a, xis_b, cco2, all_coeffs = all_coeffs, allatms = allatms, usevar = ''):
     """
     Calculates the fitted acoeff and bcoeff, using the weights xis_a and xis_b.
 
