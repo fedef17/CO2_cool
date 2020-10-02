@@ -251,6 +251,6 @@ for cos in ['std', 'max']:
             for atm in allatms:
                 lui1 = fit_score[(alltips[0], sco, cos)][iooo]
                 lui2 = fit_score[(alltips[1], sco, cos)][iooo]
-                lui3 = fit_score[(alltips[3], sco, cos)][iooo]
+                lui3 = fit_score[(alltips[2], sco, cos)][iooo]
                 print('{}, {}. v4: {:6.3f}, v5: {:6.3f}, old: {:6.3f} K  -----------> mejor? {}'.format(cco2, atm, lui1, lui2, lui3, vsho[np.argmin([lui1, lui2, lui3])]))
                 iooo += 1
