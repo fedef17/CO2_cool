@@ -47,6 +47,11 @@ n_alts = 54
 all_alts = atm_pt[('mle', 'alts')]
 alts = atm_pt[('mle', 'alts')][:n_alts]
 
+pres = atm_pt[('mle', 'pres')]
+x = np.log(1000./pres)
+n_alts_trlo = np.sum(x < 12.5)
+print('low trans at {} km, ialt {}'.format(alts[n_alts_trlo], n_alts_trlo))
+
 n_alts_lte = 40
 
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
@@ -129,6 +134,28 @@ for cco2 in range(1,8):
             all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)[np.newaxis, :]
         for cnam in ['asurf', 'bsurf']:
             all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte/hr_lte)
+
+        ratsmoo = npl.running_mean(hr_nlte/hr_lte, 5, remove_nans = True, keep_length = True)
+        for cnam in ['acoeff', 'bcoeff']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_smoo')] = all_coeffs[(atm, cco2, cnam)]*ratsmoo[np.newaxis, :]
+        for cnam in ['asurf', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_smoo')] = all_coeffs[(atm, cco2, cnam)]*ratsmoo
+
+        ratscut = hr_nlte/hr_lte
+        ratscut[n_alts_trlo:] = 1.
+        for cnam in ['acoeff', 'bcoeff']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_cut')] = all_coeffs[(atm, cco2, cnam)]*ratscut[np.newaxis, :]
+        for cnam in ['asurf', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_cut')] = all_coeffs[(atm, cco2, cnam)]*ratscut
+
+        rat = hr_nlte/hr_lte
+        for cnam in ['acoeff', 'bcoeff']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_diag')] = all_coeffs[(atm, cco2, cnam)]
+            for ii, ira in enumerate(rat):
+                all_coeffs_nlte[(atm, cco2, cnam+'_diag')][ii, ii] *= ira
+        for cnam in ['asurf', 'bsurf']:
+            all_coeffs_nlte[(atm, cco2, cnam+'_diag')] = all_coeffs[(atm, cco2, cnam)]*rat
+
 
 pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
