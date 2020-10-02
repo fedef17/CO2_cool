@@ -103,6 +103,10 @@ for tip in alltips:
         for cos in ['std', 'max']:
             fit_score[(tip, sco, cos)] = []
 
+for sco in ['trans', 'lte+trans']:
+    for cos in ['std', 'max']:
+        fit_score[('fomi', sco, cos)] = []
+
 for cco2 in range(1,8):
     co2pr = co2profs[cco2-1]
 
