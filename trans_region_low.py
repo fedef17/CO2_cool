@@ -50,6 +50,7 @@ alts = atm_pt[('mle', 'alts')][:n_alts]
 pres = atm_pt[('mle', 'pres')]
 x = np.log(1000./pres)
 n_alts_trlo = np.sum(x < 12.5)
+print(x[40:60])
 print('low trans at {} km, ialt {}'.format(alts[n_alts_trlo], n_alts_trlo))
 
 n_alts_lte = 40
