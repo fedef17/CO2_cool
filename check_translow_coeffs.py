@@ -63,10 +63,13 @@ a1s = []
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 
-from matplotlib.colors import LogNorm
+from matplotlib.colors import LogNorm, BoundaryNorm
 
 absval = False
 levels = [-10000, -1000, -100, -10, -1, -0.1, -0.01, 0., 0.01, 1, 10, 100, 1000, 10000]
+
+cmap = plt.get_cmap('RdBu_r')
+norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
 for absval in [False, True]:
     figsall = dict()
@@ -90,7 +93,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vf5')].append(fig)
@@ -104,7 +107,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vcut_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vcut')].append(fig)
@@ -118,7 +121,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vf4')].append(fig)
@@ -132,7 +135,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vfair')].append(fig)
