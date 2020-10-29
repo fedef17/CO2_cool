@@ -66,7 +66,7 @@ varfit_xis = dict()
 varfit_xis_2 = dict()
 
 thresloop = 0.001
-nloops = 10
+nloops = 100
 
 ##### Rescaling both a and b by hr_nlte/hr_lte
 for cco2 in range(1,8):
