@@ -124,7 +124,7 @@ for cnam in ['acoeff', 'bcoeff']:
     npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5.pdf'.format(cnam), figsall[(cnam, 'vf5')])
     npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4.pdf'.format(cnam), figsall[(cnam, 'vf4')])
     npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vcut.pdf'.format(cnam), figsall[(cnam, 'vcut')])
-    npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vfair.pdf'.format(cnam), figsall[(cnam, 'vfc')])
+    npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vfair.pdf'.format(cnam), figsall[(cnam, 'vfair')])
 
     plt.close('all')
 
