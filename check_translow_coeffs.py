@@ -71,7 +71,7 @@ for cnam in ['acoeff', 'bcoeff']:
     figsall[(cnam, 'vf4')] = []
     figsall[(cnam, 'vcut')] = []
     figsall[(cnam, 'vfair')] = []
-    for cco2 in range(8):
+    for cco2 in range(1, 8):
         # fig = plt.figure()
         # coef = all_coeffs[('mls', cco2, cnam)]
         # plt.imshow(np.abs(coef), norm=LogNorm(vmin=0.01, vmax=20000))
