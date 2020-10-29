@@ -83,8 +83,8 @@ for vers in ['v4', 'v5']:
 
         # a0.axhline(52, color = 'grey', linewidth = 0.5)
         # a1.axhline(52, color = 'grey', linewidth = 0.5)
-        a0.axhline(40, color = 'grey', linewidth = 0.5)
-        a1.axhline(40, color = 'grey', linewidth = 0.5)
+        a0.axvline(40, color = 'grey', linewidth = 0.5)
+        a1.axvline(40, color = 'grey', linewidth = 0.5)
 
         figsall.append(fig)
 
