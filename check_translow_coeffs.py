@@ -88,7 +88,7 @@ for vers in ['v4', 'v5']:
 
         figsall.append(fig)
 
-    npl.plot_pdfpages(cart_out_2 + 'allxis_{}.pdf'.format(vers))
+    npl.plot_pdfpages(cart_out_2 + 'allxis_{}.pdf'.format(vers), figsall)
 
 sys.exit()
 ################### CHECK ACOEFF BCOEFF
