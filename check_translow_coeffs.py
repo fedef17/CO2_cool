@@ -67,80 +67,84 @@ from matplotlib.colors import LogNorm
 
 absval = False
 
-figsall = dict()
-for cnam in ['acoeff', 'bcoeff']:
-    figsall[(cnam, 'vf5')] = []
-    figsall[(cnam, 'vf4')] = []
-    figsall[(cnam, 'vcut')] = []
-    figsall[(cnam, 'vfair')] = []
-    for cco2 in range(1, 8):
-        # fig = plt.figure()
-        # coef = all_coeffs[('mls', cco2, cnam)]
-        # plt.imshow(np.abs(coef), norm=LogNorm(vmin=0.01, vmax=20000))
-        # fig.savefig(cart_out_2 + 'check_{}_LTE_{}.pdf'.format(cnam, cco2))
+for absval in [False, True]:
+    figsall = dict()
+    for cnam in ['acoeff', 'bcoeff']:
+        figsall[(cnam, 'vf5')] = []
+        figsall[(cnam, 'vf4')] = []
+        figsall[(cnam, 'vcut')] = []
+        figsall[(cnam, 'vfair')] = []
+        for cco2 in range(1, 8):
+            # fig = plt.figure()
+            # coef = all_coeffs[('mls', cco2, cnam)]
+            # plt.imshow(np.abs(coef), norm=LogNorm(vmin=0.01, vmax=20000))
+            # fig.savefig(cart_out_2 + 'check_{}_LTE_{}.pdf'.format(cnam, cco2))
 
-        fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
-        axes = np.squeeze(np.reshape(axes, (1,6)))
-        for ii, atm in enumerate(allatms):
-            ax = axes[ii]
-            coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
-            coef2 = tot_coeff_co2[('varfit5_nlte', cnam, cco2)]
-            if absval:
-                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
-            else:
-                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
-            ax.set_title(atm)
-        #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
-        figsall[(cnam, 'vf5')].append(fig)
+            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            axes = np.squeeze(np.reshape(axes, (1,6)))
+            for ii, atm in enumerate(allatms):
+                ax = axes[ii]
+                coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
+                coef2 = tot_coeff_co2[('varfit5_nlte', cnam, cco2)]
+                if absval:
+                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                else:
+                    ax.imshow(coef2-coef1, norm=LogNorm(vmin = -10000, vmax=10000), cmap = 'RdBu_r')
+                ax.set_title(atm)
+            #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'vf5')].append(fig)
 
-        fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
-        axes = np.squeeze(np.reshape(axes, (1,6)))
-        for ii, atm in enumerate(allatms):
-            ax = axes[ii]
-            coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
-            coef2 = all_coeffs_nlte[(atm, cco2, cnam+'_cut')]
-            if absval:
-                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
-            else:
-                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
-            ax.set_title(atm)
-        #fig.savefig(cart_out_2 + 'check_vcut_{}_NLTE_{}.pdf'.format(cnam, cco2))
-        figsall[(cnam, 'vcut')].append(fig)
+            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            axes = np.squeeze(np.reshape(axes, (1,6)))
+            for ii, atm in enumerate(allatms):
+                ax = axes[ii]
+                coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
+                coef2 = all_coeffs_nlte[(atm, cco2, cnam+'_cut')]
+                if absval:
+                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                else:
+                    ax.imshow(coef2-coef1, norm=LogNorm(vmin = -10000, vmax=10000), cmap = 'RdBu_r')
+                ax.set_title(atm)
+            #fig.savefig(cart_out_2 + 'check_vcut_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'vcut')].append(fig)
 
-        fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
-        axes = np.squeeze(np.reshape(axes, (1,6)))
-        for ii, atm in enumerate(allatms):
-            ax = axes[ii]
-            coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
-            coef2 = tot_coeff_co2[('varfit4_nlte', cnam, cco2)]
-            if absval:
-                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
-            else:
-                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
-            ax.set_title(atm)
-        #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
-        figsall[(cnam, 'vf4')].append(fig)
+            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            axes = np.squeeze(np.reshape(axes, (1,6)))
+            for ii, atm in enumerate(allatms):
+                ax = axes[ii]
+                coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
+                coef2 = tot_coeff_co2[('varfit4_nlte', cnam, cco2)]
+                if absval:
+                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                else:
+                    ax.imshow(coef2-coef1, norm=LogNorm(vmin = -10000, vmax=10000), cmap = 'RdBu_r')
+                ax.set_title(atm)
+            #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'vf4')].append(fig)
 
-        fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
-        axes = np.squeeze(np.reshape(axes, (1,6)))
-        for ii, atm in enumerate(allatms):
-            ax = axes[ii]
-            coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
-            coef2 = tot_coeff_co2[('faircoeff_nlte', cnam, cco2)]
-            if absval:
-                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
-            else:
-                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
-            ax.set_title(atm)
-        #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
-        figsall[(cnam, 'vfair')].append(fig)
+            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            axes = np.squeeze(np.reshape(axes, (1,6)))
+            for ii, atm in enumerate(allatms):
+                ax = axes[ii]
+                coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
+                coef2 = tot_coeff_co2[('faircoeff_nlte', cnam, cco2)]
+                if absval:
+                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                else:
+                    ax.imshow(coef2-coef1, norm=LogNorm(vmin = -10000, vmax=10000), cmap = 'RdBu_r')
+                ax.set_title(atm)
+            #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'vfair')].append(fig)
 
-    npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5.pdf'.format(cnam), figsall[(cnam, 'vf5')])
-    npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4.pdf'.format(cnam), figsall[(cnam, 'vf4')])
-    npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vcut.pdf'.format(cnam), figsall[(cnam, 'vcut')])
-    npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vfair.pdf'.format(cnam), figsall[(cnam, 'vfair')])
+        addc = ''
+        if absval:
+            addc = '_abs'
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5')])
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf4')])
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vcut{}.pdf'.format(cnam, addc), figsall[(cnam, 'vcut')])
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vfair{}.pdf'.format(cnam, addc), figsall[(cnam, 'vfair')])
 
-    plt.close('all')
+        plt.close('all')
 
 sys.exit()
 cco2 = 4
