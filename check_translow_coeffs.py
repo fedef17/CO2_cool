@@ -90,7 +90,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.contourf(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vf5')].append(fig)
@@ -104,7 +104,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.contourf(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vcut_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vcut')].append(fig)
@@ -118,7 +118,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.contourf(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vf4')].append(fig)
@@ -132,7 +132,7 @@ for absval in [False, True]:
                 if absval:
                     ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
                 else:
-                    ax.contourf(coef2-coef1, levels = levels, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, levels = levels, cmap = 'RdBu_r')
                 ax.set_title(atm)
             #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vfair')].append(fig)
