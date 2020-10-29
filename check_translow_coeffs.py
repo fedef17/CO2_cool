@@ -96,14 +96,17 @@ from matplotlib.colors import LogNorm, BoundaryNorm
 
 absval = False
 levels = [-10000, -1000, -100, -10, -1, -0.1, -0.01, 0., 0.01, 1, 10, 100, 1000, 10000]
+levels2 = [-100, -10, -1, -0.1, -0.01, 0., 0.01, 1, 10, 100]
 
 cmap = plt.get_cmap('RdBu_r')
 norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+norm2 = BoundaryNorm(levels2, ncolors=cmap.N, clip=True)
 
-for absval in [False, True]:
+for absval in [0, 1, 2]:
     figsall = dict()
     for cnam in ['acoeff', 'bcoeff']:
         figsall[(cnam, 'vf5')] = []
+        figsall[(cnam, 'vf5rel')] = []
         figsall[(cnam, 'vf4')] = []
         figsall[(cnam, 'orig')] = []
         figsall[(cnam, 'lte')] = []
@@ -167,6 +170,25 @@ for absval in [False, True]:
             figsall[(cnam, 'vf5')].append(fig)
 
             fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            plt.suptitle('(vf5 - orig)/orig {} for co2 {}'.format(cnam, cco2))
+            axes = np.squeeze(np.reshape(axes, (1,6)))
+            for ii, atm in enumerate(allatms):
+                ax = axes[ii]
+                coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
+                coef2 = tot_coeff_co2[('varfit5_nlte', cnam, cco2)]
+                rat = (coef2-coef1)/coef1
+                if absval:
+                    ax.imshow(np.abs(rat), norm=LogNorm(vmin=0.1, vmax=10))
+                else:
+                    ax.pcolormesh(rat, norm = norm2, cmap = 'RdBu_r')
+                ax.set_title(atm)
+                ax.axhline(52, color = 'grey', linewidth = 0.5)
+                ax.axvline(52, color = 'grey', linewidth = 0.5)
+                ax.set_aspect(1.0)
+            #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'vf5rel')].append(fig)
+
+            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
             plt.suptitle('vf4 - orig {} for co2 {}'.format(cnam, cco2))
             axes = np.squeeze(np.reshape(axes, (1,6)))
             for ii, atm in enumerate(allatms):
@@ -206,6 +228,7 @@ for absval in [False, True]:
         if absval:
             addc = '_abs'
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5')])
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5rel{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5rel')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf4')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_orig{}.pdf'.format(cnam, addc), figsall[(cnam, 'orig')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_lte{}.pdf'.format(cnam, addc), figsall[(cnam, 'lte')])
