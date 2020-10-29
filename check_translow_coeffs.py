@@ -76,7 +76,7 @@ for absval in [False, True]:
     for cnam in ['acoeff', 'bcoeff']:
         figsall[(cnam, 'vf5')] = []
         figsall[(cnam, 'vf4')] = []
-        figsall[(cnam, 'vcut')] = []
+        figsall[(cnam, 'orig')] = []
         figsall[(cnam, 'vfair')] = []
         for cco2 in range(1, 8):
             # fig = plt.figure()
@@ -85,6 +85,21 @@ for absval in [False, True]:
             # fig.savefig(cart_out_2 + 'check_{}_LTE_{}.pdf'.format(cnam, cco2))
 
             fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            plt.suptitle('NLTE {} for co2 {}'.format(cnam, cco2))
+            axes = np.squeeze(np.reshape(axes, (1,6)))
+            for ii, atm in enumerate(allatms):
+                ax = axes[ii]
+                coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
+                if absval:
+                    ax.imshow(np.abs(coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                else:
+                    ax.pcolormesh(coef1, norm = norm, cmap = 'RdBu_r')
+                ax.set_title(atm)
+            #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'orig')].append(fig)
+
+            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            plt.suptitle('vf5 - orig {} for co2 {}'.format(cnam, cco2))
             axes = np.squeeze(np.reshape(axes, (1,6)))
             for ii, atm in enumerate(allatms):
                 ax = axes[ii]
@@ -99,20 +114,7 @@ for absval in [False, True]:
             figsall[(cnam, 'vf5')].append(fig)
 
             fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
-            axes = np.squeeze(np.reshape(axes, (1,6)))
-            for ii, atm in enumerate(allatms):
-                ax = axes[ii]
-                coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
-                coef2 = all_coeffs_nlte[(atm, cco2, cnam+'_cut')]
-                if absval:
-                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
-                else:
-                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
-                ax.set_title(atm)
-            #fig.savefig(cart_out_2 + 'check_vcut_{}_NLTE_{}.pdf'.format(cnam, cco2))
-            figsall[(cnam, 'vcut')].append(fig)
-
-            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            plt.suptitle('vf4 - orig {} for co2 {}'.format(cnam, cco2))
             axes = np.squeeze(np.reshape(axes, (1,6)))
             for ii, atm in enumerate(allatms):
                 ax = axes[ii]
@@ -127,6 +129,7 @@ for absval in [False, True]:
             figsall[(cnam, 'vf4')].append(fig)
 
             fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            plt.suptitle('mean - orig {} for co2 {}'.format(cnam, cco2))
             axes = np.squeeze(np.reshape(axes, (1,6)))
             for ii, atm in enumerate(allatms):
                 ax = axes[ii]
@@ -145,7 +148,7 @@ for absval in [False, True]:
             addc = '_abs'
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf4')])
-        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vcut{}.pdf'.format(cnam, addc), figsall[(cnam, 'vcut')])
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_orig{}.pdf'.format(cnam, addc), figsall[(cnam, 'orig')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vfair{}.pdf'.format(cnam, addc), figsall[(cnam, 'vfair')])
 
         plt.close('all')
