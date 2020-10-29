@@ -65,6 +65,8 @@ tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 from matplotlib.colors import LogNorm
 
+absval = False
+
 figsall = dict()
 for cnam in ['acoeff', 'bcoeff']:
     figsall[(cnam, 'vf5')] = []
@@ -83,7 +85,10 @@ for cnam in ['acoeff', 'bcoeff']:
             ax = axes[ii]
             coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
             coef2 = tot_coeff_co2[('varfit5_nlte', cnam, cco2)]
-            ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            if absval:
+                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            else:
+                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
             ax.set_title(atm)
         #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
         figsall[(cnam, 'vf5')].append(fig)
@@ -94,7 +99,10 @@ for cnam in ['acoeff', 'bcoeff']:
             ax = axes[ii]
             coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
             coef2 = all_coeffs_nlte[(atm, cco2, cnam+'_cut')]
-            ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            if absval:
+                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            else:
+                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
             ax.set_title(atm)
         #fig.savefig(cart_out_2 + 'check_vcut_{}_NLTE_{}.pdf'.format(cnam, cco2))
         figsall[(cnam, 'vcut')].append(fig)
@@ -105,7 +113,10 @@ for cnam in ['acoeff', 'bcoeff']:
             ax = axes[ii]
             coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
             coef2 = tot_coeff_co2[('varfit4_nlte', cnam, cco2)]
-            ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            if absval:
+                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            else:
+                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
             ax.set_title(atm)
         #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
         figsall[(cnam, 'vf4')].append(fig)
@@ -116,7 +127,10 @@ for cnam in ['acoeff', 'bcoeff']:
             ax = axes[ii]
             coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
             coef2 = tot_coeff_co2[('faircoeff_nlte', cnam, cco2)]
-            ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            if absval:
+                ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+            else:
+                ax.imshow(coef2-coef1, vmin = -10000, vmax=10000, cmap = 'RdBu_r')
             ax.set_title(atm)
         #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
         figsall[(cnam, 'vfair')].append(fig)
