@@ -119,7 +119,7 @@ for cnam in ['acoeff', 'bcoeff']:
             ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
             ax.set_title(atm)
         #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
-        figsall[(cnam, 'vfc')].append(fig)
+        figsall[(cnam, 'vfair')].append(fig)
 
     npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5.pdf'.format(cnam), figsall[(cnam, 'vf5')])
     npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4.pdf'.format(cnam), figsall[(cnam, 'vf4')])
