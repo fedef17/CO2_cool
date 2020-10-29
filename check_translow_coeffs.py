@@ -77,12 +77,30 @@ for absval in [False, True]:
         figsall[(cnam, 'vf5')] = []
         figsall[(cnam, 'vf4')] = []
         figsall[(cnam, 'orig')] = []
+        figsall[(cnam, 'lte')] = []
         figsall[(cnam, 'vfair')] = []
         for cco2 in range(1, 8):
             # fig = plt.figure()
             # coef = all_coeffs[('mls', cco2, cnam)]
             # plt.imshow(np.abs(coef), norm=LogNorm(vmin=0.01, vmax=20000))
             # fig.savefig(cart_out_2 + 'check_{}_LTE_{}.pdf'.format(cnam, cco2))
+
+            fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
+            plt.suptitle('LTE {} for co2 {}'.format(cnam, cco2))
+            axes = np.squeeze(np.reshape(axes, (1,6)))
+            for ii, atm in enumerate(allatms):
+                ax = axes[ii]
+                coef1 = all_coeffs[(atm, cco2, cnam)]
+                if absval:
+                    ax.imshow(np.abs(coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                else:
+                    ax.pcolormesh(coef1, norm = norm, cmap = 'RdBu_r')
+                ax.set_title(atm)
+                ax.set_aspect(1.0)
+                ax.axhline(51, color = 'grey')
+                ax.axvline(51, color = 'grey')
+            #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'lte')].append(fig)
 
             fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
             plt.suptitle('NLTE {} for co2 {}'.format(cnam, cco2))
@@ -161,6 +179,7 @@ for absval in [False, True]:
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf4')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_orig{}.pdf'.format(cnam, addc), figsall[(cnam, 'orig')])
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_lte{}.pdf'.format(cnam, addc), figsall[(cnam, 'lte')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vfair{}.pdf'.format(cnam, addc), figsall[(cnam, 'vfair')])
 
         plt.close('all')
