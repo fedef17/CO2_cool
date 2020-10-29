@@ -90,7 +90,6 @@ for vers in ['v4', 'v5']:
 
     npl.plot_pdfpages(cart_out_2 + 'allxis_{}.pdf'.format(vers), figsall)
 
-sys.exit()
 ################### CHECK ACOEFF BCOEFF
 
 from matplotlib.colors import LogNorm, BoundaryNorm
