@@ -91,10 +91,12 @@ for absval in [False, True]:
                 ax = axes[ii]
                 coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
                 if absval:
-                    ax.imshow(np.abs(coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                    ax.imshow(np.abs(coef1), norm=LogNorm(vmin=0.01, vmax=20000), aspect = 'equal')
                 else:
-                    ax.pcolormesh(coef1, norm = norm, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef1, norm = norm, cmap = 'RdBu_r', aspect = 'equal')
                 ax.set_title(atm)
+                ax.axhline(51, color = 'grey')
+                ax.axvline(51, color = 'grey')
             #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'orig')].append(fig)
 
@@ -106,10 +108,12 @@ for absval in [False, True]:
                 coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
                 coef2 = tot_coeff_co2[('varfit5_nlte', cnam, cco2)]
                 if absval:
-                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000), aspect = 'equal')
                 else:
-                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r', aspect = 'equal')
                 ax.set_title(atm)
+                ax.axhline(51, color = 'grey')
+                ax.axvline(51, color = 'grey')
             #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vf5')].append(fig)
 
@@ -121,10 +125,12 @@ for absval in [False, True]:
                 coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
                 coef2 = tot_coeff_co2[('varfit4_nlte', cnam, cco2)]
                 if absval:
-                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000), aspect = 'equal')
                 else:
-                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r', aspect = 'equal')
                 ax.set_title(atm)
+                ax.axhline(51, color = 'grey')
+                ax.axvline(51, color = 'grey')
             #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vf4')].append(fig)
 
@@ -136,10 +142,12 @@ for absval in [False, True]:
                 coef1 = all_coeffs_nlte[(atm, cco2, cnam)]
                 coef2 = tot_coeff_co2[('faircoeff_nlte', cnam, cco2)]
                 if absval:
-                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000))
+                    ax.imshow(np.abs(coef2-coef1), norm=LogNorm(vmin=0.01, vmax=20000), aspect = 'equal')
                 else:
-                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r')
+                    ax.pcolormesh(coef2-coef1, norm = norm, cmap = 'RdBu_r', aspect = 'equal')
                 ax.set_title(atm)
+                ax.axhline(51, color = 'grey')
+                ax.axvline(51, color = 'grey')
             #fig.savefig(cart_out_2 + 'check_vf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'vfair')].append(fig)
 
