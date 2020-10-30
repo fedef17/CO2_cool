@@ -102,7 +102,7 @@ cmap = plt.get_cmap('RdBu_r')
 norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 norm2 = BoundaryNorm(levels2, ncolors=cmap.N, clip=True)
 
-for absval in [0, 1, 2]:
+for absval in [False, True]:
     figsall = dict()
     for cnam in ['acoeff', 'bcoeff']:
         figsall[(cnam, 'vf5')] = []
@@ -150,6 +150,30 @@ for absval in [0, 1, 2]:
                 ax.axvline(52, color = 'grey', linewidth = 0.5)
             #fig.savefig(cart_out_2 + 'check_vf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
             figsall[(cnam, 'orig')].append(fig)
+
+            fig, ax = plt.subplots()
+            plt.suptitle('vf5 {} for co2 {}'.format(cnam, cco2))
+            coef2 = tot_coeff_co2[('varfit5_nlte', cnam, cco2)]
+            if absval:
+                ax.imshow(np.abs(coef2), norm=LogNorm(vmin=0.01, vmax=20000))
+            else:
+                ax.pcolormesh(coef2, norm = norm, cmap = 'RdBu_r')
+            ax.axhline(52, color = 'grey', linewidth = 0.5)
+            ax.axvline(52, color = 'grey', linewidth = 0.5)
+            ax.set_aspect(1.0)
+            fig.savefig(cart_out_2 + 'check_globvf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
+
+            fig, ax = plt.subplots()
+            plt.suptitle('vf4 {} for co2 {}'.format(cnam, cco2))
+            coef2 = tot_coeff_co2[('varfit4_nlte', cnam, cco2)]
+            if absval:
+                ax.imshow(np.abs(coef2), norm=LogNorm(vmin=0.01, vmax=20000))
+            else:
+                ax.pcolormesh(coef2, norm = norm, cmap = 'RdBu_r')
+            ax.axhline(52, color = 'grey', linewidth = 0.5)
+            ax.axvline(52, color = 'grey', linewidth = 0.5)
+            ax.set_aspect(1.0)
+            fig.savefig(cart_out_2 + 'check_globvf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
 
             fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
             plt.suptitle('vf5 - orig {} for co2 {}'.format(cnam, cco2))
