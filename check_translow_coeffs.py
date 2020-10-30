@@ -105,6 +105,7 @@ norm2 = BoundaryNorm(levels2, ncolors=cmap.N, clip=True)
 for absval in [False, True]:
     figsall = dict()
     for cnam in ['acoeff', 'bcoeff']:
+        figsall[(cnam, 'vf5glob')] = []
         figsall[(cnam, 'vf5')] = []
         figsall[(cnam, 'vf5rel')] = []
         figsall[(cnam, 'vf4')] = []
@@ -161,7 +162,8 @@ for absval in [False, True]:
             ax.axhline(52, color = 'grey', linewidth = 0.5)
             ax.axvline(52, color = 'grey', linewidth = 0.5)
             ax.set_aspect(1.0)
-            fig.savefig(cart_out_2 + 'check_globvf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            #fig.savefig(cart_out_2 + 'check_globvf5_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'vf5glob')].append(fig)
 
             fig, ax = plt.subplots()
             plt.suptitle('vf4 {} for co2 {}'.format(cnam, cco2))
@@ -173,7 +175,8 @@ for absval in [False, True]:
             ax.axhline(52, color = 'grey', linewidth = 0.5)
             ax.axvline(52, color = 'grey', linewidth = 0.5)
             ax.set_aspect(1.0)
-            fig.savefig(cart_out_2 + 'check_globvf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            #fig.savefig(cart_out_2 + 'check_globvf4_{}_NLTE_{}.pdf'.format(cnam, cco2))
+            figsall[(cnam, 'vf5glob')].append(fig)
 
             fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
             plt.suptitle('vf5 - orig {} for co2 {}'.format(cnam, cco2))
@@ -253,6 +256,7 @@ for absval in [False, True]:
             addc = '_abs'
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5rel{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5rel')])
+        npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf5glob{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf5glob')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_vf4{}.pdf'.format(cnam, addc), figsall[(cnam, 'vf4')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_orig{}.pdf'.format(cnam, addc), figsall[(cnam, 'orig')])
         npl.plot_pdfpages(cart_out_2 + 'check_{}_NLTE_lte{}.pdf'.format(cnam, addc), figsall[(cnam, 'lte')])
