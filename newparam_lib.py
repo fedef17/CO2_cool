@@ -779,6 +779,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
 
+    print(fu)
     return fu
 
 
@@ -797,6 +798,7 @@ def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coe
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
 
+    print(fu)
     return fu
 
 #
