@@ -185,49 +185,50 @@ pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 # pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'wb'))
 
 
-for cco2 in range(1,8):
-    for ialt in range(66):
-        doloop = True
-        jloop = 1
-        xis_b = None
-        # Equal atm weights
-        while doloop and jloop < nloops: # loop on a and b fit
-            cnam = 'afit'
-            if jloop == 1:
-                xis_start = xis_a_start
-            else:
-                xis_start = xis_a
-            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds)#, gtol = None, xtol = None)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_a = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_2[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_a - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_2[(cco2, ialt, cnam)] = xis_a
-
-            if jloop == 1:
-                xis_start = xis_b_start
-            else:
-                xis_start = xis_b
-            cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds)#, gtol = None, xtol = None)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_b = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_2[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_b - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_2[(cco2, ialt, cnam)] = xis_b
-
-            jloop += 1
-
-print('######################################################')
-pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v6.p', 'wb'))
+# THE LM METHOD MAKES THE xis_b EXPLODE
+# for cco2 in range(1,8):
+#     for ialt in range(66):
+#         doloop = True
+#         jloop = 1
+#         xis_b = None
+#         # Equal atm weights
+#         while doloop and jloop < nloops: # loop on a and b fit
+#             cnam = 'afit'
+#             if jloop == 1:
+#                 xis_start = xis_a_start
+#             else:
+#                 xis_start = xis_a
+#             result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds)#, gtol = None, xtol = None)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_a = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_2[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_a - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_2[(cco2, ialt, cnam)] = xis_a
+#
+#             if jloop == 1:
+#                 xis_start = xis_b_start
+#             else:
+#                 xis_start = xis_b
+#             cnam = 'bfit'
+#             result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds)#, gtol = None, xtol = None)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_b = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_2[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_b - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_2[(cco2, ialt, cnam)] = xis_b
+#
+#             jloop += 1
+#
+# print('######################################################')
+# pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v6.p', 'wb'))
 
 for iatmw in range(6):
     varfit_xis_2 = dict()
