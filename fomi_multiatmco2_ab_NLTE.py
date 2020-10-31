@@ -68,6 +68,9 @@ varfit_xis_2 = dict()
 thresloop = 0.001
 nloops = 100
 
+xis_a_start = np.ones(6)
+xis_b_start = np.ones(6)
+
 ##### Rescaling both a and b by hr_nlte/hr_lte
 for cco2 in range(1,8):
     for ialt in range(66):
@@ -77,8 +80,12 @@ for cco2 in range(1,8):
 
         # Fomichev's atm weights
         while doloop and jloop < nloops: # loop on a and b fit
+            if jloop == 1:
+                xis_start = xis_a_start
+            else:
+                xis_start = xis_a
             cnam = 'afit'
-            result = least_squares(npl.delta_xi_at_x0_afit, start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_a = result.x
 
@@ -95,8 +102,12 @@ for cco2 in range(1,8):
             # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
             # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
 
+            if jloop == 1:
+                xis_start = xis_b_start
+            else:
+                xis_start = xis_b
             cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_b = result.x
 
@@ -126,8 +137,13 @@ for cco2 in range(1,8):
         xis_b = None
         # Equal atm weights
         while doloop and jloop < nloops: # loop on a and b fit
+            if jloop == 1:
+                xis_start = xis_a_start
+            else:
+                xis_start = xis_a
+
             cnam = 'afit'
-            result = least_squares(npl.delta_xi_at_x0_afit, np.ones(6), jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_a = result.x
 
@@ -142,8 +158,12 @@ for cco2 in range(1,8):
             # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
             # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
 
+            if jloop == 1:
+                xis_start = xis_b_start
+            else:
+                xis_start = xis_b
             cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, np.ones(6), jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_b = result.x
 
@@ -164,8 +184,6 @@ print('######################################################')
 pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 # pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'wb'))
 
-xis_a_start = np.ones(6)
-xis_b_start = np.ones(6)
 
 for cco2 in range(1,8):
     for ialt in range(66):
