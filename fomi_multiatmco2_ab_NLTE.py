@@ -174,8 +174,8 @@ for iatmw in range(6):
             xis_b = None
 
             # Weighting 1 only atmosphere iatmw
-            weigatm = np.zeros(6)+0.001
-            weigatm[iatmw] = 0.995
+            weigatm = np.zeros(6)+0.01
+            weigatm[iatmw] = 0.95
 
             while doloop and jloop < nloops: # loop on a and b fit
                 cnam = 'afit'
