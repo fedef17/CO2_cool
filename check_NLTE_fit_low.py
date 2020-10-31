@@ -103,7 +103,7 @@ co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
 fit_score = dict()
 #alltips = ['varfit4', 'varfit5', 'varfit4_nlte', 'varfit5_nlte']
-alltips = ['varfit4_nlte', 'varfit5_nlte', 'faircoeff_nlte']
+alltips = ['varfit4_nlte', 'varfit5_nlte']#, 'faircoeff_nlte']
 for tip in alltips:
     for sco in ['trans', 'lte+trans']:
         for cos in ['std', 'max']:
