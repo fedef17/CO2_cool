@@ -65,6 +65,8 @@ a1s = []
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 varfit_xis_4_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v4.p', 'rb'))
 varfit_xis_5_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v5.p', 'rb'))
+for iatm in range(6):
+    varfit_xis_wiatm[iatm] = pickle.load(open(cart_out_2 + 'varfit_NLTE_iatm{}.p'.format(iatm), 'rb'))
 
 #all_coeffs_nlte_v4 = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE_fitv4.p', 'rb'))
 #all_coeffs_nlte_v5 = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'rb'))
@@ -83,6 +85,13 @@ for cco2 in allco2:
     tot_coeff_co2[('varfit5_nlte', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit5_nlte', 'asurf', cco2)] = asurf
     tot_coeff_co2[('varfit5_nlte', 'bsurf', cco2)] = bsurf
+
+    for iatm in range(6):
+        acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_wiatm[iatm], cco2, all_coeffs = all_coeffs_nlte)
+        tot_coeff_co2[('varfit_wiatm{}_nlte'.format(iatm), 'acoeff', cco2)] = acoeff
+        tot_coeff_co2[('varfit_wiatm{}_nlte'.format(iatm), 'bcoeff', cco2)] = bcoeff
+        tot_coeff_co2[('varfit_wiatm{}_nlte'.format(iatm), 'asurf', cco2)] = asurf
+        tot_coeff_co2[('varfit_wiatm{}_nlte'.format(iatm), 'bsurf', cco2)] = bsurf
 
     acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_5_nlte, cco2, all_coeffs = all_coeffs_nlte, faircoeff = True)
     tot_coeff_co2[('faircoeff_nlte', 'acoeff', cco2)] = acoeff
@@ -103,7 +112,7 @@ co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
 fit_score = dict()
 #alltips = ['varfit4', 'varfit5', 'varfit4_nlte', 'varfit5_nlte']
-alltips = ['varfit4_nlte', 'varfit5_nlte']#, 'faircoeff_nlte']
+alltips = ['varfit4_nlte', 'varfit5_nlte'] + ['varfit_wiatm{}_nlte'.format(iatm) for iatm in range(6)]
 for tip in alltips:
     for sco in ['trans', 'lte+trans']:
         for cos in ['std', 'max']:
