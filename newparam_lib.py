@@ -769,7 +769,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
     """
-    print('atmweigths: ', atmweigths)
+    #print('atmweigths: ', atmweigths)
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
@@ -779,7 +779,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
 
-    print(fu)
+    #print(fu)
     return fu
 
 
@@ -788,7 +788,7 @@ def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coe
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
     """
-    print('atmweigths: ', atmweigths)
+    #print('atmweigths: ', atmweigths)
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
@@ -798,7 +798,7 @@ def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coe
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
 
-    print(fu)
+    #print(fu)
     return fu
 
 #
