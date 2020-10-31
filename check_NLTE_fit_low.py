@@ -65,6 +65,7 @@ a1s = []
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 varfit_xis_4_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v4.p', 'rb'))
 varfit_xis_5_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v5.p', 'rb'))
+varfit_xis_wiatm = dict()
 for iatm in range(6):
     varfit_xis_wiatm[iatm] = pickle.load(open(cart_out_2 + 'varfit_NLTE_iatm{}.p'.format(iatm), 'rb'))
 
