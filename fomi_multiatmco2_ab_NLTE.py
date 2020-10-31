@@ -168,7 +168,7 @@ pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 for iatmw in range(6):
     varfit_xis_2 = dict()
     for cco2 in range(1,8):
-        for ialt in range(51):
+        for ialt in range(66):
             doloop = True
             jloop = 1
             xis_b = None
@@ -179,7 +179,7 @@ for iatmw in range(6):
 
             while doloop and jloop < nloops: # loop on a and b fit
                 cnam = 'afit'
-                result = least_squares(npl.delta_xi_at_x0_afit, weigatm, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+                result = least_squares(npl.delta_xi_at_x0_afit, np.ones(6), jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
                 print(cco2, ialt, cnam, jloop, result.x)
                 xis_a = result.x
 
@@ -191,7 +191,7 @@ for iatmw in range(6):
                 varfit_xis_2[(cco2, ialt, cnam)] = xis_a
 
                 cnam = 'bfit'
-                result = least_squares(npl.delta_xi_at_x0_bfit, weigatm, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+                result = least_squares(npl.delta_xi_at_x0_bfit, np.ones(6), jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
                 print(cco2, ialt, cnam, jloop, result.x)
                 xis_b = result.x
 
