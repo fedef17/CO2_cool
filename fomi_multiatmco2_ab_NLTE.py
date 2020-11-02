@@ -68,8 +68,8 @@ varfit_xis_2 = dict()
 thresloop = 1.e-8
 nloops = 1000
 
-xtol = 1.e-10
-gtol = 1.e-10
+xtol = 1.e-12
+gtol = 1.e-12
 
 xis_a_start = np.ones(6)
 xis_b_start = np.ones(6)
