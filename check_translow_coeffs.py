@@ -7,6 +7,7 @@ import os
 
 from matplotlib import pyplot as plt
 from matplotlib import cm
+from matplotlib.colors import LogNorm, BoundaryNorm
 #import climtools_lib as ctl
 
 from scipy import io
@@ -94,8 +95,6 @@ for vers in ['v4', 'v5'] + viatmw:
 
 sys.exit()
 ################### CHECK ACOEFF BCOEFF
-
-from matplotlib.colors import LogNorm, BoundaryNorm
 
 absval = False
 levels = [-10000, -1000, -100, -10, -1, -0.1, -0.01, 0., 0.01, 1, 10, 100, 1000, 10000]
