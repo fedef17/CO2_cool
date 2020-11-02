@@ -65,8 +65,11 @@ allres_varfit = dict()
 varfit_xis = dict()
 varfit_xis_2 = dict()
 
-thresloop = 0.001
-nloops = 100
+thresloop = 1.e-8
+nloops = 1000
+
+xtol = 1.e-10
+gtol = 1.e-10
 
 xis_a_start = np.ones(6)
 xis_b_start = np.ones(6)
@@ -85,7 +88,7 @@ for cco2 in range(1,8):
             else:
                 xis_start = xis_a
             cnam = 'afit'
-            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_a = result.x
 
@@ -107,7 +110,7 @@ for cco2 in range(1,8):
             else:
                 xis_start = xis_b
             cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_b = result.x
 
@@ -143,7 +146,7 @@ for cco2 in range(1,8):
                 xis_start = xis_a
 
             cnam = 'afit'
-            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_a = result.x
 
@@ -163,7 +166,7 @@ for cco2 in range(1,8):
             else:
                 xis_start = xis_b
             cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
             print(cco2, ialt, cnam, jloop, result.x)
             xis_b = result.x
 
@@ -198,7 +201,7 @@ pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 #                 xis_start = xis_a_start
 #             else:
 #                 xis_start = xis_a
-#             result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds)#, gtol = None, xtol = None)
+#             result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds, gtol = gtol, xtol = xtol)
 #             print(cco2, ialt, cnam, jloop, result.x)
 #             xis_a = result.x
 #
@@ -214,7 +217,7 @@ pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 #             else:
 #                 xis_start = xis_b
 #             cnam = 'bfit'
-#             result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds)#, gtol = None, xtol = None)
+#             result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths2, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'lm')#, bounds = bounds, gtol = gtol, xtol = xtol)
 #             print(cco2, ialt, cnam, jloop, result.x)
 #             xis_b = result.x
 #
@@ -250,7 +253,7 @@ for iatmw in range(6):
                 else:
                     xis_start = xis_a
 
-                result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+                result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
                 print(cco2, ialt, cnam, jloop, result.x)
                 xis_a = result.x
 
@@ -266,7 +269,7 @@ for iatmw in range(6):
                 else:
                     xis_start = xis_b
                 cnam = 'bfit'
-                result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds)#, gtol = None, xtol = None)
+                result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
                 print(cco2, ialt, cnam, jloop, result.x)
                 xis_b = result.x
 
