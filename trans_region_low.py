@@ -134,6 +134,7 @@ for cco2 in range(1,8):
 
         ratio = hr_nlte/hr_lte_maxalts
         ratio[all_alts < 15] = 1.
+        ratio[:40] = 1. # Setting the ratio to 1 to all the LTE region
         for cnam in ['acoeff', 'bcoeff']:
             all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*ratio[np.newaxis, :]
         for cnam in ['asurf', 'bsurf']:

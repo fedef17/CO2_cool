@@ -113,7 +113,7 @@ co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
 fit_score = dict()
 #alltips = ['varfit4', 'varfit5', 'varfit4_nlte', 'varfit5_nlte']
-alltips = ['varfit4_nlte', 'varfit5_nlte'] + ['varfit_wiatm{}_nlte'.format(iatm) for iatm in range(6)]
+alltips = ['varfit4_nlte', 'varfit5_nlte'] #+ ['varfit_wiatm{}_nlte'.format(iatm) for iatm in range(6)]
 for tip in alltips:
     for sco in ['trans', 'lte+trans']:
         for cos in ['std', 'max']:
@@ -137,6 +137,7 @@ for cco2 in range(1,8):
         ylab = 'Alt (km)'
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][:n_alts]
+        hr_lte = all_coeffs[(atm, cco2, 'hr_lte')][:n_alts]
 
         hr_calcs = []
         for tip in alltips:
@@ -196,11 +197,12 @@ for cco2 in range(1,8):
                 print('-----------> ok!! this is crazyyyy')
 
 
-        #hrs = [hr_ref] + hr_calcs + hr_ab_rescaled
-        labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        hrs = [hr_ref] + hr_calcs + hr_ab_rescaled + [hr_fomi]
+        #labels = ['nlte_ref', 'lte_ref'] + alltips + ['fomi rescale (no fit)', 'old param']
+        #hrs = [hr_ref, hr_lte] + hr_calcs + hr_ab_rescaled + [hr_fomi]
+        labels = ['nlte_ref', 'lte_ref'] + alltips + ['old param']
+        hrs = [hr_ref, hr_lte] + hr_calcs + [hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (40, 90))
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (40, 90), linestyles = ['-', ':', '-', '--', ':'])
 
         figs2.append(fig)
         a0s.append(a0)

@@ -982,15 +982,16 @@ def plot_pdfpages(filename, figs, save_single_figs = False, fig_names = None):
     return
 
 
-def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None, xlim = (None, None), ylim = (None, None)):
+def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None, linestyles = None, xlim = (None, None), ylim = (None, None)):
     """
     Plots plt.plot(x, y, lab) for each x in xs. Plots the differences of all xs wrt xs[0] in a side plot.
     """
     fig, (a0, a1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [3, 1]})
     if colors is None: colors = color_set(len(xs))
+    if linestyles is None: linestyles = len(xs)*['-']
     i = 0
-    for x, lab, col in zip(xs, labels, colors):
-        a0.plot(x, y, label = lab, color = col)
+    for x, lab, col, lst in zip(xs, labels, colors, linestyles):
+        a0.plot(x, y, label = lab, color = col, linestyle = lst)
         if i == 0:
             i+=1
             continue
