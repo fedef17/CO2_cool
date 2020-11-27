@@ -1001,7 +1001,7 @@ def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimd
             a1.axvline(-0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
             a1.axvline(1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
             a1.axvline(-1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
-        a1.plot(x - xs[0], y, color = col)
+        a1.plot(x - xs[0], y, color = col, linestyle = lst)
         i+=1
 
     a0.axhline(70., color = 'red', alpha = 0.6, linestyle = '--')

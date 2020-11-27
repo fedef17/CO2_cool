@@ -234,10 +234,10 @@ pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 # pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v6.p', 'wb'))
 
 for iatmw in range(6):
-    xis_a_start = np.ones(6)
-    xis_b_start = np.ones(6)
-    xis_a_start[iatmw] = 5
-    xis_b_start[iatmw] = 5
+    xis_a_start = np.zeros(6)+0.1
+    xis_b_start = np.zeros(6)+0.1
+    xis_a_start[iatmw] = 100
+    xis_b_start[iatmw] = 100
 
     varfit_xis_2 = dict()
     for cco2 in range(1,8):

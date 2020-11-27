@@ -199,10 +199,10 @@ for cco2 in range(1,8):
 
         #labels = ['nlte_ref', 'lte_ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         #hrs = [hr_ref, hr_lte] + hr_calcs + hr_ab_rescaled + [hr_fomi]
-        labels = ['nlte_ref', 'lte_ref'] + alltips + ['old param']
-        hrs = [hr_ref, hr_lte] + hr_calcs + [hr_fomi]
+        labels = ['nlte_ref'] + alltips + ['lte_ref', 'old param']
+        hrs = [hr_ref] + hr_calcs + [hr_lte, hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (40, 90), linestyles = ['-', ':', '-', '--', ':'])
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (40, 90), linestyles = ['-', '-', '-', ':', ':'])
 
         figs2.append(fig)
         a0s.append(a0)
