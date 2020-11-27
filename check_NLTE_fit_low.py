@@ -137,7 +137,7 @@ for cco2 in range(1,8):
         ylab = 'Alt (km)'
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][:n_alts]
-        hr_lte = all_coeffs_lte[(atm, cco2, 'hr_ref')][:n_alts]
+        hr_lte = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
 
         hr_calcs = []
         for tip in alltips:
