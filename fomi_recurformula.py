@@ -125,7 +125,7 @@ alpha = np.ones(len(Lok)) # depends on cco2
 eps_gn = np.zeros(len(Lok))
 
 dj = alpha*Lok
-lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*z02 + ovmr*zo))
+lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
 
 ## Boundary condition
 #eps125 = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][n_alts_trlo]
