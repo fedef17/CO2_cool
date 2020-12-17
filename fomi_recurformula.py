@@ -165,6 +165,9 @@ alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
 oldco = spline(alt_fomi, hr_fomi)
 hr_fomi = oldco(alts)
 
+tit = 'co2: {} - atm: {}'.format(cco2, atm)
+xlab = 'CR (K/day)'
+ylab = 'Alt (km)'
 labels = ['nlte_ref', 'new_param', 'old param']
 hrs = [hr_ref, hr_calc, hr_fomi]
 #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
