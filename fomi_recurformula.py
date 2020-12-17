@@ -60,8 +60,9 @@ print('low trans at {}, {:7.2f} km'.format(n_alts_trlo, alts[n_alts_trlo]))
 n_alts_trhi = np.sum(x < 14)
 print('high trans at {}, {:7.2f} km'.format(n_alts_trhi, alts[n_alts_trhi]))
 
-n_alts_cs = np.sum(x < 16.5)
-print('cool-to-space at {}, {:7.2f} km'.format(n_alts_cs, alts[n_alts_cs]))
+# il cool-to-space è fuori dalle 66 alts
+# n_alts_cs = np.sum(x < 16.5)
+# print('cool-to-space at {}, {:7.2f} km'.format(n_alts_cs, alts[n_alts_cs]))
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 n_alts_lte = 40
@@ -139,7 +140,7 @@ eps125 = hr_calc[n_alts_trlo]
 
 eps_gn[n_alts_trlo] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo] * (1-lamb[n_alts_trlo]))
 
-for j in range(n_alts_trlo+1, n_alts_cs): # Formula 9
+for j in range(n_alts_trlo+1, n_alts): # Formula 9
     Djj = 0.25*(dj[j-1] + 3*dj[j])
     Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
 
@@ -151,9 +152,10 @@ MM = np.ones(len(alts)) * (0.79*28+0.21*32) # Molecular mass
 fac = (2.63187e11 * co2vmr * (1-lamb))/MM
 eps = fac * eps_gn # Formula 7
 
+###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
 # now for the cs region:
-Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
-eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
+# Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
+# eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 
 ### Putting all in hr_calc
 hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
