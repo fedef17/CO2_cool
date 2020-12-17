@@ -982,7 +982,7 @@ def plot_pdfpages(filename, figs, save_single_figs = False, fig_names = None):
     return
 
 
-def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None, linestyles = None, xlim = (None, None), ylim = (None, None)):
+def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None, linestyles = None, xlim = (None, None), ylim = (None, None), orizlines = [70., 85.]):
     """
     Plots plt.plot(x, y, lab) for each x in xs. Plots the differences of all xs wrt xs[0] in a side plot.
     """
@@ -1004,10 +1004,9 @@ def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimd
         a1.plot(x - xs[0], y, color = col, linestyle = lst)
         i+=1
 
-    a0.axhline(70., color = 'red', alpha = 0.6, linestyle = '--')
-    a0.axhline(85., color = 'orange', alpha = 0.6, linestyle = '--')
-    a1.axhline(70., color = 'red', alpha = 0.6, linestyle = '--')
-    a1.axhline(85., color = 'orange', alpha = 0.6, linestyle = '--')
+    for orizli, col in zip(orizlines, ['red', 'orange', 'green', 'blue']):
+        a0.axhline(orizli, color = col, alpha = 0.6, linestyle = '--')
+        a1.axhline(orizli, color = col, alpha = 0.6, linestyle = '--')
     a0.grid()
     a1.grid()
     if xlimdiff is not None:

@@ -177,7 +177,7 @@ ylab = 'Alt (km)'
 labels = ['nlte_ref', 'new_param', 'old param']
 hrs = [hr_ref, hr_calc, hr_fomi]
 #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), linestyles = ['-', '-', ':'])
+fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), linestyles = ['-', '-', ':'], orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
 fig.savefig(cart_out_3 + 'check_upper_NOalpha_mle_3.pdf')
 
