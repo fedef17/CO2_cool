@@ -138,7 +138,10 @@ bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
 hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
 eps125 = hr_calc[n_alts_trlo]
 
-eps_gn[n_alts_trlo] = -1.10036e-10*eps125/(co2vmr[n_alts_trlo] * (1-lamb[n_alts_trlo]))
+##### convert from K day-1 to erg g-1 s-1
+eps125 = eps125 * cp / (24*60*60)
+
+eps_gn[n_alts_trlo] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo] * (1-lamb[n_alts_trlo]))
 
 for j in range(n_alts_trlo+1, n_alts): # Formula 9
     Djj = 0.25*(dj[j-1] + 3*dj[j])
@@ -150,7 +153,9 @@ for j in range(n_alts_trlo+1, n_alts): # Formula 9
 
 MM = np.ones(len(alts)) * (0.79*28+0.21*32) # Molecular mass
 fac = (2.63187e11 * co2vmr * (1-lamb))/MM
-eps = -fac * eps_gn # Formula 7
+eps = fac * eps_gn # Formula 7
+
+eps = eps * (24*60*60) / cp # convert back to K/day
 
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
 # now for the cs region:
