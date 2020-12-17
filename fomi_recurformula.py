@@ -49,10 +49,8 @@ allco2 = np.arange(1,8)
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 
-n_alts = 54
-
-all_alts = atm_pt[('mle', 'alts')]
-alts = atm_pt[('mle', 'alts')][:n_alts]
+n_alts = 66
+alts = atm_pt[('mle', 'alts')]
 
 pres = atm_pt[('mle', 'pres')]
 x = np.log(1000./pres)
@@ -94,8 +92,8 @@ n_co2 = n_dens * co2vmr
 phi_fun = np.exp(-E_fun/(kbc*temp))
 
 ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
-o2vmr = np.ones(len(all_alts))*0.20
-n2vmr = np.ones(len(all_alts))*0.79
+o2vmr = np.ones(len(alts))*0.20
+n2vmr = np.ones(len(alts))*0.79
 
 ###################### Rate coefficients ######################
 t13 = temp**(-1./3)
@@ -114,8 +112,8 @@ zo2=7e-17*np.sqrt(T)+1.0e-9*np.exp(-83.8*t13)
 ###############################################################
 
 uok = []
-for ial in range(len(all_alts)):
-    uok.append(np.trapz(n_co2[ial:], 1.e5*all_alts[ial:])) # integro in cm, voglio la colonna in cm-2
+for ial in range(len(alts)):
+    uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
 
 uok = np.array(uok)
 Lok = Lspl(uok)
@@ -149,7 +147,7 @@ for j in range(n_alts_trlo+1, n_alts_cs): # Formula 9
     Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
     eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
-MM = np.ones(len(all_alts)) * (0.79*28+0.21*32) # Molecular mass
+MM = np.ones(len(alts)) * (0.79*28+0.21*32) # Molecular mass
 fac = (2.63187e11 * co2vmr * (1-lamb))/MM
 eps = fac * eps_gn # Formula 7
 
@@ -161,14 +159,14 @@ eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
 hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
 
-alt_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2vmr)
+alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
 oldco = spline(alt_fomi, hr_fomi)
-hr_fomi = oldco(all_alts)
+hr_fomi = oldco(alts)
 
 labels = ['nlte_ref', 'new_param', 'old param']
 hrs = [hr_ref, hr_calc, hr_fomi]
 #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-fig, a0, a1 = npl.manuel_plot(all_alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), linestyles = ['-', '-', ':'])
+fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), linestyles = ['-', '-', ':'])
 
 fig.savefig(cart_out_3 + 'check_upper_NOalpha_mle_3.pdf')
 
