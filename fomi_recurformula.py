@@ -104,10 +104,10 @@ zo = 3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrizat
 #ZCO2O = KO Fomichev value
 
 # Collisional rates between CO2 and N2/O2:
-zn2=7e-17*np.sqrt(T)+6.7e-10*np.exp(-83.8*t13)
-zo2=7e-17*np.sqrt(T)+1.0e-9*np.exp(-83.8*t13)
+zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
+zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
 # use Fomichev values
-# zn2=5.5e-17*sqrt(T)+6.7e-10*exp(-83.8*t13)
+# zn2=5.5e-17*sqrt(temp)+6.7e-10*exp(-83.8*t13)
 # zo2=1.e-15*exp(23.37-230.9*t13+564.*t13*t13)
 
 ###############################################################
