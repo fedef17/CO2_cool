@@ -81,7 +81,7 @@ cco2 = 3
 
 L_esc = all_coeffs_nlte[(atm, cco2, 'l_esc')]
 uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
-Lspl = spline(uco2, L_esc)#, k = 2, s = 0)
+Lspl = spline(uco2, L_esc, extrapolate = False)
 
 pres = atm_pt[(atm, 'pres')]
 temp = atm_pt[(atm, 'temp')]
@@ -118,8 +118,8 @@ for ial in range(len(alts)):
 
 uok = np.array(uok)
 Lok = Lspl(uok)
-Lok[Lok > 1] = 1.0 # to avoid unphysical L
-Lok[Lok < 0.] = 0.0 # to avoid unphysical L
+Lok[:20][np.isnan(Lok[:20])] = 0.0 # for extrapolated regions
+Lok[-5:][np.isnan(Lok[-5:])] = 1.0 # for extrapolated regions
 
 alpha = np.ones(len(Lok)) # depends on cco2
 eps_gn = np.zeros(len(Lok))
@@ -160,6 +160,7 @@ eps = fac * eps_gn # Formula 7
 ### Putting all in hr_calc
 hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
 hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
 alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
 oldco = spline(alt_fomi, hr_fomi)
