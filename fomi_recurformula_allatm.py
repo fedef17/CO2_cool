@@ -179,6 +179,9 @@ for cco2 in range(1, 8):
 
 ### Putting all in hr_calc
 
+figs = []
+a0s = []
+a1s = []
 for cco2 in range(1, 8):
     tip = 'varfit5_nlte'
     acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
@@ -186,9 +189,6 @@ for cco2 in range(1, 8):
     asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
     bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
-    figs = []
-    a0s = []
-    a1s = []
     for atm in allatms:
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
