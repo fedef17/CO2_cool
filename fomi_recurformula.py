@@ -55,10 +55,10 @@ alts = atm_pt[('mle', 'alts')]
 pres = atm_pt[('mle', 'pres')]
 x = np.log(1000./pres)
 n_alts_trlo = np.sum(x < 12.5)
-print('low trans at {}, {:7.2f} km'.format(n_alts_trlo, alts[n_alts_trlo]))
+print('low trans at {}, {:7.2f} km'.format(n_alts_trlo, alts[n_alts_trlo], x[n_alts_trlo]))
 
 n_alts_trhi = np.sum(x < 14)
-print('high trans at {}, {:7.2f} km'.format(n_alts_trhi, alts[n_alts_trhi]))
+print('high trans at {}, {:7.2f} km'.format(n_alts_trhi, alts[n_alts_trhi], x[n_alts_trhi]))
 
 # il cool-to-space è fuori dalle 66 alts
 # n_alts_cs = np.sum(x < 16.5)
