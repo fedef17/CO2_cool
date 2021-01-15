@@ -169,7 +169,7 @@ for cco2 in range(1, 8):
     result = least_squares(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
     print('least_squares', result)
     alpha_dic[cco2] = result.x
-    result = minimize(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), method = 'TNC', bounds = bounds)#, gtol = gtol, xtol = xtol)
+    result = minimize(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
     print('minimize', result)
 
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
