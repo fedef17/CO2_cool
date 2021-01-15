@@ -201,7 +201,8 @@ for cco2 in range(1, 8):
         MM = cose_upper_atm[(atm, cco2, 'MM')]
 
         #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
-        hr_calc = npl.recformula(alpha[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
+        hr_calc = npl.recformula(alpha_dic[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
+        hr_calc_alpha1 = npl.recformula(np.ones(7), L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
@@ -213,10 +214,10 @@ for cco2 in range(1, 8):
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
-        labels = ['nlte_ref', 'new_param', 'old param']
-        hrs = [hr_ref, hr_calc, hr_fomi]
+        labels = ['nlte_ref', 'new_param', 'new_param_noalpha', 'old param']
+        hrs = [hr_ref, hr_calc, hr_calc_alpha1, hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), linestyles = ['-', '-', ':'], orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-8, 8), xlim = (-40, 10), linestyles = ['-', '-', ':', ':'], orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
         a0s.append(a0)
