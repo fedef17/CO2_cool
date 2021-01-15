@@ -1059,6 +1059,8 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     With full vectors.
     """
     n_alts = len(hr)
+    hr_new = 1.*hr
+
     phi_fun = np.exp(-E_fun/(kbc*temp))
 
     eps125 = hr[n_alts_trlo-1] * cp / (24*60*60)
@@ -1080,10 +1082,10 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
         eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
     fac = (2.63187e11 * co2vmr * (1-lamb))/MM
-    hr[n_alts_trlo:] = fac[n_alts_trlo:] * eps_gn[n_alts_trlo:]  # Formula 7
-    hr[n_alts_trlo:] = hr[n_alts_trlo:] * (24*60*60) / cp # convert back to K/day
+    hr_new[n_alts_trlo:] = fac[n_alts_trlo:] * eps_gn[n_alts_trlo:]  # Formula 7
+    hr_new[n_alts_trlo:] = hr[n_alts_trlo:] * (24*60*60) / cp # convert back to K/day
 
-    return hr
+    return hr_new
 
 
 ###########################################################
