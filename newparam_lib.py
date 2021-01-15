@@ -1005,8 +1005,8 @@ def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi =
         lamb = cose_upper_atm[(atm, cco2, 'lamb')][n_alts_trlo:n_alts_trhi]
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo:n_alts_trhi]
         MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo:n_alts_trhi]
+        temp = atm_pt[(atm, 'temp')][n_alts_trlo:n_alts_trhi]
         eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
-        temp = atm_pt[(atm, 'temp')]
 
         hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo)
 
