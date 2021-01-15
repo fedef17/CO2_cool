@@ -93,8 +93,10 @@ n_co2 = n_dens * co2vmr
 phi_fun = np.exp(-E_fun/(kbc*temp))
 
 ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
-o2vmr = np.ones(len(alts))*0.20
-n2vmr = np.ones(len(alts))*0.79
+o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+# o2vmr = np.ones(len(alts))*0.20-ovmr
+# n2vmr = np.ones(len(alts))*0.79
 
 ###################### Rate coefficients ######################
 t13 = temp**(-1./3)

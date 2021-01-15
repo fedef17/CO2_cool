@@ -60,23 +60,23 @@ tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 ratiooo = pickle.load(open(cart_out_2 + 'ratios_NLTE_smooth.p', 'rb'))
 
 # Now. We are in the low transition region and need to adjust the LTE coeffs to non-LTE.
-cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sav_v3.2/'
+cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sav_v3.3/'
 filsav = 'cr_nlte_{}_co2_{}.sav'
 all_coeffs_nlte = dict()
 
 for cco2 in range(1,8):
     for atm in allatms:
         coso = io.readsav(cartsav+filsav.format(atm, cco2))['data']
-        nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM'
+        nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM O2_VMR N2_VMR'
         nomi = nomi.split()
 
         savcco2 = cco2
-        if atm in ['mle', 'mls', 'mlw', 'sas']:
-            # THIS IS TO CORRECT THE SWITCH IN THE DATA
-            if cco2 == 4:
-                savcco2 = 5
-            elif cco2 == 5:
-                savcco2 = 4
+        # if atm in ['mle', 'mls', 'mlw', 'sas']:
+        #     # THIS IS TO CORRECT THE SWITCH IN THE DATA
+        #     if cco2 == 4:
+        #         savcco2 = 5
+        #     elif cco2 == 5:
+        #         savcco2 = 4
 
         for nom in nomi:
             vara = getattr(coso, nom)[0]
@@ -112,17 +112,17 @@ for cco2 in range(1,8):
         else:
             print('---------> ', cco2, atm, 'NOUUUUUUU [{:.0f}]'.format(ksk), np.mean(hr_lte_old), np.mean(hr_lte))
 
-            if cco2 == 4:
-                hr_lte_old = all_coeffs[(atm, 5, 'hr_ref')]
-                ksk = np.sum(np.abs(hr_lte_old-hr_lte))
-                if ksk < 0.01:
-                    print('-----------------> ok!! this is crazyyyy')
-
-            elif cco2 == 5:
-                hr_lte_old = all_coeffs[(atm, 4, 'hr_ref')]
-                ksk = np.sum(np.abs(hr_lte_old-hr_lte))
-                if ksk < 0.01:
-                    print('-----------------> ok!! this is crazyyyy')
+            # if cco2 == 4:
+            #     hr_lte_old = all_coeffs[(atm, 5, 'hr_ref')]
+            #     ksk = np.sum(np.abs(hr_lte_old-hr_lte))
+            #     if ksk < 0.01:
+            #         print('-----------------> ok!! this is crazyyyy')
+            #
+            # elif cco2 == 5:
+            #     hr_lte_old = all_coeffs[(atm, 4, 'hr_ref')]
+            #     ksk = np.sum(np.abs(hr_lte_old-hr_lte))
+            #     if ksk < 0.01:
+            #         print('-----------------> ok!! this is crazyyyy')
 
         hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
         hr_lte_maxalts = hr_lte_fun + hr_lte_hot
