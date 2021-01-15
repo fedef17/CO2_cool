@@ -1014,7 +1014,7 @@ def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi =
         fu.append(hr_calc - hr_ref)
 
     fu = np.stack(fu)
-    fu = atmweigths[:, np.newaxis]*fu**2
+    fu = weigths[:, np.newaxis]*fu**2
     fu = np.sqrt(np.sum(fu, axis = 0)) # in questo modo fu ha dimensione n_trans
     #resid = np.sqrt(atmweigths[i] * np.sum((hr_calc - hr)**2))
 
