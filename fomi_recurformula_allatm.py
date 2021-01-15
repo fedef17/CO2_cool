@@ -190,13 +190,14 @@ for cco2 in range(1, 8):
     a0s = []
     a1s = []
     for atm in allatms:
+        temp = atm_pt[(atm, 'temp')]
+        surf_temp = atm_pt[(atm, 'surf_temp')]
         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
         #hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
         L_esc = cose_upper_atm[(atm, cco2, 'L_esc')]
         lamb = cose_upper_atm[(atm, cco2, 'lamb')]
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
         MM = cose_upper_atm[(atm, cco2, 'MM')]
-        temp = atm_pt[(atm, 'temp')]
 
         hr_calc = npl.recformula(alpha[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
 
