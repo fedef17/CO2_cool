@@ -989,7 +989,7 @@ def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, n_trans = 6):
     return eps
 
 
-def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(7), all_coeffs = all_coeffs_NLTE, atm_pt = atm_pt):
+def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(7), all_coeffs = None, atm_pt = atm_pt):
     """
     This is done for all n_trans = 6 altitudes at a time.
     """
