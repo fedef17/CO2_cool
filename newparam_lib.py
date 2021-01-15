@@ -957,6 +957,97 @@ def jacdelta_xi_all_x0s_fast(xis, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt
 
 
 ###########################################################
+# Upper trans region
+
+def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, n_trans = 6):
+    """
+    Recurrence formula in the upper transition region (with alpha).
+
+    n_trans = n_alts_trhi-n_alts_trlo
+    """
+
+    eps125 = eps125 * cp / (24*60*60)
+
+    dj = L_esc*alpha
+
+    eps_gn[0] = 1.10036e-10*eps125/(co2vmr[0] * (1-lamb[0]))
+
+    for j in range(n_trans): # Formula 9
+        Djj = 0.25*(dj[j-1] + 3*dj[j])
+        Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
+
+        Fj = (1 - lamb[j]*(1-Djj))
+        Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
+        eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
+
+    #MM = np.ones(len(alts)) * (0.79*28+0.21*32) # Molecular mass
+    fac = (2.63187e11 * co2vmr * (1-lamb))/MM
+    eps = fac * eps_gn # Formula 7
+
+    eps = eps * (24*60*60) / cp # convert back to K/day
+
+    return eps
+
+
+def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(7), all_coeffs = all_coeffs_NLTE, atm_pt = atm_pt):
+    """
+    This is done for all n_trans = 6 altitudes at a time.
+    """
+
+    n_trans = n_alts_trhi-n_alts_trlo
+
+    fu = []
+    for i, atm in enumerate(allatms):
+        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][n_alts_trlo:n_alts_trhi]
+
+        L_esc = cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:n_alts_trhi]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')][n_alts_trlo:n_alts_trhi]
+        co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo:n_alts_trhi]
+        MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo:n_alts_trhi]
+        eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
+
+        hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, n_trans = n_alts_trhi-n_alts_trlo)
+
+        # atmweights will be squared by the loss function inside least_quares
+        fu.append(hr_calc - hr_ref)
+
+    fu = np.stack(fu)
+    fu = atmweigths[:, np.newaxis]*fu**2
+    fu = np.sqrt(np.sum(fu, axis = 0)) # in questo modo fu ha dimensione n_trans
+    #resid = np.sqrt(atmweigths[i] * np.sum((hr_calc - hr)**2))
+
+    return fu
+
+
+def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, n_alts_trlo = 56):
+    """
+    Recurrence formula in the upper transition region (with alpha).
+
+    With full vectors.
+    """
+    n_alts = len(hr)
+
+    eps125 = hr[n_alts_trlo] * cp / (24*60*60)
+    dj = L_esc*alpha
+
+    eps_gn[n_alts_trlo] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo] * (1-lamb[n_alts_trlo]))
+
+    for j in range(n_alts_trlo, n_alts): # Formula 9
+        Djj = 0.25*(dj[j-1] + 3*dj[j])
+        Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
+
+        Fj = (1 - lamb[j]*(1-Djj))
+        Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
+        eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
+
+    fac = (2.63187e11 * co2vmr * (1-lamb))/MM
+    hr[n_alts_trlo:] = fac[n_alts_trlo:] * eps_gn[n_alts_trlo:]  # Formula 7
+    hr[n_alts_trlo:] = hr[n_alts_trlo:] * (24*60*60) / cp # convert back to K/day
+
+    return hr
+
+
+###########################################################
 
 def plot_pdfpages(filename, figs, save_single_figs = False, fig_names = None):
     """
