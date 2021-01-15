@@ -1064,7 +1064,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     eps125 = hr[n_alts_trlo-1] * cp / (24*60*60)
 
     alpha_ok = np.ones(n_alts)
-    alpha_ok[n_alts_trlo:n_alts_trhi] = alpha
+    alpha_ok[n_alts_trlo-1:n_alts_trhi] = alpha
     dj = L_esc*alpha_ok
 
     eps_gn = np.zeros(n_alts)
