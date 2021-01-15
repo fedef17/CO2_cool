@@ -1021,6 +1021,37 @@ def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi =
     return fu
 
 
+def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt):
+    """
+    This is done for all n_trans = 6 altitudes at a time.
+    """
+
+    n_trans = n_alts_trhi-n_alts_trlo+1
+
+    fu = []
+    for i, atm in enumerate(allatms):
+        hr_ref = all_coeffs[(atm, cco2, 'hr_nlte')][n_alts_trlo:n_alts_trhi]
+
+        L_esc = cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo-1:n_alts_trhi]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')][n_alts_trlo-1:n_alts_trhi]
+        co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo-1:n_alts_trhi]
+        MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo-1:n_alts_trhi]
+        temp = atm_pt[(atm, 'temp')][n_alts_trlo-1:n_alts_trhi]
+        eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
+
+        hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo+1)
+
+        # atmweights will be squared by the loss function inside least_quares
+        fu.append(hr_calc - hr_ref)
+
+    fu = np.concatenate(fu)
+    # fu = weigths[:, np.newaxis]*fu**2
+    # fu = np.sqrt(np.sum(fu, axis = 0)) # in questo modo fu ha dimensione n_trans
+    # #resid = np.sqrt(atmweigths[i] * np.sum((hr_calc - hr)**2))
+
+    return fu
+
+
 def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56):
     """
     Recurrence formula in the upper transition region (with alpha).
