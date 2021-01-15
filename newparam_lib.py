@@ -1033,6 +1033,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 56):
     eps125 = hr[n_alts_trlo] * cp / (24*60*60)
     dj = L_esc*alpha
 
+    eps_gn = np.zeros(n_alts)
     eps_gn[n_alts_trlo] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo] * (1-lamb[n_alts_trlo]))
 
     for j in range(n_alts_trlo+1, n_alts): # Formula 9
