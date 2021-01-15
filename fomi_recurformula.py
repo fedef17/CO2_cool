@@ -142,13 +142,19 @@ bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
 hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
 eps125 = hr_calc[n_alts_trlo-1]
 
+hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+eps14 = hr_ref[n_alts_trhi-1]
+
 ##### convert from K day-1 to erg g-1 s-1
 eps125 = eps125 * cp / (24*60*60)
+eps14 = eps14 * cp / (24*60*60)
 
-eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1]))
+#eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1]))
+eps_gn[n_alts_trhi-1] = 1.10036e-10*eps14/(co2vmr[n_alts_trhi-1] * (1-lamb[n_alts_trhi-1]))
 
 coso = '{:4d}  {:7.1e}  {:7.1e}  {:7.1e}  {:7.1e}    {:7.1e}  {:7.1e}  {:7.1e}'
-for j in range(n_alts_trlo, n_alts): # Formula 9
+#for j in range(n_alts_trlo, n_alts): # Formula 9
+for j in range(n_alts_trhi, n_alts): # Formula 9
     Djj = 0.25*(dj[j-1] + 3*dj[j])
     Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
 
@@ -169,7 +175,9 @@ eps = eps * (24*60*60) / cp # convert back to K/day
 # eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 
 ### Putting all in hr_calc
-hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
+#hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
+hr_calc[n_alts_trhi:] = eps[n_alts_trhi:]
+hr_calc[:n_alts_trhi] = hr_ref[:n_alts_trhi]
 hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
 hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
@@ -185,7 +193,7 @@ hrs = [hr_ref, hr_calc, hr_fomi]
 #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
 fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-8, 8), xlim = (-40, 10), linestyles = ['-', '-', ':'], orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
-fig.savefig(cart_out_3 + 'check_upper_NOalpha_mle_3_alphafom.pdf')
+fig.savefig(cart_out_3 + 'check_upper_NOalpha_mle_3_samestart.pdf')
 
 # figs.append(fig)
 # a0s.append(a0)
