@@ -1068,7 +1068,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     alpha_ok = np.ones(n_alts)
     alpha_ok[n_alts_trlo-1:n_alts_trhi] = alpha
     dj = L_esc*alpha_ok
-    print(alpha_ok)
+    #print(alpha_ok)
 
     eps_gn = np.zeros(n_alts)
     eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1]))
@@ -1083,7 +1083,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
     fac = (2.63187e11 * co2vmr * (1-lamb))/MM
     hr_new[n_alts_trlo:] = fac[n_alts_trlo:] * eps_gn[n_alts_trlo:]  # Formula 7
-    hr_new[n_alts_trlo:] = hr[n_alts_trlo:] * (24*60*60) / cp # convert back to K/day
+    hr_new[n_alts_trlo:] = hr_new[n_alts_trlo:] * (24*60*60) / cp # convert back to K/day
 
     return hr_new
 
