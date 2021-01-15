@@ -959,15 +959,15 @@ def jacdelta_xi_all_x0s_fast(xis, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt
 ###########################################################
 # Upper trans region
 
-def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, n_trans = 6):
+def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 6):
     """
     Recurrence formula in the upper transition region (with alpha).
 
     n_trans = n_alts_trhi-n_alts_trlo
     """
-
     eps125 = eps125 * cp / (24*60*60)
 
+    phi_fun = np.exp(-E_fun/(kbc*temp))
     dj = L_esc*alpha
 
     eps_gn = np.zeros(n_trans)
@@ -1006,8 +1006,9 @@ def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi =
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo:n_alts_trhi]
         MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo:n_alts_trhi]
         eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
+        temp = atm_pt[(atm, 'temp')]
 
-        hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, n_trans = n_alts_trhi-n_alts_trlo)
+        hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo)
 
         # atmweights will be squared by the loss function inside least_quares
         fu.append(hr_calc - hr_ref)
@@ -1020,13 +1021,14 @@ def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi =
     return fu
 
 
-def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, n_alts_trlo = 56):
+def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 56):
     """
     Recurrence formula in the upper transition region (with alpha).
 
     With full vectors.
     """
     n_alts = len(hr)
+    phi_fun = np.exp(-E_fun/(kbc*temp))
 
     eps125 = hr[n_alts_trlo] * cp / (24*60*60)
     dj = L_esc*alpha

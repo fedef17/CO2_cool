@@ -151,6 +151,7 @@ for cco2 in range(1,8):
 
         cose_upper_atm[(atm, cco2, 'L_esc')] = L_esc
         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
+        cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
         cose_upper_atm[(atm, cco2, 'eps125')] = eps125
         cose_upper_atm[(atm, cco2, 'co2vmr')] = co2vmr
         cose_upper_atm[(atm, cco2, 'MM')] = MM
@@ -192,8 +193,10 @@ for cco2 in range(1, 8):
         lamb = cose_upper_atm[(atm, cco2, 'lamb')]
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
         MM = cose_upper_atm[(atm, cco2, 'MM')]
+        phi_fun = cose_upper_atm[(atm, cco2, 'phi_fun')]
+        temp = atm_pt[(atm, 'temp')]
 
-        hr_calc = npl.recformula(alpha[cco2], L_esc, lamb, hr_calc, co2vmr, MM, n_alts_trhi = n_alts_trhi)
+        hr_calc = npl.recformula(alpha[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trhi = n_alts_trhi)
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
