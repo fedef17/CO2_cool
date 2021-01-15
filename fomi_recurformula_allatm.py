@@ -196,7 +196,7 @@ for cco2 in range(1, 8):
         MM = cose_upper_atm[(atm, cco2, 'MM')]
         temp = atm_pt[(atm, 'temp')]
 
-        hr_calc = npl.recformula(alpha[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trhi = n_alts_trhi)
+        hr_calc = npl.recformula(alpha[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo)
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
