@@ -126,6 +126,8 @@ Lok[-5:][np.isnan(Lok[-5:])] = 1.0 # for extrapolated regions
 alpha = np.ones(len(Lok)) # depends on cco2
 eps_gn = np.zeros(len(Lok))
 
+alpha[n_alts_trlo-1:n_alts_trhi] = np.array([1.8, 1.7, 1.5, 1.3, 1.1, 1.05, 1.0])
+
 dj = alpha*Lok
 lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
 
@@ -181,9 +183,9 @@ ylab = 'Alt (km)'
 labels = ['nlte_ref', 'new_param', 'old param']
 hrs = [hr_ref, hr_calc, hr_fomi]
 #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-10, 5), xlim = (-40, 10), linestyles = ['-', '-', ':'], orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-8, 8), xlim = (-40, 10), linestyles = ['-', '-', ':'], orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
-fig.savefig(cart_out_3 + 'check_upper_NOalpha_mle_3.pdf')
+fig.savefig(cart_out_3 + 'check_upper_NOalpha_mle_3_alphafom.pdf')
 
 # figs.append(fig)
 # a0s.append(a0)
