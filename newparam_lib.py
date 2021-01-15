@@ -998,7 +998,7 @@ def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi =
 
     fu = []
     for i, atm in enumerate(allatms):
-        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][n_alts_trlo:n_alts_trhi]
+        hr_ref = all_coeffs[(atm, cco2, 'hr_nlte')][n_alts_trlo:n_alts_trhi]
 
         L_esc = cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:n_alts_trhi]
         lamb = cose_upper_atm[(atm, cco2, 'lamb')][n_alts_trlo:n_alts_trhi]
