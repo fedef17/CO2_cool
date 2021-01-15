@@ -161,14 +161,14 @@ pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
 # alpha FIT!
 n_trans = n_alts_trhi-n_alts_trlo
 atmweights = np.ones(6)
-bounds = (0.1*np.ones(n_trans), 10*np.ones(n_trans))
+bounds = (0.1*np.ones(n_trans), 20*np.ones(n_trans))
 alpha_dic = dict()
 for cco2 in range(1, 8):
     print(cco2)
     result = least_squares(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
     print('least_squares', result)
     alpha_dic[cco2] = result.x
-    result = minimize(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'TNC', bounds = bounds)#, gtol = gtol, xtol = xtol)
+    result = minimize(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), method = 'TNC', bounds = bounds)#, gtol = gtol, xtol = xtol)
     print('minimize', result)
 
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
