@@ -26,6 +26,8 @@ if not os.path.exists(cart_out_3): os.mkdir(cart_out_3)
 
 import newparam_lib as npl
 import spect_base_module as sbm
+from scipy.optimize import Bounds, minimize, least_squares
+
 #from scipy.interpolate import UnivariateSpline as spline
 
 """
@@ -162,9 +164,11 @@ bounds = (0.1*np.ones(n_trans), 10*np.ones(n_trans))
 alpha_dic = dict()
 for cco2 in range(1, 8):
     print(cco2)
-    result = least_squares(npl.delta_alpha_rec, np.ones(n_trans), jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_NLTE, atm_pt, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-    print(cco2, result.x)
+    result = least_squares(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_NLTE, atm_pt, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+    print('least_squares', result)
     alpha_dic[cco2] = result.x
+    result = minimize(npl.delta_alpha_rec, np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_NLTE, atm_pt, ), verbose=1, method = 'TNC', bounds = bounds)#, gtol = gtol, xtol = xtol)
+    print('minimize', result)
 
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
 # now for the cs region:
