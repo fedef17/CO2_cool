@@ -187,7 +187,7 @@ for cco2 in range(1, 8):
     bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
     figs = []
-    for atm in allamts:
+    for atm in allatms:
         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
         #hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
         L_esc = cose_upper_atm[(atm, cco2, 'L_esc')]
