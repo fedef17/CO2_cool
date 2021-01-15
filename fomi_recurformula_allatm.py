@@ -164,9 +164,11 @@ atmweights = np.ones(6)
 bounds = (np.ones(n_trans), 5*np.ones(n_trans))
 bounds2 = n_trans*[(0.1,10)]
 alpha_dic = dict()
+
+start = np.linspace(2.0, 1.0, n_trans)
 for cco2 in range(1, 8):
     print(cco2)
-    result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+    result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
     #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
     print('least_squares', result)
     alpha_dic[cco2] = result.x
