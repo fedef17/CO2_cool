@@ -149,7 +149,7 @@ for cco2 in range(1,8):
         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
         eps125 = hr_calc[n_alts_trlo]
 
-        cose_upper_atm[(atm, cco2, 'L_esc')] = L_esc
+        cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
         #cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
         cose_upper_atm[(atm, cco2, 'eps125')] = eps125
