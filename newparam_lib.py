@@ -970,9 +970,10 @@ def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, n_trans = 6):
 
     dj = L_esc*alpha
 
+    eps_gn = np.zeros(n_trans)
     eps_gn[0] = 1.10036e-10*eps125/(co2vmr[0] * (1-lamb[0]))
 
-    for j in range(n_trans): # Formula 9
+    for j in range(1, n_trans): # Formula 9
         Djj = 0.25*(dj[j-1] + 3*dj[j])
         Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
 
@@ -1032,7 +1033,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, n_alts_trlo = 56):
 
     eps_gn[n_alts_trlo] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo] * (1-lamb[n_alts_trlo]))
 
-    for j in range(n_alts_trlo, n_alts): # Formula 9
+    for j in range(n_alts_trlo+1, n_alts): # Formula 9
         Djj = 0.25*(dj[j-1] + 3*dj[j])
         Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
 
