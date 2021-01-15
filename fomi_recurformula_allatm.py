@@ -151,7 +151,7 @@ for cco2 in range(1,8):
 
         cose_upper_atm[(atm, cco2, 'L_esc')] = L_esc
         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
-        cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
+        #cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
         cose_upper_atm[(atm, cco2, 'eps125')] = eps125
         cose_upper_atm[(atm, cco2, 'co2vmr')] = co2vmr
         cose_upper_atm[(atm, cco2, 'MM')] = MM
@@ -160,7 +160,7 @@ pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
 
 # alpha FIT!
 n_trans = n_alts_trhi-n_alts_trlo
-atmweights = np.ones(7)
+atmweights = np.ones(6)
 bounds = (0.1*np.ones(n_trans), 10*np.ones(n_trans))
 alpha_dic = dict()
 for cco2 in range(1, 8):
@@ -193,7 +193,6 @@ for cco2 in range(1, 8):
         lamb = cose_upper_atm[(atm, cco2, 'lamb')]
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
         MM = cose_upper_atm[(atm, cco2, 'MM')]
-        phi_fun = cose_upper_atm[(atm, cco2, 'phi_fun')]
         temp = atm_pt[(atm, 'temp')]
 
         hr_calc = npl.recformula(alpha[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trhi = n_alts_trhi)
