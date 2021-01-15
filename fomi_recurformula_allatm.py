@@ -147,7 +147,7 @@ for cco2 in range(1,8):
         bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
-        eps125 = hr_calc[n_alts_trlo]
+        eps125 = hr_calc[n_alts_trlo-1]
 
         cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
