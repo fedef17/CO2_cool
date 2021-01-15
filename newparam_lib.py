@@ -1021,7 +1021,7 @@ def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi =
     return fu
 
 
-def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 56):
+def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56):
     """
     Recurrence formula in the upper transition region (with alpha).
 
@@ -1031,7 +1031,10 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 56):
     phi_fun = np.exp(-E_fun/(kbc*temp))
 
     eps125 = hr[n_alts_trlo] * cp / (24*60*60)
-    dj = L_esc*alpha
+
+    alpha_ok = np.ones(n_alts)
+    alpha_ok[n_alts_trlo:n_alts_trhi] = alpha
+    dj = L_esc*alpha_ok
 
     eps_gn = np.zeros(n_alts)
     eps_gn[n_alts_trlo] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo] * (1-lamb[n_alts_trlo]))
