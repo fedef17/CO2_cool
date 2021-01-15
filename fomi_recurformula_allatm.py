@@ -220,7 +220,7 @@ for cco2 in range(1, 8):
         hrs = [hr_ref, hr_calc, hr_calc_alpha1, hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         colors = np.array(npl.color_set(5))[[0, 1, 3, 4]]
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 10), xlim = (-50, 10), linestyles = ['-', '-', ':', ':'], orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 10), xlim = (-50, 10), linestyles = ['-', '-', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
         a0s.append(a0)
