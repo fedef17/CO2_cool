@@ -159,7 +159,7 @@ pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
 
 # alpha FIT!
 n_trans = n_alts_trhi-n_alts_trlo
-atmweigths = np.ones(7)
+atmweights = np.ones(7)
 bounds = (0.1*np.ones(n_trans), 10*np.ones(n_trans))
 alpha_dic = dict()
 for cco2 in range(1, 8):
