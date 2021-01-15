@@ -145,15 +145,14 @@ eps125 = eps125 * cp / (24*60*60)
 
 eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1]))
 
-coso = '{:4d}  {:7.1e}  {:7.1e}  {:7.1e}  {:7.1e}'
+coso = '{:4d}  {:7.1e}  {:7.1e}  {:7.1e}  {:7.1e}    {:7.1e}  {:7.1e}  {:7.1e}'
 for j in range(n_alts_trlo, n_alts): # Formula 9
     Djj = 0.25*(dj[j-1] + 3*dj[j])
     Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
 
     Fj = (1 - lamb[j]*(1-Djj))
     Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
-    print(coso.format(j, Fjm1*eps_gn[j-1], Djjm1*phi_fun[j-1], Djj*phi_fun[j], Fj))
-    print(coso.format(j, Fjm1, Djjm1, Djj, Fj))
+    print(coso.format(j, Fjm1*eps_gn[j-1], Djjm1*phi_fun[j-1], Djj*phi_fun[j], Fj, Fjm1, Djjm1, Djj))
     eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
 MM = np.ones(len(alts)) * (0.79*28+0.21*32) # Molecular mass
