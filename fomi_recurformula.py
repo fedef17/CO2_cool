@@ -151,6 +151,8 @@ for j in range(n_alts_trlo+1, n_alts): # Formula 9
 
     Fj = (1 - lamb[j]*(1-Djj))
     Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
+    print(j, Fjm1*eps_gn[j-1], Djjm1*phi_fun[j-1], Djj*phi_fun[j], Fj)
+    print(j, Fjm1, Djjm1, Djj, Fj)
     eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
 MM = np.ones(len(alts)) * (0.79*28+0.21*32) # Molecular mass
