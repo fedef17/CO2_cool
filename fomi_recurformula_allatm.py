@@ -186,28 +186,27 @@ for cco2 in range(1,8):
 
 pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
 
-sys.exit()
 
 # alpha FIT!
 n_trans = n_alts_trhi-n_alts_trlo+1
 atmweights = np.ones(6)
 bounds = (np.ones(n_trans), 5*np.ones(n_trans))
 bounds2 = tuple(n_trans*[(1.,5.)])
+
 alpha_dic = dict()
-alpha_dic2 = dict()
 
 start = np.linspace(2.0, 1.0, n_trans)
-for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_int2', 'L_esc_wutop']:
+for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop']:
     for cco2 in range(1, 8):
         print(cco2)
         result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
         #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
         print('least_squares', result)
-        alpha_dic[cco2] = result.x
+        alpha_dic[(name_escape_fun, 'least_squares', cco2)] = result.x
 
         result = minimize(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
         print('minimize', result)
-        alpha_dic2[cco2] = result.x
+        alpha_dic[(name_escape_fun, 'minimize', cco2)] = result.x
 
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
 # now for the cs region:
@@ -232,15 +231,18 @@ for cco2 in range(1, 8):
         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
         #hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
         L_esc = cose_upper_atm[(atm, cco2, 'L_esc')]
+        L_esc_wutop = cose_upper_atm[(atm, cco2, 'L_esc_wutop')]
+        L_esc_all = cose_upper_atm[(atm, cco2, 'L_esc_all')]
         lamb = cose_upper_atm[(atm, cco2, 'lamb')]
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
         MM = cose_upper_atm[(atm, cco2, 'MM')]
 
         #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
-        hr_calc = npl.recformula(alpha_dic[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
+        hr_calc = npl.recformula(alpha_dic[('L_esc', 'least_squares', cco2)], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
         hr_calc_alpha1 = npl.recformula(np.ones(7), L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
-        hr_calc_min = npl.recformula(alpha_dic2[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
-        hr_calc_wutop = npl.recformula(alpha_dic[cco2], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi, utop = 3.e14)
+        hr_calc_min = npl.recformula(alpha_dic[('L_esc', 'minimize', cco2)], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
+        hr_calc_wutop = npl.recformula(alpha_dic[('L_esc_wutop', 'least_squares', cco2)], L_esc_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
+        hr_calc_all = npl.recformula(alpha_dic[('L_esc_all', 'least_squares', cco2)], L_esc_all, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
@@ -252,8 +254,8 @@ for cco2 in range(1, 8):
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
-        labels = ['nlte_ref', 'new_param', 'new_param_2', 'new_param_wutop', 'new_param_noalpha', 'old param']
-        hrs = [hr_ref, hr_calc, hr_calc_min, hr_calc_wutop, hr_calc_alpha1, hr_fomi]
+        labels = ['nlte_ref', 'new_param', 'new_param_2', 'new_param_wutop', 'new_param_all', 'new_param_noalpha', 'old param']
+        hrs = [hr_ref, hr_calc, hr_calc_min, hr_calc_wutop, hr_calc_all, hr_calc_alpha1, hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         #colors = np.array(npl.color_set(5))[[0, 1, 2, 4]]
         colors = np.array(npl.color_set(6))
