@@ -258,8 +258,8 @@ for cco2 in range(1, 8):
         hrs = [hr_ref, hr_calc, hr_calc_min, hr_calc_wutop, hr_calc_all, hr_calc_alpha1, hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         #colors = np.array(npl.color_set(5))[[0, 1, 2, 4]]
-        colors = np.array(npl.color_set(6))
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 10), xlim = (-50, 10), linestyles = ['-', '-', '--', '--', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+        colors = np.array(npl.color_set(7))
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-8, 8), xlim = (-50, 10), linestyles = ['-', '--', '-', '--', '-', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
         a0s.append(a0)
@@ -268,4 +268,4 @@ for cco2 in range(1, 8):
         npl.adjust_ax_scale(a0s)
         npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out_3 + 'check_uppertrans_all.pdf', figs)
+npl.plot_pdfpages(cart_out_3 + 'check_uppertrans_all_checkL.pdf', figs)
