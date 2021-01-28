@@ -133,7 +133,7 @@ for cco2 in range(1,8):
         morenco2 = np.exp(nco2spl(morealts))
         for ial in range(len(alts)):
             uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
-            alok = alts >= alts[ial]
+            alok = morealts >= alts[ial]
             uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
 
         uok = np.array(uok)
