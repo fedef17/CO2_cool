@@ -136,6 +136,8 @@ for cco2 in range(1,8):
             alok = morealts >= alts[ial]
             uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
 
+        utop = uok[-2] # Setting upper column equal to last step
+
         uok = np.array(uok)
         Lok = Lspl(uok)
         Lok_all = Lspl_all(uok)
