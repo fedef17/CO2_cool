@@ -204,7 +204,7 @@ for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop']:
         print('least_squares', result)
         alpha_dic[(name_escape_fun, 'least_squares', cco2)] = result.x
 
-        result = minimize(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
+        result = minimize(npl.delta_alpha_rec3, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
         print('minimize', result)
         alpha_dic[(name_escape_fun, 'minimize', cco2)] = result.x
 
