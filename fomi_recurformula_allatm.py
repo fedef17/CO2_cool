@@ -15,6 +15,7 @@ from scipy import io
 import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
+from scipy.interpolate import interp1d
 
 sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
 sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
