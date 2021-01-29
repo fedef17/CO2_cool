@@ -218,8 +218,8 @@ alpha_dic_atm = dict()
 n_top = n_alts_trhi + 5
 n_trans = n_top-n_alts_trlo+1
 
-bounds = (np.ones(n_trans), 5*np.ones(n_trans))
-bounds2 = tuple(n_trans*[(1.,5.)])
+bounds = (np.ones(n_trans), 10*np.ones(n_trans))
+bounds2 = tuple(n_trans*[(1.,10.)])
 
 #start = np.linspace(2.0, 1.0, n_trans)
 start = np.ones(n_trans)
