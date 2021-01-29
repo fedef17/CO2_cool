@@ -213,6 +213,25 @@ for n_top in [n_alts_trhi, n_alts_trhi + 5]:
             print('minimize', result)
             alpha_dic[(n_top, name_escape_fun, 'minimize', cco2)] = result.x
 
+
+alpha_dic_atm = dict()
+n_top = n_alts_trhi + 5
+n_trans = n_top-n_alts_trlo+1
+
+bounds = (np.ones(n_trans), 5*np.ones(n_trans))
+bounds2 = tuple(n_trans*[(1.,5.)])
+
+#start = np.linspace(2.0, 1.0, n_trans)
+start = np.ones(n_trans)
+name_escape_fun = 'L_esc_wutop'
+for cco2 in range(1, 8):
+    for atm in allatms:
+        print(atm, cco2)
+        result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+        #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+        print('least_squares', result)
+        alpha_dic_atm[(name_escape_fun, atm, cco2)] = result.x
+
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
 # now for the cs region:
 # Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
@@ -279,3 +298,59 @@ for cco2 in range(1, 8):
         npl.adjust_ax_scale(a1s)
 
 npl.plot_pdfpages(cart_out_3 + 'check_uppertrans_all_checkL.pdf', figs)
+
+
+figs = []
+a0s = []
+a1s = []
+for cco2 in range(1, 8):
+    tip = 'varfit5_nlte'
+    acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
+    bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
+    asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
+    bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
+
+    for atm in allatms:
+        temp = atm_pt[(atm, 'temp')]
+        surf_temp = atm_pt[(atm, 'surf_temp')]
+        hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
+        #hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
+        L_esc = cose_upper_atm[(atm, cco2, 'L_esc')]
+        L_esc_wutop = cose_upper_atm[(atm, cco2, 'L_esc_wutop')]
+        L_esc_all = cose_upper_atm[(atm, cco2, 'L_esc_all')]
+        L_esc_all_wutop = cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')]
+        co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
+        MM = cose_upper_atm[(atm, cco2, 'MM')]
+
+        #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
+        n_top = n_alts_trhi+5
+        hr_calc_extended = npl.recformula(alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)], L_esc_all_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+
+        hr_singleatm_alpha = npl.recformula(alpha_dic_atm[('L_esc_wutop', atm, cco2)], L_esc_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+
+        hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+        hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
+
+        # alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+        # oldco = spline(alt_fomi, hr_fomi)
+        # hr_fomi = oldco(alts)
+
+        tit = 'co2: {} - atm: {}'.format(cco2, atm)
+        xlab = 'CR (K/day)'
+        ylab = 'Alt (km)'
+        labels = ['nlte_ref', 'np_aw_extended', 'np_singleatm_alpha']
+        hrs = [hr_ref, hr_calc_extended, hr_singleatm_alpha]
+        #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
+        #colors = np.array(npl.color_set(5))[[0, 1, 2, 4]]
+        colors = np.array(npl.color_set(3))
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '-', '--', '-', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+
+        figs.append(fig)
+        a0s.append(a0)
+        a1s.append(a1)
+
+        npl.adjust_ax_scale(a0s)
+        npl.adjust_ax_scale(a1s)
+
+npl.plot_pdfpages(cart_out_3 + 'check_uppertrans_all_checksingleatm.pdf', figs)

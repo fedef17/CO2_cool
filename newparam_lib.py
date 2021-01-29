@@ -1052,6 +1052,30 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
     return fu
 
 
+def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc'):
+    """
+    As rec2, but for a single atmosphere.
+    """
+
+    n_trans = n_alts_trhi-n_alts_trlo+1
+
+    hr_ref = all_coeffs[(atm, cco2, 'hr_nlte')][n_alts_trlo:n_alts_trhi]
+
+    L_esc = cose_upper_atm[(atm, cco2, name_escape_fun)][n_alts_trlo-1:n_alts_trhi]
+    lamb = cose_upper_atm[(atm, cco2, 'lamb')][n_alts_trlo-1:n_alts_trhi]
+    co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo-1:n_alts_trhi]
+    MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo-1:n_alts_trhi]
+    temp = atm_pt[(atm, 'temp')][n_alts_trlo-1:n_alts_trhi]
+    eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
+
+    hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo+1)
+
+    # atmweights will be squared by the loss function inside least_quares
+    fu = hr_calc - hr_ref
+
+    return fu
+
+
 def delta_alpha_rec3(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc'):
     """
     This is done for all n_trans = 6 altitudes at a time.
