@@ -128,25 +128,26 @@ for cco2 in range(1,8):
         uok = []
         uok2 = []
 
-        nco2spl = spline(alts, np.log(n_co2), extrapolate = False)
-        morealts = np.linspace(alts[0], alts[-1], 1000)
+        nco2spl = interp1d(alts, np.log(n_co2), fill_value = 'extrapolate')
+        morealts = np.linspace(alts[0], 200., 1000)
         morenco2 = np.exp(nco2spl(morealts))
         for ial in range(len(alts)):
             uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
             alok = morealts >= alts[ial]
             uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
 
-        utop = uok[-2] # Setting upper column equal to last step
+        #utop = uok[-2] # Setting upper column equal to last step
+        print('utop = {:7.2e}'.format(uok2[-1]))
 
         uok = np.array(uok)
+        uok2 = np.array(uok2)
         Lok = Lspl(uok)
         Lok_all = Lspl_all(uok)
-        Lok_wutop = Lspl(uok + utop)
+        Lok_wutop = Lspl(uok2)# + utop)
 
-        uok2 = np.array(uok2)
         Lok_int2 = Lspl(uok2)
 
-        for co in [Lok, Lok_all, Lok_int2, Lok_wutop]:
+        for co in [Lok, Lok_all, Lok_wutop]:
             co[:20][np.isnan(co[:20])] = 0.0 # for extrapolated regions
             co[-5:][np.isnan(co[-5:])] = 1.0 # for extrapolated regions
 
@@ -170,12 +171,12 @@ for cco2 in range(1,8):
         eps125 = hr_calc[n_alts_trlo-1]
 
         cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
-        cose_upper_atm[(atm, cco2, 'L_esc_int2')] = Lok_int2 # finest integration grid
+        #cose_upper_atm[(atm, cco2, 'L_esc_int2')] = Lok_int2 # finest integration grid
         cose_upper_atm[(atm, cco2, 'L_esc_wutop')] = Lok_wutop # adding a utop equal to the last uok
         cose_upper_atm[(atm, cco2, 'L_esc_all')] = Lok_all # using the mean of the escape functions for all atmospheres
 
         print(cco2, atm)
-        for nam in ['L_esc_all', 'L_esc_int2', 'L_esc_wutop']:
+        for nam in ['L_esc_all', 'L_esc_wutop']:
             print(nam, np.max(np.abs(cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:] - cose_upper_atm[(atm, cco2, nam)][n_alts_trlo:])))
 
         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
@@ -195,7 +196,8 @@ bounds2 = tuple(n_trans*[(1.,5.)])
 
 alpha_dic = dict()
 
-start = np.linspace(2.0, 1.0, n_trans)
+#start = np.linspace(2.0, 1.0, n_trans)
+start = np.ones(n_trans)
 for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop']:
     for cco2 in range(1, 8):
         print(cco2)
