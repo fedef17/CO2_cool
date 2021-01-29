@@ -145,10 +145,11 @@ for cco2 in range(1,8):
         Lok = Lspl(uok)
         Lok_all = Lspl_all(uok)
         Lok_wutop = Lspl(uok2)# + utop)
+        Lok_all_wutop = Lspl_all(uok2)
 
         Lok_int2 = Lspl(uok2)
 
-        for co in [Lok, Lok_all, Lok_wutop]:
+        for co in [Lok, Lok_all, Lok_wutop, Lok_all_wutop]:
             co[:20][np.isnan(co[:20])] = 0.0 # for extrapolated regions
             co[-5:][np.isnan(co[-5:])] = 1.0 # for extrapolated regions
 
@@ -174,10 +175,11 @@ for cco2 in range(1,8):
         cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
         #cose_upper_atm[(atm, cco2, 'L_esc_int2')] = Lok_int2 # finest integration grid
         cose_upper_atm[(atm, cco2, 'L_esc_wutop')] = Lok_wutop # adding a utop equal to the last uok
+        cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] = Lok_all_wutop # adding a utop equal to the last uok
         cose_upper_atm[(atm, cco2, 'L_esc_all')] = Lok_all # using the mean of the escape functions for all atmospheres
 
         print(cco2, atm)
-        for nam in ['L_esc_all', 'L_esc_wutop']:
+        for nam in ['L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop']:
             print(nam, np.max(np.abs(cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:] - cose_upper_atm[(atm, cco2, nam)][n_alts_trlo:])))
 
         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
@@ -190,26 +192,26 @@ pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
 
 
 # alpha FIT!
-n_trans = n_alts_trhi-n_alts_trlo+1
-atmweights = np.ones(6)
-bounds = (np.ones(n_trans), 5*np.ones(n_trans))
-bounds2 = tuple(n_trans*[(1.,5.)])
-
 alpha_dic = dict()
+for n_top in [n_alts_trhi, n_alts_trhi + 5]:
+    n_trans = n_top-n_alts_trlo+1
+    atmweights = np.ones(6)
+    bounds = (np.ones(n_trans), 5*np.ones(n_trans))
+    bounds2 = tuple(n_trans*[(1.,5.)])
 
-#start = np.linspace(2.0, 1.0, n_trans)
-start = np.ones(n_trans)
-for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop']:
-    for cco2 in range(1, 8):
-        print(cco2)
-        result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-        #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-        print('least_squares', result)
-        alpha_dic[(name_escape_fun, 'least_squares', cco2)] = result.x
+    #start = np.linspace(2.0, 1.0, n_trans)
+    start = np.ones(n_trans)
+    for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop']:
+        for cco2 in range(1, 8):
+            print(cco2)
+            result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+            #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+            print('least_squares', result)
+            alpha_dic[(n_top, name_escape_fun, 'least_squares', cco2)] = result.x
 
-        result = minimize(npl.delta_alpha_rec3, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
-        print('minimize', result)
-        alpha_dic[(name_escape_fun, 'minimize', cco2)] = result.x
+            result = minimize(npl.delta_alpha_rec3, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
+            print('minimize', result)
+            alpha_dic[(n_top, name_escape_fun, 'minimize', cco2)] = result.x
 
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
 # now for the cs region:
@@ -236,16 +238,21 @@ for cco2 in range(1, 8):
         L_esc = cose_upper_atm[(atm, cco2, 'L_esc')]
         L_esc_wutop = cose_upper_atm[(atm, cco2, 'L_esc_wutop')]
         L_esc_all = cose_upper_atm[(atm, cco2, 'L_esc_all')]
+        L_esc_all_wutop = cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')]
         lamb = cose_upper_atm[(atm, cco2, 'lamb')]
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
         MM = cose_upper_atm[(atm, cco2, 'MM')]
 
         #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
-        hr_calc = npl.recformula(alpha_dic[('L_esc', 'least_squares', cco2)], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
-        hr_calc_alpha1 = npl.recformula(np.ones(7), L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
-        hr_calc_min = npl.recformula(alpha_dic[('L_esc', 'minimize', cco2)], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
-        hr_calc_wutop = npl.recformula(alpha_dic[('L_esc_wutop', 'least_squares', cco2)], L_esc_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
-        hr_calc_all = npl.recformula(alpha_dic[('L_esc_all', 'least_squares', cco2)], L_esc_all, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi)
+        n_top = n_alts_trhi
+        hr_calc = npl.recformula(alpha_dic[(n_top, 'L_esc', 'least_squares', cco2)], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+        hr_calc_alpha1 = npl.recformula(np.ones(7), L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+        hr_calc_min = npl.recformula(alpha_dic[(n_top, 'L_esc', 'minimize', cco2)], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+        hr_calc_wutop = npl.recformula(alpha_dic[(n_top, 'L_esc_wutop', 'least_squares', cco2)], L_esc_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+        hr_calc_all = npl.recformula(alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)], L_esc_all_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+
+        n_top = n_alts_trhi+5
+        hr_calc_extended = npl.recformula(alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)], L_esc_all_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
@@ -257,12 +264,12 @@ for cco2 in range(1, 8):
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
-        labels = ['nlte_ref', 'new_param', 'new_param_2', 'new_param_wutop', 'new_param_all', 'new_param_noalpha', 'old param']
-        hrs = [hr_ref, hr_calc, hr_calc_min, hr_calc_wutop, hr_calc_all, hr_calc_alpha1, hr_fomi]
+        labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
+        hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
         #colors = np.array(npl.color_set(5))[[0, 1, 2, 4]]
         colors = np.array(npl.color_set(7))
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-8, 8), xlim = (-50, 10), linestyles = ['-', '--', '-', '--', '-', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '-', '--', '-', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
         a0s.append(a0)
