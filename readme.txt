@@ -37,5 +37,5 @@ Per la param NLTE low trans:
 5 - fomi_multiatmco2_ab_NLTE.py -> varfit4_nlte, varfit5_nlte
 6 - check_NLTE_fit_low.py -> check_newparam_NLTE_lowtrans.pdf
 
-Per la param della cool-to-space region:
-7 - fomi_recurformula.py
+Per la param della upper transition region e della cool-to-space region:
+7 - fomi_recurformula_allatm.py

@@ -90,6 +90,9 @@ for cco2 in range(1,8):
     uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
     Lspl_all = spline(uco2, L_all, extrapolate = False)
 
+    L_fom = all_coeffs_nlte[('mle', cco2, 'l_esc_fom')]
+    Lspl_fom = spline(uco2, L_fom, extrapolate = False)
+
     for atm in allatms:
         L_esc = all_coeffs_nlte[(atm, cco2, 'l_esc')]
         uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
@@ -146,6 +149,7 @@ for cco2 in range(1,8):
         Lok_all = Lspl_all(uok)
         Lok_wutop = Lspl(uok2)# + utop)
         Lok_all_wutop = Lspl_all(uok2)
+        Lok_fom = Lspl_fom(uok2)
 
         Lok_int2 = Lspl(uok2)
 
@@ -178,6 +182,8 @@ for cco2 in range(1,8):
         cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] = Lok_all_wutop # adding a utop equal to the last uok
         cose_upper_atm[(atm, cco2, 'L_esc_all')] = Lok_all # using the mean of the escape functions for all atmospheres
 
+        cose_upper_atm[(atm, cco2, 'L_esc_fom')] = Lok_fom # using Fomichev L_esc
+
         print(cco2, atm)
         for nam in ['L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop']:
             print(nam, np.max(np.abs(cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:] - cose_upper_atm[(atm, cco2, nam)][n_alts_trlo:])))
@@ -201,7 +207,7 @@ for n_top in [n_alts_trhi, n_alts_trhi + 5]:
 
     #start = np.linspace(2.0, 1.0, n_trans)
     start = np.ones(n_trans)
-    for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop']:
+    for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop', 'L_esc_fom']:
         for cco2 in range(1, 8):
             print(cco2)
             result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
@@ -255,9 +261,11 @@ for cco2 in range(1, 8):
         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
         #hr_calc[n_alts_trlo:] = eps[n_alts_trlo:]
         L_esc = cose_upper_atm[(atm, cco2, 'L_esc')]
+        L_esc_fom = cose_upper_atm[(atm, cco2, 'L_esc_fom')]
         L_esc_wutop = cose_upper_atm[(atm, cco2, 'L_esc_wutop')]
         L_esc_all = cose_upper_atm[(atm, cco2, 'L_esc_all')]
         L_esc_all_wutop = cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')]
+
         lamb = cose_upper_atm[(atm, cco2, 'lamb')]
         co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
         MM = cose_upper_atm[(atm, cco2, 'MM')]
@@ -269,6 +277,8 @@ for cco2 in range(1, 8):
         hr_calc_min = npl.recformula(alpha_dic[(n_top, 'L_esc', 'minimize', cco2)], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
         hr_calc_wutop = npl.recformula(alpha_dic[(n_top, 'L_esc_wutop', 'least_squares', cco2)], L_esc_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
         hr_calc_all = npl.recformula(alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)], L_esc_all_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+
+        hr_calc_fom = npl.recformula(alpha_dic[(n_top, 'L_esc_fom', 'least_squares', cco2)], L_esc_fom, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
 
         n_top = n_alts_trhi+5
         hr_calc_extended = npl.recformula(alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)], L_esc_all_wutop, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
@@ -283,11 +293,12 @@ for cco2 in range(1, 8):
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
-        labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
-        hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
-        #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        #colors = np.array(npl.color_set(5))[[0, 1, 2, 4]]
-        colors = np.array(npl.color_set(7))
+        # labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
+        # hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
+        labels = ['nlte_ref', 'np_all_wutop', 'np_aw_extended', 'np_w_lfomi', 'old param']
+        hrs = [hr_ref, hr_calc_all, hr_calc_extended, hr_calc_fom, hr_fomi]
+
+        colors = np.array(npl.color_set(5))
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '-', '--', '-', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
@@ -297,7 +308,7 @@ for cco2 in range(1, 8):
         npl.adjust_ax_scale(a0s)
         npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out_3 + 'check_uppertrans_all_checkL.pdf', figs)
+npl.plot_pdfpages(cart_out_3 + 'check_uppertrans_all_checkLfomi.pdf', figs)
 
 
 figs = []
