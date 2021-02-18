@@ -298,7 +298,7 @@ for cco2 in range(1, 8):
         labels = ['nlte_ref', 'np_all_wutop', 'np_aw_extended', 'np_w_lfomi', 'old param']
         hrs = [hr_ref, hr_calc_all, hr_calc_extended, hr_calc_fom, hr_fomi]
 
-        colors = np.array(npl.color_set(5))
+        colors = np.array(npl.color_set(6))[np.arange(6) != 4]
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '-', '--', '-', ':', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
