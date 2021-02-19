@@ -93,6 +93,11 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     interp_coeffs[(nam, 'int_fun')] = int_fun
     interp_coeffs[(nam, 'signc')] = signc
 
+alphas_all = np.stack([alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)] for cco2 in range(1,8)])
+coeffs_NLTE['alpha'] = alphas_all
+int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
+interp_coeffs[('alpha', 'int_fun')] = int_fun
+interp_coeffs[('alpha', 'signc')] = signc
 
 cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
@@ -118,7 +123,7 @@ alpha = alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)]
 
 print('Coeffs from interpolation!')
 calc_coeffs = dict()
-for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha']:
     int_fun = interp_coeffs[(nam, 'int_fun')]
     sc = interp_coeffs[(nam, 'signc')]
 
@@ -129,10 +134,11 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
         print('AAAAAAAAAAAAAAAAAAAAAAARGH', nam)
         print(coeff, coeffs_NLTE[nam][cco2-1, ...])
 
+
 hr_calc = npl.hr_from_ab(calc_coeffs['acoeff'], calc_coeffs['bcoeff'], calc_coeffs['asurf'], calc_coeffs['bsurf'], temp, surf_temp)
 
 #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
-hr_calc = npl.recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+hr_calc = npl.recformula(calc_coeffs['alpha'], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
 
 hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
 hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
@@ -155,7 +161,7 @@ fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, t
 fig.savefig(cart_out_4 + 'test_calchr.pdf')
 
 #ok.
-#zcool = npl.new_param_full(temp, pres, CO2prof, coeffs = coeffs_NLTE) # Add O, O2, N2 profile?
+zcool = npl.new_param_full(temp, pres, CO2prof, coeffs = coeffs_NLTE) # Add O, O2, N2 profile?
 
 # Check per ogni atm
 

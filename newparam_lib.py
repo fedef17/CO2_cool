@@ -572,7 +572,7 @@ def linfit_coeff_logco2(coeffs, co2_profs):
                 cval = np.array([co[j, ialt] for co in coeffs])
 
                 if np.all(cval < 0):
-                    print('All values are negative! at ({},{})\n'.format(j, ialt))
+                    #print('All values are negative! at ({},{})\n'.format(j, ialt))
                     logcval = np.log(-cval/co2p)
                     sign_coeff[j, ialt] = -1
                 elif np.any(cval < 0):
