@@ -85,7 +85,7 @@ co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)])
 coeffs_NLTE = dict()
 interp_coeffs = dict()
 for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-    ko = np.stack([tot_coeff_co2[('varfit5_nlte', nam, cco2) for cco2 in range(1, 8)])
+    ko = np.stack([tot_coeff_co2[('varfit5_nlte', nam, cco2)] for cco2 in range(1, 8)])
     coeffs_NLTE[nam] = ko
     # QUI SE DEVI SCRIVERLO COME FILE TXT o netcdf
 
