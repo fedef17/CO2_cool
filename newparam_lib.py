@@ -91,7 +91,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
     MM = calc_MM(ovmr, o2vmr, n2vmr)
     #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
-    hr_calc = recformula(calc_coeffs['alpha'], coeffs['L_esc'], lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+    hr_calc = recformula(calc_coeffs['alpha'], calc_coeffs['Lesc'], lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
 
     ##### HERE the cool-to-space part
     # now for the cs region:
