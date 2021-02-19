@@ -220,6 +220,9 @@ for n_top in [n_alts_trhi, n_alts_trhi + 5]:
             alpha_dic[(n_top, name_escape_fun, 'minimize', cco2)] = result.x
 
 
+pickle.dump(alpha_dic, open(cart_out_3 + 'alpha_upper.p', 'wb'))
+
+
 alpha_dic_atm = dict()
 n_top = n_alts_trhi + 5
 n_trans = n_top-n_alts_trlo+1

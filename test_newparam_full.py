@@ -95,6 +95,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
 
 
 cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
+alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
 ####################################################################################
 # Check per un atm
 atm = 'mle'
