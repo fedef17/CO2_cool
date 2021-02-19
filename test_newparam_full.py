@@ -71,6 +71,8 @@ tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
 
+n_top = n_alts_trhi+5
+
 # Crea tabelle coeffs e salvale in pickle separati. (da convertire poi in file di testo o netcdf per Bernd)
 # che coeffs mi servono:
 #   - 'acoeff', 'bcoeff', 'asurf', 'bsurf' per tutti i co2. Questi sono quelli NLTE, che già contengono la modifica NLTE della low transition region
@@ -114,7 +116,6 @@ lamb = cose_upper_atm[(atm, cco2, 'lamb')] # Qui c'è la info degli altri gas e 
 co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
 MM = cose_upper_atm[(atm, cco2, 'MM')]
 
-n_top = n_alts_trhi+5
 alpha = alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)]
 
 ####################################################################################
