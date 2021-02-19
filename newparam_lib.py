@@ -83,7 +83,6 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         int_fun = interp_coeffs[(nam, 'int_fun')]
         sc = interp_coeffs[(nam, 'signc')]
 
-        print(nam)
         coeff = coeff_from_interp(int_fun, sc, co2vmr)
         calc_coeffs[nam] = coeff
 
