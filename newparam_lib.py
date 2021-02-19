@@ -83,6 +83,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         int_fun = interp_coeffs[(nam, 'int_fun')]
         sc = interp_coeffs[(nam, 'signc')]
 
+        print(nam)
         coeff = coeff_from_interp(int_fun, sc, co2vmr)
         calc_coeffs[nam] = coeff
 
@@ -679,7 +680,7 @@ def interp_coeff_logco2(coeffs, co2_profs):
                 cval = np.array([co[j, ialt] for co in coeffs])
 
                 if np.all(cval < 0):
-                    print('All values are negative! at ({},{})\n'.format(j, ialt))
+                    #print('All values are negative! at ({},{})\n'.format(j, ialt))
                     logcval = np.log(-cval/co2p)
                     sign_coeff[j, ialt] = -1
                 elif np.any(cval < 0):
