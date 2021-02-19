@@ -125,9 +125,9 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     coeff = npl.coeff_from_interp(int_fun, sc, co2vmr)
     calc_coeffs[nam] = coeff
 
-    if not np.all(coeff == coeffs_NLTE['acoeff'][cco2-1, ...]):
+    if np.max(np.abs((coeff - coeffs_NLTE[nam][cco2-1, ...])/coeff)) > 1.e-10:
         print('AAAAAAAAAAAAAAAAAAAAAAARGH', nam)
-        print(coeff, coeffs_NLTE['acoeff'][cco2-1, ...])
+        print(coeff, coeffs_NLTE[nam][cco2-1, ...])
 
 hr_calc = npl.hr_from_ab(calc_coeffs['acoeff'], calc_coeffs['bcoeff'], calc_coeffs['asurf'], calc_coeffs['bsurf'], temp, surf_temp)
 
