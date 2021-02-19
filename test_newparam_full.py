@@ -100,7 +100,7 @@ int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
 interp_coeffs[('alpha', 'int_fun')] = int_fun
 interp_coeffs[('alpha', 'signc')] = signc
 
-Lesc_all = np.stack([cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
+Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
 coeffs_NLTE['Lesc'] = Lesc_all
 int_fun, signc = npl.interp_coeff_logco2(Lesc_all, co2profs)
 interp_coeffs[('Lesc', 'int_fun')] = int_fun
