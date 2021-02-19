@@ -68,8 +68,8 @@ n_alts_lte = 40
 
 #tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
-
-co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
+cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
+alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
 
 # Crea tabelle coeffs e salvale in pickle separati. (da convertire poi in file di testo o netcdf per Bernd)
 # che coeffs mi servono:
@@ -79,7 +79,6 @@ co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
 
 # per ogni a,b,ecc coeff faccio una matrice con prima dimensione quella della co2
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb')) # qui ci sono sia i LTE che i NLTE
-
 co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)])
 
 coeffs_NLTE = dict()
@@ -99,8 +98,7 @@ int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
 interp_coeffs[('alpha', 'int_fun')] = int_fun
 interp_coeffs[('alpha', 'signc')] = signc
 
-cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
-alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
+
 ####################################################################################
 # Check per un atm
 atm = 'mle'
