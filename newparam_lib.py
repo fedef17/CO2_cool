@@ -57,6 +57,50 @@ from scipy.optimize import Bounds, minimize, least_squares
 #############################################################
 
 
+def new_param_full(temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = '/home/fabiano/Research/lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale.p'):
+    """
+    New param valid for the full atmosphere.
+    """
+    n_alts_trlo = 50
+    n_top = 61 # n_alts_trhi + 5
+
+    ##### Interpolate all profiles to param grid.
+    print('I am not interpolating yet! profiles should already be given on a fix grid')
+
+    if coeffs is None:
+        coeffs = pickle.load(open(coeff_file, 'rb'))
+
+    ### Interpolation of the coefficients to the actual CO2 profile
+    interp_coeffs = dict()
+    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha', 'Lesc']:
+        int_fun, signc = interp_coeff_logco2(coeffs[nam], coeffs['co2profs'])
+        interp_coeffs[(nam, 'int_fun')] = int_fun
+        interp_coeffs[(nam, 'signc')] = signc
+
+    print('Coeffs from interpolation!')
+    calc_coeffs = dict()
+    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha', 'Lesc']:
+        int_fun = interp_coeffs[(nam, 'int_fun')]
+        sc = interp_coeffs[(nam, 'signc')]
+
+        coeff = coeff_from_interp(int_fun, sc, co2vmr)
+        calc_coeffs[nam] = coeff
+
+    hr_calc = hr_from_ab(calc_coeffs['acoeff'], calc_coeffs['bcoeff'], calc_coeffs['asurf'], calc_coeffs['bsurf'], temp, surf_temp)
+
+    lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
+    MM = calc_MM(ovmr, o2vmr, n2vmr)
+    #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
+    hr_calc = recformula(calc_coeffs['alpha'], coeffs['L_esc'], lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+
+    ##### HERE the cool-to-space part
+    # now for the cs region:
+    # Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
+    # eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
+
+    return hr_calc
+
+
 def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
     """
     Calculates the new param, starting from interp_coeffs.
@@ -1109,6 +1153,31 @@ def delta_alpha_rec3(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
 
     return fu
 
+
+def calc_lamb(pres, temp, ovmr, o2vmr, n2vmr):
+    """
+    Calculates the lambda used in the transition formula.
+    """
+    n_dens = sbm.num_density(pres, temp)
+
+    ###################### Rate coefficients ######################
+    t13 = temp**(-1./3)
+
+    # Collisional rate between CO2 and O:
+    zo = 3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
+    #ZCO2O = KO Fomichev value
+    # Collisional rates between CO2 and N2/O2:
+    zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
+    zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
+
+    lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
+
+    return lamb
+
+
+def calc_MM(ovmr, o2vmr, n2vmr):
+    MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass
+    return MM
 
 def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56):
     """

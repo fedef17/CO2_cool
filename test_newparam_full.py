@@ -100,6 +100,14 @@ int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
 interp_coeffs[('alpha', 'int_fun')] = int_fun
 interp_coeffs[('alpha', 'signc')] = signc
 
+Lesc_all = np.stack([cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
+coeffs_NLTE['Lesc'] = Lesc_all
+int_fun, signc = npl.interp_coeff_logco2(Lesc_all, co2profs)
+interp_coeffs[('Lesc', 'int_fun')] = int_fun
+interp_coeffs[('Lesc', 'signc')] = signc
+
+coeffs_NLTE['co2profs'] = co2profs
+pickle.dump(coeffs_NLTE, open(cart_out_4 + 'coeffs_finale.p', 'wb'))
 
 ####################################################################################
 # Check per un atm
@@ -146,6 +154,7 @@ alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
 oldco = spline(alt_fomi, hr_fomi)
 hr_fomi = oldco(alts)
 
+### FIGURE
 tit = 'co2: {} - atm: {}'.format(cco2, atm)
 xlab = 'CR (K/day)'
 ylab = 'Alt (km)'
@@ -160,8 +169,51 @@ fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, t
 fig.savefig(cart_out_4 + 'test_calchr.pdf')
 
 #ok.
-zcool = npl.new_param_full(temp, pres, CO2prof, coeffs = coeffs_NLTE) # Add O, O2, N2 profile?
+all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 # Check per ogni atm
+figs = []
+a0s = []
+a1s = []
+for cco2 in range(1, 8):
+    for atm in allatms:
+        temp = atm_pt[(atm, 'temp')]
+        surf_temp = atm_pt[(atm, 'surf_temp')]
+        pres = atm_pt[(atm, 'pres')]
+
+        co2vmr = atm_pt[(atm, cco2, 'co2')]
+        ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+        o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+        n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+
+        hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+        hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
+
+        hr_calc = npl.new_param_full(temp, pres, co2vmr, ovmr, o2vmr, n2_vmr)#, coeffs = coeffs_NLTE)
+
+        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+        oldco = spline(alt_fomi, hr_fomi)
+        hr_fomi = oldco(alts)
+
+        tit = 'co2: {} - atm: {}'.format(cco2, atm)
+        xlab = 'CR (K/day)'
+        ylab = 'Alt (km)'
+        # labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
+        # hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
+        labels = ['nlte_ref', 'new param', 'old param']
+        hrs = [hr_ref, hr_calc, hr_fomi]
+
+        colors = np.array(npl.color_set(3))
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+
+        figs.append(fig)
+        a0s.append(a0)
+        a1s.append(a1)
+
+        npl.adjust_ax_scale(a0s)
+        npl.adjust_ax_scale(a1s)
+
+npl.plot_pdfpages(cart_out_4 + 'check_allrefs_newparam.pdf', figs)
+
 
 # Check con atm nuova?
