@@ -94,6 +94,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     interp_coeffs[(nam, 'signc')] = signc
 
 
+cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 ####################################################################################
 # Check per un atm
 atm = 'mle'
