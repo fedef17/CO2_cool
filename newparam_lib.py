@@ -82,6 +82,8 @@ def old_param(alts, temp, pres, CO2prof, cart_run_fomi = '/home/fabiano/Research
     """
     Run the old param.
 
+    PROBLEM: does not take in input the atomic O profile
+
     WARNING!!! CO2prof should be in concentration (not ppm!). Gets converted to ppm inside the routine.
     """
 
