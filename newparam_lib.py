@@ -57,7 +57,7 @@ from scipy.optimize import Bounds, minimize, least_squares
 #############################################################
 
 
-def new_param_full(temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = '/home/fabiano/Research/lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale.p'):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = '/home/fabiano/Research/lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale.p'):
     """
     New param valid for the full atmosphere.
     """

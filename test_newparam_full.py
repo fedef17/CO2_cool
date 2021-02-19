@@ -189,7 +189,7 @@ for cco2 in range(1, 8):
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
-        hr_calc = npl.new_param_full(temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
+        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
 
         alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
         oldco = spline(alt_fomi, hr_fomi)
