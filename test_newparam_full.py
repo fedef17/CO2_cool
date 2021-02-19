@@ -175,7 +175,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 figs = []
 a0s = []
 a1s = []
-for cco2 in range(2, 8):
+for cco2 in range(2, 7):
     for atm in allatms:
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
