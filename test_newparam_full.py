@@ -122,7 +122,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     int_fun = interp_coeffs[(nam, 'int_fun')]
     sc = interp_coeffs[(nam, 'signc')]
 
-    coeff = npl.coeff_from_interp(int_fun, sc, co2pr)
+    coeff = npl.coeff_from_interp(int_fun, sc, co2vmr)
     calc_coeffs[nam] = coeff
 
     if not np.all(coeff == coeffs_NLTE['acoeff'][cco2, ...]):
