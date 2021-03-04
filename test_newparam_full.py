@@ -230,7 +230,8 @@ for atm in allatms:
 
     new_cr = []
     old_cr = []
-    for co2mult in np.arange(0.25, 8.1, 0.25):
+    mults = np.arange(0.25, 8.1, 0.25)
+    for co2mult in mults:
         co2vmr = co2mult*atm_pt[(atm, 2, 'co2')]
         hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
         new_cr.append(hr_calc)
@@ -241,7 +242,7 @@ for atm in allatms:
         old_cr.append(hr_fomi)
 
     fig, ax = plt.subplots(figsize = (16, 12))
-    colors = npl.color_set(len(co2mult))
+    colors = npl.color_set(len(mults))
     for nup, olp, col in zip(new_cr, old_cr, col):
         ax.plot(nup, alts, color = col)
         ax.plot(olp, alts, color = col, linestyle = '--', linewidth = 0.5)
