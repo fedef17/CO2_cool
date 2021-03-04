@@ -191,7 +191,7 @@ for cco2 in range(1, 8):
 
         hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
 
-        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, ovmr = ovmr, o2vmr = o2vmr, n2vmr = n2vmr)
         oldco = spline(alt_fomi, hr_fomi)
         hr_fomi = oldco(alts)
 
@@ -204,7 +204,8 @@ for cco2 in range(1, 8):
         hrs = [hr_ref, hr_calc, hr_fomi]
 
         colors = np.array(npl.color_set(3))
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+        colors = ['violet', 'steelblue', 'indianred']
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
         a0s.append(a0)
@@ -247,9 +248,11 @@ for atm in allatms:
         ax.plot(nup, alts, color = col)
         ax.plot(olp, alts, color = col, linestyle = '--', linewidth = 0.5)
 
-    tit = 'co2: 0.25-8.0 - atm: {}'.format(atm)
-    xlab = 'CR (K/day)'
-    ylab = 'Alt (km)'
+    ax.set_title('co2: 0.25-8.0 - atm: {}'.format(atm))
+    ax.set_xlabel('CR (K/day)')
+    ax.set_ylabel('Alt (km)')
+    for orizli, col in zip([70., alts[n_alts_trlo], alts[n_alts_trhi]], ['red', 'orange', 'green']):
+        ax.axhline(orizli, color = col, alpha = 0.6, linestyle = '--')
     ax.grid()
 
     figs.append(fig)
@@ -258,3 +261,9 @@ for atm in allatms:
 npl.adjust_ax_scale(a0s)
 
 npl.plot_pdfpages(cart_out_4 + 'rangeco2_newvsold.pdf', figs)
+
+for ax in a0s:
+    ax.set_ylim(40., 100.)
+    ax.set_xlim(-20., 10.)
+
+npl.plot_pdfpages(cart_out_4 + 'rangeco2_newvsold_zoom.pdf', figs)
