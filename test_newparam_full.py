@@ -241,7 +241,7 @@ for atm in allatms:
         old_cr.append(hr_fomi)
 
     fig, ax = plt.subplots(figsize = (16, 12))
-    colors = ctl.color_set(len(co2mult))
+    colors = npl.color_set(len(co2mult))
     for nup, olp, col in zip(new_cr, old_cr, col):
         ax.plot(nup, alts, color = col)
         ax.plot(olp, alts, color = col, linestyle = '--', linewidth = 0.5)
