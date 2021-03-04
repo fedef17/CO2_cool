@@ -243,7 +243,7 @@ for atm in allatms:
 
     fig, ax = plt.subplots(figsize = (16, 12))
     colors = npl.color_set(len(mults))
-    for nup, olp, col in zip(new_cr, old_cr, col):
+    for nup, olp, col in zip(new_cr, old_cr, colors):
         ax.plot(nup, alts, color = col)
         ax.plot(olp, alts, color = col, linestyle = '--', linewidth = 0.5)
 
