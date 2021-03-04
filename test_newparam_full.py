@@ -175,7 +175,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 figs = []
 a0s = []
 a1s = []
-for cco2 in range(2, 7):
+for cco2 in range(1, 8):
     for atm in allatms:
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
@@ -217,3 +217,43 @@ npl.plot_pdfpages(cart_out_4 + 'check_allrefs_newparam.pdf', figs)
 
 
 # Check con atm nuova?
+figs = []
+a0s = []
+for atm in allatms:
+    temp = atm_pt[(atm, 'temp')]
+    surf_temp = atm_pt[(atm, 'surf_temp')]
+    pres = atm_pt[(atm, 'pres')]
+
+    ovmr = all_coeffs_nlte[(atm, 2, 'o_vmr')]
+    o2vmr = all_coeffs_nlte[(atm, 2, 'o2_vmr')]
+    n2vmr = all_coeffs_nlte[(atm, 2, 'n2_vmr')]
+
+    new_cr = []
+    old_cr = []
+    for co2mult in np.arange(0.25, 8.1, 0.25):
+        co2vmr = co2mult*atm_pt[(atm, 2, 'co2')]
+        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
+        new_cr.append(hr_calc)
+
+        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+        oldco = spline(alt_fomi, hr_fomi)
+        hr_fomi = oldco(alts)
+        old_cr.append(hr_fomi)
+
+    fig, ax = plt.subplots(figsize = (16, 12))
+    colors = ctl.color_set(len(co2mult))
+    for nup, olp, col in zip(new_cr, old_cr, col):
+        ax.plot(nup, alts, color = col)
+        ax.plot(olp, alts, color = col, linestyle = '--', linewidth = 0.5)
+
+    tit = 'co2: 0.25-8.0 - atm: {}'.format(atm)
+    xlab = 'CR (K/day)'
+    ylab = 'Alt (km)'
+    ax.grid()
+
+    figs.append(fig)
+    a0s.append(ax)
+
+npl.adjust_ax_scale(a0s)
+
+npl.plot_pdfpages(cart_out_4 + 'rangeco2_newvsold.pdf', figs)

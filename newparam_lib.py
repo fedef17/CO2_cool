@@ -122,7 +122,7 @@ def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
     return hr_calc
 
 
-def old_param(alts, temp, pres, CO2prof, cart_run_fomi = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/'):
+def old_param(alts, temp, pres, CO2prof, Oprof = None, O2prof = None, N2prof = None, cart_run_fomi = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/'):
     """
     Run the old param.
 
@@ -136,7 +136,24 @@ def old_param(alts, temp, pres, CO2prof, cart_run_fomi = '/home/fabiano/Research
 
     splCO2 = spline(alts, CO2prof)
     CO2con = splCO2(alt_manuel)
-    print('piooo', np.median(CO2con))
+    print('piooo CO2', np.median(CO2con))
+    mol_vmrs['CO2'] = CO2con*1.e6
+    # Also update O2, O, N2
+    if Oprof is not None:
+        splO = spline(alts, Oprof)
+        Ocon = splO(alt_manuel)
+        print('piooo O', np.median(Ocon))
+        mol_vmrs['O'] = Ocon*1.e6
+    if O2prof is not None:
+        splO2 = spline(alts, O2prof)
+        O2con = splO2(alt_manuel)
+        print('piooo O2', np.median(O2con))
+        mol_vmrs['O2'] = O2con*1.e6
+    if N2prof is not None:
+        splN2 = spline(alts, N2prof)
+        N2con = splN2(alt_manuel)
+        print('piooo N2', np.median(N2con))
+        mol_vmrs['N2'] = N2con*1.e6
 
     splT = spline(alts, temp)
     temp = splT(alt_manuel)
@@ -148,7 +165,6 @@ def old_param(alts, temp, pres, CO2prof, cart_run_fomi = '/home/fabiano/Research
     filename = cart_run_fomi + 'atm_manuel.dat'
     sbm.scriviinputmanuel(alt_manuel, temp, pres, filename)
 
-    mol_vmrs['CO2'] = CO2con*1.e6
     filename = cart_run_fomi + 'vmr_atm_manuel.dat'
     sbm.write_input_vmr_man(filename, alt_manuel, mol_vmrs, hit_gas_list = molist, hit_gas_num = molnums, version = 2)
 
@@ -688,7 +704,7 @@ def interp_coeff_logco2(coeffs, co2_profs):
                     logcval = np.log(cval/co2p)
                     sign_coeff[j, ialt] = 1
 
-                int_fun[j, ialt] = interpolate.interp1d(co2p, logcval)
+                int_fun[j, ialt] = interpolate.interp1d(co2p, logcval, fill_value = "extrapolate")
         elif ndim == 1:
             cval = np.array([co[ialt] for co in coeffs])
 
@@ -701,7 +717,7 @@ def interp_coeff_logco2(coeffs, co2_profs):
                 logcval = np.log(cval/co2p)
                 sign_coeff[ialt] = 1
 
-            int_fun[ialt] = interpolate.interp1d(co2p, logcval)
+            int_fun[ialt] = interpolate.interp1d(co2p, logcval, fill_value = "extrapolate")
         else:
             raise ValueError('Not implemented for ndim = {}'.format(ndim))
 
