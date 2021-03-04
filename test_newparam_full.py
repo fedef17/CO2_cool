@@ -150,7 +150,10 @@ hr_calc = npl.recformula(calc_coeffs['alpha'], L_esc, lamb, hr_calc, co2vmr, MM,
 hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
 hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
-alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Ovmr = ovmr, O2vmr = o2vmr, N2vmr = n2vmr)
 oldco = spline(alt_fomi, hr_fomi)
 hr_fomi = oldco(alts)
 
@@ -191,7 +194,7 @@ for cco2 in range(1, 8):
 
         hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
 
-        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, ovmr = ovmr, o2vmr = o2vmr, n2vmr = n2vmr)
+        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Ovmr = ovmr, O2vmr = o2vmr, N2vmr = n2vmr)
         oldco = spline(alt_fomi, hr_fomi)
         hr_fomi = oldco(alts)
 
@@ -237,7 +240,7 @@ for atm in allatms:
         hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
         new_cr.append(hr_calc)
 
-        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Ovmr = ovmr, O2vmr = o2vmr, N2vmr = n2vmr)
         oldco = spline(alt_fomi, hr_fomi)
         hr_fomi = oldco(alts)
         old_cr.append(hr_fomi)
