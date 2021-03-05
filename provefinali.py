@@ -77,6 +77,7 @@ coeffs = pickle.load(open(cart_out_4 + 'coeffs_finale.p', 'rb'))
 ####################################################################################
 
 ialt_strano = 41
+atm = 'mle'
 
 interp_coeffs = dict()
 for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha', 'Lesc']:
