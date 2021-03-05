@@ -99,10 +99,8 @@ for nam in ['acoeff', 'bcoeff']:
         co2vmr = co2mult*atm_pt[(atm, 2, 'co2')]
         int_fun = interp_coeffs[(namsurf, 'int_fun')]
         sc = interp_coeffs[(namsurf, 'signc')]
-        if int_fun.ndim == 1:
-            interplog = int_fun[ialt](co2vmr[ialt])
-        else:
-            interplog = np.array([intfu(co2vmr[ialt]) for intfu in int_fun[..., ialt]])
+        interplog = [int_fun[ialt](co2vmr[ialt]) for ialt in range(n_alts_trlo)]
+        
         #print(co2mult, interplog)
         coefff.append(interplog)
 
