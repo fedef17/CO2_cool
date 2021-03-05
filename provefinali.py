@@ -92,6 +92,7 @@ mults = np.arange(0.25, 8.1, 0.25)
 colors = npl.color_set(n_alts_trlo)
 for nam in ['acoeff', 'bcoeff']:
     figs = []
+    axes = []
 
     namsurf = nam[0]+'surf'
     coefff = []
@@ -100,21 +101,22 @@ for nam in ['acoeff', 'bcoeff']:
         int_fun = interp_coeffs[(namsurf, 'int_fun')]
         sc = interp_coeffs[(namsurf, 'signc')]
         interplog = [int_fun[ialt](co2vmr[ialt]) for ialt in range(n_alts_trlo)]
-        
+
         #print(co2mult, interplog)
         coefff.append(interplog)
 
     coefff = np.stack(coefff)
 
-    fig = plt.figure()
-    plt.grid()
+    fig, ax = plt.subplots()
+    ax.grid()
     for j, col in zip(range(n_alts_trlo), colors):
-        plt.plot(mults, coefff[:, j], color = col, linewidth = 0.5)
+        ax.plot(mults, coefff[:, j], color = col, linewidth = 0.5)
         #plt.scatter(coeffs['co2profs'][:, ialt]/coeffs['co2profs'][1, ialt], -np.log(coeffs[nam][:, j, ialt]/coeffs['co2profs'][:, ialt]))
-    plt.title(namsurf)
-    plt.xlabel('x CO2')
+    ax.set_title(namsurf)
+    ax.set_xlabel('x CO2')
 
     figs.append(fig)
+    axes.append(ax)
 
     for ialt in range(n_alts_trlo):
         coefff = []
@@ -132,14 +134,16 @@ for nam in ['acoeff', 'bcoeff']:
         coefff = np.stack(coefff)
         colors = npl.color_set(n_alts_trlo)
 
-        fig = plt.figure()
-        plt.grid()
+        fig, ax = plt.subplots()
+        ax.grid()
         for j, col in zip(range(n_alts_trlo), colors):
-            plt.plot(mults, coefff[:, j], color = col, linewidth = 0.5)
+            ax.plot(mults, coefff[:, j], color = col, linewidth = 0.5)
             #plt.scatter(coeffs['co2profs'][:, ialt]/coeffs['co2profs'][1, ialt], -np.log(coeffs[nam][:, j, ialt]/coeffs['co2profs'][:, ialt]))
-        plt.title(nam + '[:, {}]'.format(ialt))
-        plt.xlabel('x CO2')
+        ax.set_title(nam + '[:, {}]'.format(ialt))
+        ax.set_xlabel('x CO2')
 
         figs.append(fig)
+        axes.append(ax)
 
+    npl.adjust_ax_scale(axes)
     npl.plot_pdfpages(cart_out_4 + 'check_{}_all.pdf'.format(nam), figs)
