@@ -207,8 +207,8 @@ for cco2 in range(1, 8):
         hrs = [hr_ref, hr_calc, hr_fomi]
 
         colors = np.array(npl.color_set(3))
-        colors = ['violet', 'steelblue', 'indianred']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+        colors = ['dark violet', 'steelblue', 'indianred']
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
         a0s.append(a0)
