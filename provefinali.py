@@ -111,6 +111,8 @@ for nam in ['acoeff', 'bcoeff']:
     ax.grid()
     for j, col in zip(range(n_alts_trlo), colors):
         ax.plot(mults, coefff[:, j], color = col, linewidth = 0.5)
+        if j == 41:
+            ax.plot(mults, coefff[:, j], color = 'black', linewidth = 0.5, linestyle = '--')
         #plt.scatter(coeffs['co2profs'][:, ialt]/coeffs['co2profs'][1, ialt], -np.log(coeffs[nam][:, j, ialt]/coeffs['co2profs'][:, ialt]))
     ax.set_title(namsurf)
     ax.set_xlabel('x CO2')
