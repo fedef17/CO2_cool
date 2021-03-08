@@ -56,7 +56,7 @@ import newparam_lib as npl
 tutti3 = pickle.load(open(cart_out+'tutti3_vals.p'))
 tuttil3 = np.array([cu[1] for cu in tutti3])
 ind = tuttil3.argmin()
-print(tutti3[ind])
+#print(tutti3[ind])
 start = tutti3[ind][0]
 
 bounds = (np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1]), np.array([100, 100, 100, 100, 100, 100]))
@@ -91,7 +91,7 @@ for iatmw in [0]:#range(6):
 
     for cco2 in [7]:#range(1,8):
         for ialt in range(66):
-            print('######################### ', ialt, ' #########################\n')
+            print('\n######################### ', ialt, ' #########################\n')
             doloop = True
             jloop = 1
             xis_b = None

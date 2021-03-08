@@ -826,12 +826,12 @@ def delta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_co
     return fu
 
 
-def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
+def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = True):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
     """
-    print('atmweigths: ', atmweigths)
+    #print('atmweigths: ', atmweigths)
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
@@ -841,7 +841,11 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
 
-    #print(fu)
+    if verbose:
+        print('------ delta: ------')
+        print(fu)
+        print('-----------------------')
+
     return fu
 
 
@@ -927,13 +931,13 @@ def jacdelta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all
     return J
 
 
-def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
+def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = True):
     """
     Jacobian of delta_xi_at_x0_afit.
     xis_b is not used, but the code expects the same parameters that are used by delta_xi_at_x0_afit
     """
 
-    print('atmweigths: ', atmweigths)
+    #print('atmweigths: ', atmweigths)
 
     J = np.empty((len(allatms), len(xis)))
 
@@ -962,7 +966,11 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
 
             J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * ajac
             # sys.exit()
-        print(atm, J[i, :])
+
+    if verbose:
+        print('------ Jacobian: ------')
+        print(J)
+        print('-----------------------')
 
     return J
 
