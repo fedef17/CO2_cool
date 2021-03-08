@@ -85,63 +85,67 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 #
 # pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
 
-for iatmw in [0]:#range(6):
-    xis_a_start = np.ones(6)
-    xis_b_start = np.ones(6)
-    # xis_a_start[iatmw] = 10
-    # xis_b_start[iatmw] = 10
+xis_a_start = np.ones(6)
+xis_b_start = np.ones(6)
+# xis_a_start[iatmw] = 10
+# xis_b_start[iatmw] = 10
+for xisinit in [np.ones(6), [10., 1., 1., 1., 1., 1.], [100., 0.1, 0.1, 0.1, 0.1, 0.1]]:
+    print('\n\n\n BAUUUUUUUUUUUUUUUUUUUUUUUUUUU \n\n\n', xisinit)
+    xis_a_start = xisinit
+    xis_b_start = xisinit
 
-    varfit_xis_2 = dict()
-    # Weighting 1 only atmosphere iatmw
-    weigatm = np.zeros(6)
-    weigatm[iatmw] = 1.0
-    weigatm = dict(zip(allatms, weigatm))
+    for iatmw in [0]:#range(6):
+        varfit_xis_2 = dict()
+        # Weighting 1 only atmosphere iatmw
+        weigatm = np.zeros(6)
+        weigatm[iatmw] = 1.0
+        weigatm = dict(zip(allatms, weigatm))
 
-    for cco2 in [7]:#range(1,8):
-        for ialt in [47]:#range(66):
-            print('\n######################### ', ialt, ' #########################\n')
-            doloop = True
-            jloop = 1
-            xis_b = None
+        for cco2 in [7]:#range(1,8):
+            for ialt in [47]:#range(66):
+                print('\n######################### ', ialt, ' #########################\n')
+                doloop = True
+                jloop = 1
+                xis_b = None
 
 
-            while doloop and jloop < nloops: # loop on a and b fit
-                cnam = 'afit'
-                if jloop == 1:
-                    xis_start = xis_a_start
-                else:
-                    xis_start = xis_a
+                while doloop and jloop < nloops: # loop on a and b fit
+                    cnam = 'afit'
+                    if jloop == 1:
+                        xis_start = xis_a_start
+                    else:
+                        xis_start = xis_a
 
-                result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, weigatm, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-                print(cco2, ialt, cnam, jloop, result.x)
-                xis_a = result.x
+                    result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, weigatm, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+                    print(cco2, ialt, cnam, jloop, result.x)
+                    xis_a = result.x
 
-                if jloop > 1:
-                    xis_old = varfit_xis_2[(cco2, ialt, cnam)]
-                    if np.mean(np.abs(xis_a - xis_old)) < thresloop:
-                        doloop = False
+                    if jloop > 1:
+                        xis_old = varfit_xis_2[(cco2, ialt, cnam)]
+                        if np.mean(np.abs(xis_a - xis_old)) < thresloop:
+                            doloop = False
 
-                varfit_xis_2[(cco2, ialt, cnam)] = xis_a
+                    varfit_xis_2[(cco2, ialt, cnam)] = xis_a
 
-                if jloop == 1:
-                    xis_start = xis_b_start
-                else:
-                    xis_start = xis_b
-                cnam = 'bfit'
-                result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, weigatm, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-                #print(cco2, ialt, cnam, jloop, result.x)
-                xis_b = result.x
+                    if jloop == 1:
+                        xis_start = xis_b_start
+                    else:
+                        xis_start = xis_b
+                    cnam = 'bfit'
+                    result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, weigatm, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+                    #print(cco2, ialt, cnam, jloop, result.x)
+                    xis_b = result.x
 
-                if jloop > 1:
-                    xis_old = varfit_xis_2[(cco2, ialt, cnam)]
-                    if np.mean(np.abs(xis_b - xis_old)) < thresloop:
-                        doloop = False
+                    if jloop > 1:
+                        xis_old = varfit_xis_2[(cco2, ialt, cnam)]
+                        if np.mean(np.abs(xis_b - xis_old)) < thresloop:
+                            doloop = False
 
-                varfit_xis_2[(cco2, ialt, cnam)] = xis_b
+                    varfit_xis_2[(cco2, ialt, cnam)] = xis_b
 
-                jloop += 1
+                    jloop += 1
 
-        print(ialt, xis_a, xis_b)
+            print(ialt, xis_a, xis_b)
 
-    print('######################################################')
-    #pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_iatm{}.p'.format(iatmw), 'wb'))
+        print('######################################################')
+        #pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_iatm{}.p'.format(iatmw), 'wb'))
