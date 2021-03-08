@@ -39,3 +39,7 @@ Per la param NLTE low trans:
 
 Per la param della upper transition region e della cool-to-space region:
 7 - fomi_recurformula_allatm.py
+
+-----
+Full atmosphere check:
+8 - test_newparam_full.py

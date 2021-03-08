@@ -149,3 +149,6 @@ for nam in ['acoeff', 'bcoeff']:
 
     npl.adjust_ax_scale(axes)
     npl.plot_pdfpages(cart_out_4 + 'check_{}_all.pdf'.format(nam), figs)
+
+
+###### Check. correlazione fra acoeff e cose

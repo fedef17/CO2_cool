@@ -831,7 +831,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
     """
-    #print('atmweigths: ', atmweigths)
+    print('atmweigths: ', atmweigths)
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
@@ -933,6 +933,8 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
     xis_b is not used, but the code expects the same parameters that are used by delta_xi_at_x0_afit
     """
 
+    print('atmweigths: ', atmweigths)
+
     J = np.empty((len(allatms), len(xis)))
 
     for i, atm in enumerate(allatms):
@@ -960,6 +962,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
 
             J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * ajac
             # sys.exit()
+        print(atm, J[i, :])
 
     return J
 
