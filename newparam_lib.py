@@ -826,24 +826,26 @@ def delta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_co
     return fu
 
 
-def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = True):
+def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = False):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
     """
     #print('atmweigths: ', atmweigths)
-    print(xis)
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
         hr = all_coeffs[(atm, cco2, hr_ref_nam)][ialt]
         hr_somma = hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs)
-        print(atm, hr, hr_somma)
 
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
 
     if verbose:
+        print('------ xis:')
+        print(xis)
+        print('------ check hrs:')
+        print(atm, hr, hr_somma)
         print('------ delta: ------')
         print(fu)
         print('-----------------------')
@@ -933,14 +935,13 @@ def jacdelta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all
     return J
 
 
-def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = True):
+def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = False):
     """
     Jacobian of delta_xi_at_x0_afit.
     xis_b is not used, but the code expects the same parameters that are used by delta_xi_at_x0_afit
     """
 
     #print('atmweigths: ', atmweigths)
-    print(xis)
 
     J = np.empty((len(allatms), len(xis)))
 
@@ -971,6 +972,8 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
             # sys.exit()
 
     if verbose:
+        print('------ xis: ------')
+        print(xis)
         print('------ Jacobian: ------')
         print(J)
         print('-----------------------')
