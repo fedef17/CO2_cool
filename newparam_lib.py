@@ -832,6 +832,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
     """
     #print('atmweigths: ', atmweigths)
+    print(xis)
 
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
@@ -938,6 +939,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
     """
 
     #print('atmweigths: ', atmweigths)
+    print(xis)
 
     J = np.empty((len(allatms), len(xis)))
 
