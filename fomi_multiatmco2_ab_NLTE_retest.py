@@ -77,19 +77,19 @@ xis_b_start = np.ones(6)
 ##### Rescaling both a and b by hr_nlte/hr_lte
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
-for cco2 in range(1,8):
-    for atm in allatms:
-        hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
-        hr_ref[:40] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:40]
-        all_coeffs_nlte[(atm, cco2, 'hr_ref')] = hr_ref
-
-pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
+# for cco2 in range(1,8):
+#     for atm in allatms:
+#         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+#         hr_ref[:40] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:40]
+#         all_coeffs_nlte[(atm, cco2, 'hr_ref')] = hr_ref
+#
+# pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
 
 for iatmw in [0]:#range(6):
-    xis_a_start = np.zeros(6)+0.1
-    xis_b_start = np.zeros(6)+0.1
-    xis_a_start[iatmw] = 10
-    xis_b_start[iatmw] = 10
+    xis_a_start = np.ones(6)
+    xis_b_start = np.ones(6)
+    # xis_a_start[iatmw] = 10
+    # xis_b_start[iatmw] = 10
 
     varfit_xis_2 = dict()
     # Weighting 1 only atmosphere iatmw
@@ -140,6 +140,8 @@ for iatmw in [0]:#range(6):
                 varfit_xis_2[(cco2, ialt, cnam)] = xis_b
 
                 jloop += 1
+
+        print(ialt, xis_a, xis_b)
 
     print('######################################################')
     #pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_iatm{}.p'.format(iatmw), 'wb'))
