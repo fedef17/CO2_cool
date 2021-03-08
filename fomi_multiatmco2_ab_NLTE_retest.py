@@ -98,7 +98,7 @@ for iatmw in [0]:#range(6):
     weigatm = dict(zip(allatms, weigatm))
 
     for cco2 in [7]:#range(1,8):
-        for ialt in range(66):
+        for ialt in [47]:#range(66):
             print('\n######################### ', ialt, ' #########################\n')
             doloop = True
             jloop = 1
