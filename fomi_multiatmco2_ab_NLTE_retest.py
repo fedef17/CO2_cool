@@ -77,6 +77,14 @@ xis_b_start = np.ones(6)
 ##### Rescaling both a and b by hr_nlte/hr_lte
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
+for cco2 in range(1,8):
+    for atm in allatms:
+        hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+        hr_ref[:40] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:40]
+        all_coeffs_nlte[(atm, cco2, 'hr_ref')] = hr_ref
+
+pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
+
 for iatmw in [0]:#range(6):
     xis_a_start = np.zeros(6)+0.1
     xis_b_start = np.zeros(6)+0.1
@@ -104,7 +112,7 @@ for iatmw in [0]:#range(6):
                 else:
                     xis_start = xis_a
 
-                result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+                result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, weigatm, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
                 print(cco2, ialt, cnam, jloop, result.x)
                 xis_a = result.x
 
@@ -120,7 +128,7 @@ for iatmw in [0]:#range(6):
                 else:
                     xis_start = xis_b
                 cnam = 'bfit'
-                result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, weigatm, all_coeffs_nlte, 'hr_nlte', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+                result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, weigatm, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
                 #print(cco2, ialt, cnam, jloop, result.x)
                 xis_b = result.x
 
