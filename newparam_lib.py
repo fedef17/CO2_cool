@@ -955,20 +955,22 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
         agn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs)
         agn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs)
 
+        sumxi = np.sum(xis)
+
         for k in range(len(xis)):
             acoeff = all_coeffs[(allatms[k], cco2, 'acoeff')]
             asurf = all_coeffs[(allatms[k], cco2, 'asurf')]
 
-            ajac = np.sum((acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
+            ajac = np.sum((sumxi*acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
             # print(ajac)
             # print(len(acoeff[:, ialt]), len(agn), len(phi_fun))
-            ajac += (asurf[ialt] - agn_surf) * phi_fun_g
+            ajac += (sumxi*asurf[ialt] - agn_surf) * phi_fun_g
             # print(asurf[ialt], agn_surf, phi_fun_g)
             # print('aaaaa')
             # print(ajac, agn, acoeff[:, ialt], phi_fun)
             # print(np.sqrt(atmweigths[allatms[i]])/np.sum(xis))
 
-            J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * ajac
+            J[i,k] = np.sqrt(atmweigths[allatms[i]])/sumxi**2 * ajac
             # sys.exit()
 
     if verbose:
@@ -999,14 +1001,16 @@ def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_
         bgn = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs)
         bgn_surf = coeff_from_xi_at_x0(xis, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs)
 
+        sumxi = np.sum(xis)
+
         for k in range(len(xis)):
             bcoeff = all_coeffs[(allatms[k], cco2, 'bcoeff')]
             bsurf = all_coeffs[(allatms[k], cco2, 'bsurf')]
 
-            bjac = np.sum((bcoeff[:, ialt] - bgn) * phi_fun) # il contributo della colonna
-            bjac += (bsurf[ialt] - bgn_surf) * phi_fun_g
+            bjac = np.sum((sumxi*bcoeff[:, ialt] - bgn) * phi_fun) # il contributo della colonna
+            bjac += (sumxi*bsurf[ialt] - bgn_surf) * phi_fun_g
 
-            J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * phi_fun[ialt] * bjac
+            J[i,k] = np.sqrt(atmweigths[allatms[i]])/sumxi**2 * phi_fun[ialt] * bjac
 
     return J
 

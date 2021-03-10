@@ -303,9 +303,65 @@ for cco2 in range(1,8):
 print('######################################################')
 pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v7_arctic.p', 'wb'))
 
+bounds = (np.zeros(6), np.ones(6))
+varfit_xis_4 = dict()
+
+for cco2 in range(1,8):
+    for ialt in range(66):
+        doloop = True
+        jloop = 1
+        xis_b = None
+        # Equal atm weights
+        while doloop and jloop < nloops: # loop on a and b fit
+            if jloop == 1:
+                xis_start = xis_a_start
+            else:
+                xis_start = xis_a
+
+            cnam = 'afit'
+            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+            print(cco2, ialt, cnam, jloop, result.x)
+            xis_a = result.x
+
+            if jloop > 1:
+                xis_old = varfit_xis_4[(cco2, ialt, cnam)]
+                if np.mean(np.abs(xis_a - xis_old)) < thresloop:
+                    doloop = False
+
+            varfit_xis_4[(cco2, ialt, cnam)] = xis_a
+            # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
+            # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
+            # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
+            # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
+
+            if jloop == 1:
+                xis_start = xis_b_start
+            else:
+                xis_start = xis_b
+            cnam = 'bfit'
+            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+            print(cco2, ialt, cnam, jloop, result.x)
+            xis_b = result.x
+
+            if jloop > 1:
+                xis_old = varfit_xis_4[(cco2, ialt, cnam)]
+                if np.mean(np.abs(xis_b - xis_old)) < thresloop:
+                    doloop = False
+
+            varfit_xis_4[(cco2, ialt, cnam)] = xis_b
+            # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
+            # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
+            # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
+            # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
+
+            jloop += 1
+
+print('######################################################')
+pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v8_lim01.p', 'wb'))
+
 sys.exit()
 
-# THE LM METHOD MAKES THE xis_b EXPLODE
+# THE LM METHOD MAKES THE xis_b EXPLODE. why?
 # for cco2 in range(1,8):
 #     for ialt in range(66):
 #         doloop = True
