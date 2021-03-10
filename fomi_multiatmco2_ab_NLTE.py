@@ -59,7 +59,7 @@ ind = tuttil3.argmin()
 print(tutti3[ind])
 start = tutti3[ind][0]
 
-bounds = (np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1]), np.array([100, 100, 100, 100, 100, 100]))
+bounds = (0.1*np.ones(6), 10.*np.ones(6))
 
 allres_varfit = dict()
 varfit_xis = dict()
@@ -303,7 +303,7 @@ for cco2 in range(1,8):
 print('######################################################')
 pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v7_arctic.p', 'wb'))
 
-bounds = (np.zeros(6), np.ones(6))
+bounds = (0.1*np.ones(6), np.ones(6))
 varfit_xis_4 = dict()
 
 for cco2 in range(1,8):
@@ -358,8 +358,6 @@ for cco2 in range(1,8):
 
 print('######################################################')
 pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v8_lim01.p', 'wb'))
-
-sys.exit()
 
 # THE LM METHOD MAKES THE xis_b EXPLODE. why?
 # for cco2 in range(1,8):
