@@ -215,7 +215,7 @@ for cco2 in range(1,8):
                 if np.mean(np.abs(xis_a - xis_old)) < thresloop:
                     doloop = False
 
-            varfit_xis_2[(cco2, ialt, cnam)] = xis_a
+            varfit_xis_3[(cco2, ialt, cnam)] = xis_a
             # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
             # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
             # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn

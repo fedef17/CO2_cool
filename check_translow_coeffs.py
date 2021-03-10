@@ -67,7 +67,7 @@ tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 viatmw = ['iatm{}'.format(iatm) for iatm in range(6)]
 
-for vers in ['v4', 'v5'] + viatmw:
+for vers in ['v4', 'v5', 'v6_noarctic', 'v7_arctic']:# + viatmw:
     varfit_xis = pickle.load(open(cart_out_2+'varfit_NLTE_{}.p'.format(vers), 'rb'))
 
     figsall = []
