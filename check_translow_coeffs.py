@@ -72,24 +72,24 @@ for cco2 in range(1, 8):
     for vers in ['v4', 'v5', 'v6_noarctic', 'v7_arctic', 'v8_lim01'] + viatmw:
         varfit_xis = pickle.load(open(cart_out_2+'varfit_NLTE_{}.p'.format(vers), 'rb'))
 
-            xis_a_alts = np.stack([varfit_xis[(cco2, ialt, 'afit')] for ialt in range(n_alts)]).T
-            xis_b_alts = np.stack([varfit_xis[(cco2, ialt, 'bfit')] for ialt in range(n_alts)]).T
-            #xis = np.concatenate([xis_a_alts, xis_b_alts], axis = 0)
+        xis_a_alts = np.stack([varfit_xis[(cco2, ialt, 'afit')] for ialt in range(n_alts)]).T
+        xis_b_alts = np.stack([varfit_xis[(cco2, ialt, 'bfit')] for ialt in range(n_alts)]).T
+        #xis = np.concatenate([xis_a_alts, xis_b_alts], axis = 0)
 
-            fig, (a0, a1) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [1, 1]}, sharex = True, figsize = (24,8))
-            plt.suptitle('a and b coeff weights - version {}'.format(vers))
+        fig, (a0, a1) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [1, 1]}, sharex = True, figsize = (24,8))
+        plt.suptitle('a and b coeff weights - version {}'.format(vers))
 
-            a0.imshow(xis_a_alts, norm=LogNorm(vmin=0.1, vmax=10))
-            a1.imshow(xis_b_alts, norm=LogNorm(vmin=0.1, vmax=10))
-            a0.set_title('afit')
-            a1.set_title('bfit')
+        a0.imshow(xis_a_alts, norm=LogNorm(vmin=0.1, vmax=10))
+        a1.imshow(xis_b_alts, norm=LogNorm(vmin=0.1, vmax=10))
+        a0.set_title('afit')
+        a1.set_title('bfit')
 
-            # a0.axhline(52, color = 'grey', linewidth = 0.5)
-            # a1.axhline(52, color = 'grey', linewidth = 0.5)
-            a0.axvline(40, color = 'grey', linewidth = 0.5)
-            a1.axvline(40, color = 'grey', linewidth = 0.5)
+        # a0.axhline(52, color = 'grey', linewidth = 0.5)
+        # a1.axhline(52, color = 'grey', linewidth = 0.5)
+        a0.axvline(40, color = 'grey', linewidth = 0.5)
+        a1.axvline(40, color = 'grey', linewidth = 0.5)
 
-            figsall.append(fig)
+        figsall.append(fig)
 
     npl.plot_pdfpages(cart_out_2 + 'allxis_cco2{}.pdf'.format(cco2), figsall)
 
