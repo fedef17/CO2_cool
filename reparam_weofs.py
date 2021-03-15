@@ -88,6 +88,7 @@ for i, pc in enumerate(solver.pcs()[:,:2]):
 # Now for the coeffs. Are the coeffs pcs linked to the temp pcs? (correlation?). If so, the method could work well!
 cco2 = 7
 
+coefsolv = dict()
 for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     acos = np.stack([all_coeffs_nlte[(atm, cco2, conam)] for atm in allatms])
     aco_solver = Eof(acos)
@@ -96,3 +97,4 @@ for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     cor1 = np.corrcoef(solver.pcs()[1], aco_solver.pcs()[1])[1,0]
 
     print(conam, cor0, cor1)
+    coefsolv[conam] = aco_solver
