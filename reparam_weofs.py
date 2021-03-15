@@ -89,7 +89,7 @@ for i, pc in enumerate(solver.pcs()[:,:2]):
 cco2 = 7
 
 for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-    acos = np.stack([all_coeffs_nlte[(atm, cco2, conam] for atm in allatms])
+    acos = np.stack([all_coeffs_nlte[(atm, cco2, conam)] for atm in allatms])
     aco_solver = Eof(acos)
 
     cor0 = np.corrcoef(solver.pcs()[0], aco_solver.pcs()[0])[1,0]
