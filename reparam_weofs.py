@@ -54,7 +54,8 @@ alts = atm_pt[('mle', 'alts')][:n_alts]
 pres = atm_pt[('mle', 'pres')]
 x = np.log(1000./pres)
 n_alts_trlo = np.sum(x < 12.5)
-print('low trans at {}'.format(alts[n_alts_trlo]))
+print(n_alts_trlo)
+#print('low trans at {}'.format(alts[n_alts_trlo]))
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
