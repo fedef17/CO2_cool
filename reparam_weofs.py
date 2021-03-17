@@ -46,7 +46,7 @@ allco2 = np.arange(1,8)
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 
-n_alts = 54
+n_alts = 66
 
 all_alts = atm_pt[('mle', 'alts')]
 alts = atm_pt[('mle', 'alts')][:n_alts]
@@ -206,7 +206,7 @@ for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     coef_cose[conam] = (coefsolv[conam+'_mean'], coefsolv[conam].eofs(eofscaling=1)[0])
 
 coef_cose['temp'] = (atm_anom_mean, solver_anom.eofs(eofscaling=1)[0]) # mean and first eof
-pickle.dump([coef_cose, linfits], open(cart_out_rep + 'reparam_eofcoeffs.p'))
+pickle.dump([coef_cose, linfits], open(cart_out_rep + 'reparam_eofcoeffs.p', 'wb'))
 
 # c, m for all coeffs
 # acoeff
