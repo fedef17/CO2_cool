@@ -23,9 +23,9 @@ if os.uname()[1] == 'ff-clevo':
 else:
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    # cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    # cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_reparam/'
+    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
+    cart_out_rep = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_reparam/'
 
 import newparam_lib as npl
 from eofs.standard import Eof
@@ -73,33 +73,33 @@ fig = plt.figure()
 for i, eo in enumerate(solver.eofs()):
     plt.plot(eo, all_alts, label = i)
 plt.legend()
-fig.savefig(cart_out + 'eofs_temps.pdf')
+fig.savefig(cart_out_rep + 'eofs_temps.pdf')
 
 fig = plt.figure()
 for i, eo in enumerate(solver_anom.eofs()):
     plt.plot(eo, all_alts, label = i)
 plt.legend()
-fig.savefig(cart_out + 'eofs_temps_anom.pdf')
+fig.savefig(cart_out_rep + 'eofs_temps_anom.pdf')
 
 fig = plt.figure()
 plt.bar(np.arange(6), solver.eigenvalues())
-fig.savefig(cart_out + 'eigenvalues_temps.pdf')
+fig.savefig(cart_out_rep + 'eigenvalues_temps.pdf')
 
 fig = plt.figure()
 plt.bar(np.arange(6), solver_anom.eigenvalues())
-fig.savefig(cart_out + 'eigenvalues_temps_anom.pdf')
+fig.savefig(cart_out_rep + 'eigenvalues_temps_anom.pdf')
 
 fig = plt.figure()
 atm_mean = np.mean(temps, axis = 0)
 for i, pc in enumerate(solver.pcs()[:,0]):
     plt.plot(atm_mean+pc*solver.eofs()[0]-temps[i, :], all_alts)
-fig.savefig(cart_out + 'residual_temps_firstpc.pdf')
+fig.savefig(cart_out_rep + 'residual_temps_firstpc.pdf')
 
 fig = plt.figure()
 atm_mean = np.mean(temps, axis = 0)
 for i, pc in enumerate(solver_anom.pcs()[:,0]):
     plt.plot(atm_anom_mean+pc*solver_anom.eofs()[0]-temps_anom[i, :], all_alts)
-fig.savefig(cart_out + 'residual_temps_anom_firstpc.pdf')
+fig.savefig(cart_out_rep + 'residual_temps_anom_firstpc.pdf')
 
 # plt.figure()
 # for i, pc in enumerate(solver.pcs()[:,:2]):
