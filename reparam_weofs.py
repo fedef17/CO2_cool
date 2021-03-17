@@ -88,13 +88,24 @@ for i, pc in enumerate(solver.pcs()[:,:2]):
 # Now for the coeffs. Are the coeffs pcs linked to the temp pcs? (correlation?). If so, the method could work well!
 cco2 = 7
 
+surftemps = np.array([atm_pt[(atm, 'surf_temp')] for atm in allatms])
+
 coefsolv = dict()
 for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     acos = np.stack([all_coeffs_nlte[(atm, cco2, conam)] for atm in allatms])
     aco_solver = Eof(acos)
 
-    cor0 = np.corrcoef(solver.pcs()[0], aco_solver.pcs()[0])[1,0]
-    cor1 = np.corrcoef(solver.pcs()[1], aco_solver.pcs()[1])[1,0]
+    if 'coeff' in conam:
+        cor0 = np.corrcoef(solver.pcs()[:, 0], aco_solver.pcs()[:, 0])[1,0]
+        cor1 = np.corrcoef(solver.pcs()[:, 1], aco_solver.pcs()[:, 1])[1,0]
+    else:
+        cor0 = np.corrcoef(surftemps, aco_solver.pcs()[:, 0])[1,0]
+        cor1 = np.corrcoef(surftemps, aco_solver.pcs()[:, 1])[1,0]
 
     print(conam, cor0, cor1)
     coefsolv[conam] = aco_solver
+
+# ('acoeff', 0.9201600549720309, 0.5650724813187429)
+# ('bcoeff', 0.8852668113273987, 0.40514400023917907)
+# ('asurf', -0.9916467503397747, 0.12197028746306282)
+# ('bsurf', -0.9864472297843829, 0.14140499211950414)
