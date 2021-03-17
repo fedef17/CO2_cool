@@ -239,8 +239,8 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         coeff = all_coeffs_nlte[(atm, cco2, 'acoeff')]
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
             plt.plot(coeff[:n_alts, ialt], alts, color = col)
-            plt.title(conam + ' - ' + atm)
-            figs.append(fig)
+            plt.title('acoeff - ' + atm)
+        figs.append(fig)
     npl.plot_pdfpages(cartou + 'acoeff_atmvar.pdf', figs)
 
 
