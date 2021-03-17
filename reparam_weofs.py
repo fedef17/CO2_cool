@@ -48,7 +48,6 @@ atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 
 
 all_alts = atm_pt[('mle', 'alts')]
-alts = atm_pt[('mle', 'alts')][:n_alts]
 
 pres = atm_pt[('mle', 'pres')]
 x = np.log(1000./pres)
@@ -62,6 +61,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 n_alts = 51
 for n_alts in [41, 46, 51, 56, 61, 66]:
     print(n_alts)
+    alts = atm_pt[('mle', 'alts')][:n_alts]
 
     cartou = cart_out_rep + 'alts{}/'.format(n_alts)
     if not os.path.exists(cartou): os.mkdir(cartou)
