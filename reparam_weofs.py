@@ -60,10 +60,10 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 ################################################################################
 
-temps = [atm_pt[(atm, 'temp')] for atm in allatms]
+temps = [atm_pt[(atm, 'temp')][:n_alts] for atm in allatms]
 temps = np.stack(temps)
 
-temps_anom = np.stack([atm_pt[(atm, 'temp')]-np.mean(atm_pt[(atm, 'temp')]) for atm in allatms])
+temps_anom = np.stack([atm_pt[(atm, 'temp')][:n_alts]-np.mean(atm_pt[(atm, 'temp')][:n_alts]) for atm in allatms])
 atm_anom_mean = np.mean(temps_anom, axis = 0)
 
 solver = Eof(temps)
@@ -71,13 +71,13 @@ solver_anom = Eof(temps_anom)
 
 fig = plt.figure()
 for i, eo in enumerate(solver.eofs()):
-    plt.plot(eo, all_alts, label = i)
+    plt.plot(eo, alts, label = i)
 plt.legend()
 fig.savefig(cart_out_rep + 'eofs_temps.pdf')
 
 fig = plt.figure()
 for i, eo in enumerate(solver_anom.eofs()):
-    plt.plot(eo, all_alts, label = i)
+    plt.plot(eo, alts, label = i)
 plt.legend()
 fig.savefig(cart_out_rep + 'eofs_temps_anom.pdf')
 
@@ -101,18 +101,18 @@ fig.savefig(cart_out_rep + 'varfrac_temps_anom.pdf')
 fig = plt.figure()
 atm_mean = np.mean(temps, axis = 0)
 for i, pc in enumerate(solver.pcs()[:,0]):
-    plt.plot(atm_mean+pc*solver.eofs()[0]-temps[i, :], all_alts)
+    plt.plot(atm_mean+pc*solver.eofs()[0]-temps[i, :], alts)
 fig.savefig(cart_out_rep + 'residual_temps_firstpc.pdf')
 
 fig = plt.figure()
 atm_mean = np.mean(temps, axis = 0)
 for i, pc in enumerate(solver_anom.pcs()[:,0]):
-    plt.plot(atm_anom_mean+pc*solver_anom.eofs()[0]-temps_anom[i, :], all_alts)
+    plt.plot(atm_anom_mean+pc*solver_anom.eofs()[0]-temps_anom[i, :], alts)
 fig.savefig(cart_out_rep + 'residual_temps_anom_firstpc.pdf')
 
 # plt.figure()
 # for i, pc in enumerate(solver.pcs()[:,:2]):
-#     plt.plot(atm_mean+pc[0]*solver.eofs()[0]+pc[1]*solver.eofs()[1]-temps[i,:], all_alts)
+#     plt.plot(atm_mean+pc[0]*solver.eofs()[0]+pc[1]*solver.eofs()[1]-temps[i,:], alts)
 
 
 # ok so, if keeping only first and second eof I'm able to explain quite a fraction of the variability
@@ -126,7 +126,13 @@ surftemps = np.array([atm_pt[(atm, 'surf_temp')] for atm in allatms])
 coefsolv = dict()
 for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     acos = np.stack([all_coeffs_nlte[(atm, cco2, conam)] for atm in allatms])
+    if acos.ndim == 3:
+        acos = acos[:, :n_alts, ...][..., :n_alts]
+    else:
+        acos = acos[:, :n_alts]
+
     aco_solver = Eof(acos)
+    coefsolv[conam+'_mean'] = np.mean(acos, axis = 0)
 
     fig = plt.figure()
     plt.bar(np.arange(6), aco_solver.varianceFraction())
@@ -154,6 +160,8 @@ dotprods = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[0])
 
 colors = npl.color_set(6)
 
+linfits = dict()
+
 for conam in ['acoeff', 'bcoeff']:
     print(conam)
     print(np.corrcoef(dotprods, coefsolv[conam].pcs(pcscaling=1)[:, 0]))
@@ -161,7 +169,8 @@ for conam in ['acoeff', 'bcoeff']:
     fig = plt.figure()
     for dotp, pcc, atm, col in zip(dotprods, coefsolv[conam].pcs(pcscaling=1)[:, 0], allatms, colors):
         plt.scatter([dotp], [pcc], color = col, label = atm)
-    m, c, err_m, err_c = npl.linear_regre_witherr(dotprods, coefsolv['acoeff'].pcs(pcscaling=1)[:, 0])
+    m, c, err_m, err_c = npl.linear_regre_witherr(dotprods, coefsolv[conam].pcs(pcscaling=1)[:, 0])
+    linfits[conam] = (c, m)
     xcoso = np.linspace(-2, 2, 10)
     plt.plot(xcoso, m*xcoso + c)
     print(c, m)
@@ -184,8 +193,29 @@ for conam in ['asurf', 'bsurf']:
     xcoso = np.linspace(np.min(surfanom), np.max(surfanom), 10)
     plt.plot(xcoso, m*xcoso + c)
     print(c, m)
+    linfits[conam] = (c, m)
     plt.xlabel('surf. temp. anomaly')
     plt.ylabel('first pc of {}'.format(conam))
     plt.legend()
     #npl.custom_legend(fig, colors, allatms, ncol = 3)
     fig.savefig(cart_out_rep + 'fit_{}_vs_surftemp.pdf'.format(conam))
+
+# for each coeff: mean and first eof
+coef_cose = dict()
+for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+    coef_cose[conam] = (coefsolv[conam+'_mean'], coefsolv[conam].eofs(eofscaling=1)[0])
+
+coef_cose['temp'] = (atm_anom_mean, solver_anom.eofs(eofscaling=1)[0]) # mean and first eof
+pickle.dump([coef_cose, linfits], open(cart_out_rep + 'reparam_eofcoeffs.p'))
+
+# c, m for all coeffs
+# acoeff
+# (-1.4163957869901234e-17, 0.9208461477620374)
+# bcoeff
+# (-1.4163957869901234e-17, 0.9208461477620374)
+# asurf
+# (-6.232141462756543e-16, -0.06910854929014554)
+# bsurf
+# (-3.1727265628578765e-16, -0.0687461910991221)
+
+#c ~ 0
