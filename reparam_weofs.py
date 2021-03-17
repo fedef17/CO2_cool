@@ -159,14 +159,16 @@ for conam in ['acoeff', 'bcoeff']:
     print(np.corrcoef(dotprods, coefsolv[conam].pcs(pcscaling=1)[:, 0]))
 
     fig = plt.figure()
-    plt.scatter(dotprods, coefsolv[conam].pcs(pcscaling=1)[:, 0], colors = colors)
+    for dotp, pcc, atm, col in zip(dotprods, coefsolv[conam].pcs(pcscaling=1)[:, 0], allatms, colors):
+        plt.scatter([dotp], [pcc], color = col, label = atm)
     m, c, err_m, err_c = npl.linear_regre_witherr(dotprods, coefsolv['acoeff'].pcs(pcscaling=1)[:, 0])
     xcoso = np.linspace(-2, 2, 10)
     plt.plot(xcoso, m*xcoso + c)
     print(c, m)
     plt.xlabel('first pc of {}'.format(conam))
     plt.ylabel('projection of temp. anom on first eof')
-    npl.custom_legend(fig, colors, allatms, ncol = 3)
+    plt.legend()
+    #npl.custom_legend(fig, colors, allatms, ncol = 3)
     fig.savefig(cart_out_rep + 'fit_{}_vs_tempeof.pdf'.format(conam))
 
 
@@ -176,12 +178,14 @@ for conam in ['asurf', 'bsurf']:
     print(np.corrcoef(surfanom, coefsolv[conam].pcs(pcscaling=1)[:, 0]))
 
     fig = plt.figure()
-    plt.scatter(surfanom, coefsolv[conam].pcs(pcscaling=1)[:, 0], colors = colors)
+    for dotp, pcc, atm, col in zip(surfanom, coefsolv[conam].pcs(pcscaling=1)[:, 0], allatms, colors):
+        plt.scatter([dotp], [pcc], color = col, label = atm)
     m, c, err_m, err_c = npl.linear_regre_witherr(surfanom, coefsolv[conam].pcs(pcscaling=1)[:, 0])
     xcoso = np.linspace(np.min(surfanom), np.max(surfanom), 10)
     plt.plot(xcoso, m*xcoso + c)
     print(c, m)
     plt.xlabel('first pc of {}'.format(conam))
     plt.ylabel('surf. temp. anomaly')
-    npl.custom_legend(fig, colors, allatms, ncol = 3)
+    plt.legend()
+    #npl.custom_legend(fig, colors, allatms, ncol = 3)
     fig.savefig(cart_out_rep + 'fit_{}_vs_surftemp.pdf'.format(conam))
