@@ -164,7 +164,7 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         fig = plt.figure()
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
             plt.plot(coefsolv[conam].eofs()[0][:, ialt], alts, color = col)
-        plt.xlim(-0.01, 0.01)
+        plt.xlim(-0.02, 0.02)
         plt.title(conam + 'eof 0')
         fig.savefig(cartou + '{}_eof0.pdf'.format(conam))
 
@@ -232,6 +232,17 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
 
     coef_cose['temp'] = (atm_anom_mean, solver_anom.eofs(eofscaling=1)[0]) # mean and first eof
     pickle.dump([coef_cose, linfits], open(cartou + 'reparam_eofcoeffs.p', 'wb'))
+
+    figs = []
+    for atm in allatms:
+        fig = plt.figure()
+        coeff = all_coeffs_nlte[(cco2, atm, 'acoeff')]
+        for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
+            plt.plot(coeff[:n_alts, ialt], alts, color = col)
+            plt.title(conam + ' - ' + atm)
+            figs.append(fig)
+    npl.plot_pdfpages(cartou + 'acoeff_atmvar.pdf', figs)
+
 
 # c, m for all coeffs
 # acoeff
