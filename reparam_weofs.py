@@ -236,7 +236,7 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
     figs = []
     for atm in allatms:
         fig = plt.figure()
-        coeff = all_coeffs_nlte[(cco2, atm, 'acoeff')]
+        coeff = all_coeffs_nlte[(atm, cco2, 'acoeff')]
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
             plt.plot(coeff[:n_alts, ialt], alts, color = col)
             plt.title(conam + ' - ' + atm)
