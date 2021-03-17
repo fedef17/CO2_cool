@@ -23,8 +23,9 @@ if os.uname()[1] == 'ff-clevo':
 else:
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
+    # cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+    # cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
+    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_reparam/'
 
 import newparam_lib as npl
 from eofs.standard import Eof
@@ -62,24 +63,47 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 temps = [atm_pt[(atm, 'temp')] for atm in allatms]
 temps = np.stack(temps)
 
+temps_anom = np.stack([atm_pt[(atm, 'temp')]-np.mean(atm_pt[(atm, 'temp')]) for atm in allatms])
+atm_anom_mean = np.mean(temps_anom, axis = 0)
+
 solver = Eof(temps)
+solver_anom = Eof(temps_anom)
 
-plt.figure()
-
+fig = plt.figure()
 for i, eo in enumerate(solver.eofs()):
     plt.plot(eo, all_alts, label = i)
+plt.legend()
+fig.savefig(cart_out + 'eofs_temps.pdf')
 
-plt.figure()
+fig = plt.figure()
+for i, eo in enumerate(solver_anom.eofs()):
+    plt.plot(eo, all_alts, label = i)
+plt.legend()
+fig.savefig(cart_out + 'eofs_temps_anom.pdf')
+
+fig = plt.figure()
 plt.bar(np.arange(6), solver.eigenvalues())
+fig.savefig(cart_out + 'eigenvalues_temps.pdf')
 
-plt.figure()
+fig = plt.figure()
+plt.bar(np.arange(6), solver_anom.eigenvalues())
+fig.savefig(cart_out + 'eigenvalues_temps_anom.pdf')
+
+fig = plt.figure()
 atm_mean = np.mean(temps, axis = 0)
-for pc in solver.pcs()[:,0]:
-    plt.plot(atm_mean+pc*solver.eofs()[0], all_alts)
+for i, pc in enumerate(solver.pcs()[:,0]):
+    plt.plot(atm_mean+pc*solver.eofs()[0]-temps[i, :], all_alts)
+fig.savefig(cart_out + 'residual_temps_firstpc.pdf')
 
-plt.figure()
-for i, pc in enumerate(solver.pcs()[:,:2]):
-    plt.plot(atm_mean+pc[0]*solver.eofs()[0]+pc[1]*solver.eofs()[1]-temps[i,:], all_alts)
+fig = plt.figure()
+atm_mean = np.mean(temps, axis = 0)
+for i, pc in enumerate(solver_anom.pcs()[:,0]):
+    plt.plot(atm_anom_mean+pc*solver_anom.eofs()[0]-temps_anom[i, :], all_alts)
+fig.savefig(cart_out + 'residual_temps_anom_firstpc.pdf')
+
+# plt.figure()
+# for i, pc in enumerate(solver.pcs()[:,:2]):
+#     plt.plot(atm_mean+pc[0]*solver.eofs()[0]+pc[1]*solver.eofs()[1]-temps[i,:], all_alts)
 
 
 # ok so, if keeping only first and second eof I'm able to explain quite a fraction of the variability
@@ -98,11 +122,13 @@ for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     if 'coeff' in conam:
         cor0 = np.corrcoef(solver.pcs()[:, 0], aco_solver.pcs()[:, 0])[1,0]
         cor1 = np.corrcoef(solver.pcs()[:, 1], aco_solver.pcs()[:, 1])[1,0]
+        cor0_anom = np.corrcoef(solver_anom.pcs()[:, 0], aco_solver.pcs()[:, 0])[1,0]
+        cor1_anom = np.corrcoef(solver_anom.pcs()[:, 1], aco_solver.pcs()[:, 1])[1,0]
+        print(conam, cor0, cor1, cor0_anom, cor1_anom)
     else:
         cor0 = np.corrcoef(surftemps, aco_solver.pcs()[:, 0])[1,0]
         cor1 = np.corrcoef(surftemps, aco_solver.pcs()[:, 1])[1,0]
-
-    print(conam, cor0, cor1)
+        print(conam, cor0, cor1)
     coefsolv[conam] = aco_solver
 
 # ('acoeff', 0.9201600549720309, 0.5650724813187429)
