@@ -175,8 +175,8 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         cico, regrco, _, _ = npl.linearregre_coeff(x0, acos)
 
         corrco = np.empty_like(acos[0])
-        for i in range(6):
-            for j in range(6):
+        for i in range(acos[0].shape[0]):
+            for j in range(acos[0].shape[1]):
                 corrco[i,j] = np.corrcoef(x0, acos[:, i, j])[1,0]
 
         regrcoef[(conam, 'R')] = corrco
@@ -189,7 +189,7 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
             plt.plot(coefsolv[conam].eofs()[0][:, ialt], alts, color = col)
         plt.xlim(-0.02, 0.02)
-        plt.title(conam + 'eof 0')
+        plt.title(conam + ' - eof 0')
         fig.savefig(cartou + '{}_eof0.pdf'.format(conam))
 
 
@@ -198,7 +198,7 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
             plt.plot(regrcoef[(conam, 'R')][:, ialt], alts, color = col)
         #plt.xlim(-0.02, 0.02)
-        plt.title(conam + 'rcorr')
+        plt.title(conam + ' - rcorr')
         fig.savefig(cartou + '{}_rcorr.pdf'.format(conam))
 
     fig = plt.figure()
