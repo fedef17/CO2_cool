@@ -177,7 +177,7 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         corrco = np.empty_like(acos[0])
         for i in range(6):
             for j in range(6):
-                corrco = np.corrcoef(x0, acos[:, i, j])[1,0]
+                corrco[i,j] = np.corrcoef(x0, acos[:, i, j])[1,0]
 
         regrcoef[(conam, 'R')] = corrco
         regrcoef[(conam, 'c')] = cico
