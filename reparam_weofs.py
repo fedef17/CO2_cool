@@ -196,7 +196,7 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
     for conam in ['acoeff', 'bcoeff']:
         fig = plt.figure()
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
-            plt.plot(regrcoef[(conam, 'R')][:, ialt], alts, color = col)
+            plt.plot(np.abs(regrcoef[(conam, 'R')][:, ialt]), alts, color = col)
         #plt.xlim(-0.02, 0.02)
         plt.title(conam + ' - rcorr')
         fig.savefig(cartou + '{}_rcorr.pdf'.format(conam))
