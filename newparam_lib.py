@@ -262,6 +262,46 @@ def running_mean(var, wnd, remove_nans = False, keep_length = False):
     return rollpi_temp
 
 
+def linear_regre_witherr(x, y):
+    """
+    Makes a linear regression of dataset y in function of x using numpy.polyfit. Returns the coefficient m and c: y = mx + c. And their estimated error.
+    """
+
+    if type(x) is list:
+        x = np.array(x)
+        y = np.array(y)
+
+    xord = np.argsort(x)
+    x = x[xord]
+    y = y[xord]
+
+    res = np.polyfit(x, y, deg = 1, cov = True)
+    m,c = res[0]
+    covmat = res[1]
+
+    err_m = np.sqrt(covmat[0,0])
+    err_c = np.sqrt(covmat[1,1])
+
+    return m, c, err_m, err_c
+
+
+def linearregre_coeff(x, coeffs):
+    trendmat = np.empty_like(coeffs[0])
+    errtrendmat = np.empty_like(coeffs[0])
+    cmat = np.empty_like(coeffs[0])
+    errcmat = np.empty_like(coeffs[0])
+    for i in np.arange(trendmat.shape[0]):
+        for j in np.arange(trendmat.shape[1]):
+            m, c, err_m, err_c = linear_regre_witherr(x, coeffs[:,i,j])
+            #coeffs, covmat = np.polyfit(years, var_set[i,j], deg = deg, cov = True)
+            trendmat[i,j] = m
+            errtrendmat[i,j] = err_m
+            cmat[i,j] = c
+            errcmat[i,j] = err_c
+
+    return cmat, trendmat, errcmat, errtrendmat
+
+
 def custom_legend(fig, colors, labels, loc = 'lower center', ncol = None, fontsize = 15, bottom_margin_per_line = 0.05):
     if ncol is None:
         ncol = int(np.ceil(len(labels)/2.0))

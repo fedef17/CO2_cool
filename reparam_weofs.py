@@ -57,6 +57,7 @@ print(n_alts_trlo)
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
+
 ################################################################################
 n_alts = 51
 for n_alts in [41, 46, 51, 56, 61, 66]:
@@ -160,6 +161,29 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
             print(conam, cor0, cor1)
         coefsolv[conam] = aco_solver
 
+
+    x0 = solver_anom.pcs()[:, 0]
+    # SIMPLER. Linear (or nonlinear?) regression of coeff with first pc of temp profile
+    regrcoef = dict()
+    for conam in ['acoeff', 'bcoeff']:
+        acos = np.stack([all_coeffs_nlte[(atm, cco2, conam)] for atm in allatms])
+        if acos.ndim == 3:
+            acos = acos[:, :n_alts, ...][..., :n_alts]
+        else:
+            acos = acos[:, :n_alts]
+
+        cico, regrco, _, _ = npl.linearregre_coeff(x0, acos)
+
+        corrco = np.empty_like(acos[0])
+        for i in range(6):
+            for j in range(6):
+                corrco = np.corrcoef(x0, acos[:, i, j])[1,0]
+
+        regrcoef[(conam, 'R')] = corrco
+        regrcoef[(conam, 'c')] = cico
+        regrcoef[(conam, 'm')] = regrco
+
+
     for conam in ['acoeff', 'bcoeff']:
         fig = plt.figure()
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
@@ -167,6 +191,15 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         plt.xlim(-0.02, 0.02)
         plt.title(conam + 'eof 0')
         fig.savefig(cartou + '{}_eof0.pdf'.format(conam))
+
+
+    for conam in ['acoeff', 'bcoeff']:
+        fig = plt.figure()
+        for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
+            plt.plot(regrcoef[(conam, 'R')][:, ialt], alts, color = col)
+        #plt.xlim(-0.02, 0.02)
+        plt.title(conam + 'rcorr')
+        fig.savefig(cartou + '{}_rcorr.pdf'.format(conam))
 
     fig = plt.figure()
     plt.plot(coefsolv['asurf'].eofs()[0], alts, label = 'asurf')
@@ -239,9 +272,27 @@ for n_alts in [41, 46, 51, 56, 61, 66]:
         coeff = all_coeffs_nlte[(atm, cco2, 'acoeff')]
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
             plt.plot(coeff[:n_alts, ialt], alts, color = col)
+            if ialt > 1 and ialt < n_alts-1:
+                if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
+                    print('Atm {}. Unstable ialt {}'.format(atm, ialt))
+                    plt.plot(np.mean([coeff[:n_alts, ialt-1], coeff[:n_alts, ialt+1]], axis = 0), alts, color = col, linestyle = '--')
             plt.title('acoeff - ' + atm)
         figs.append(fig)
     npl.plot_pdfpages(cartou + 'acoeff_atmvar.pdf', figs)
+
+    figs = []
+    for atm in allatms:
+        fig = plt.figure()
+        coeff = all_coeffs_nlte[(atm, cco2, 'bcoeff')]
+        for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
+            plt.plot(coeff[:n_alts, ialt], alts, color = col)
+            if ialt > 1 and ialt < n_alts-1:
+                if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
+                    print('Atm {}. Unstable ialt {}'.format(atm, ialt))
+                    plt.plot(np.mean([coeff[:n_alts, ialt-1], coeff[:n_alts, ialt+1]], axis = 0), alts, color = col, linestyle = '--')
+            plt.title('bcoeff - ' + atm)
+        figs.append(fig)
+    npl.plot_pdfpages(cartou + 'bcoeff_atmvar.pdf', figs)
 
 
 # c, m for all coeffs
