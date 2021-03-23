@@ -323,7 +323,7 @@ for atm, dp, sa in zip(allatms, dotprods, surfanom):
     asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
     bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
-    hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51)
+    hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51)[:n_alts]
 
     hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')][:n_alts]
 
