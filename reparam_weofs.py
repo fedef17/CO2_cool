@@ -304,6 +304,8 @@ cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 figs = []
+a0s = []
+a1s = []
 for atm, dp, sa in zip(allatms, dotprods, surfanom):
     temp = atm_pt[(atm, 'temp')]
     surf_temp = atm_pt[(atm, 'surf_temp')]
