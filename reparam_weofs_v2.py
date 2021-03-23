@@ -30,6 +30,8 @@ else:
 import newparam_lib as npl
 from eofs.standard import Eof
 
+plt.rcParams['axes.axisbelow'] = True
+
 ##############################################################
 kbc = const.k/(const.h*100*const.c) # 0.69503
 kboltz = 1.38064853e-23 # J/K
@@ -89,12 +91,13 @@ for cco2 in range(1, 8):
         fig = plt.figure()
         coeff = all_coeffs_nlte[(atm, cco2, 'acoeff')]
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
-            plt.plot(coeff[:n_alts, ialt], alts, color = col)
+            plt.plot(coeff[:n_alts, ialt], np.arange(n_alts), color = col)
             if ialt > 1 and ialt < n_alts-1:
                 if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
                     print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                    plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
+                    plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), np.arange(n_alts)[1:-1], color = col, linestyle = '--')
             plt.title('acoeff - ' + atm + str(cco2))
+            plt.grid()
         figs.append(fig)
 npl.plot_pdfpages(cart_out_rep + 'acoeff_atmvar.pdf', figs)
 
@@ -104,12 +107,13 @@ for cco2 in range(1, 8):
         fig = plt.figure()
         coeff = all_coeffs_nlte[(atm, cco2, 'bcoeff')]
         for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
-            plt.plot(coeff[:n_alts, ialt], alts, color = col)
+            plt.plot(coeff[:n_alts, ialt], np.arange(n_alts), color = col)
             if ialt > 1 and ialt < n_alts-1:
                 if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
                     print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                    plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
+                    plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), np.arange(n_alts)[1:-1], color = col, linestyle = '--')
             plt.title('bcoeff - ' + atm + str(cco2))
+            plt.grid()
         figs.append(fig)
 npl.plot_pdfpages(cart_out_rep + 'bcoeff_atmvar.pdf', figs)
 
