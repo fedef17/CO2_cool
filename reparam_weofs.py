@@ -300,6 +300,8 @@ npl.plot_pdfpages(cartou + 'bcoeff_atmvar.pdf', figs)
 
 
 ### OK! now I use the dotprods and the regrcoef to reconstruct the a and b coeffs, and compute the hr and check wrt the reference and the varfit5.
+cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
+tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 figs = []
 for atm, dp, sa in zip(allatms, dotprods, surfanom):
@@ -313,7 +315,7 @@ for atm, dp, sa in zip(allatms, dotprods, surfanom):
         else:
             coeffs[conam] = regrcoef[(conam, 'c')] + regrcoef[(conam, 'm')]*dp
 
-    hr_new = npl.hr_from_ab(coeffs['acoeff'], coeff['bcoeff'], coeff['asurf'], coeff['bsurf'], temp, surf_temp, max_alts = 51)
+    hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 51)
 
     tip = 'varfit5_nlte'
     acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
