@@ -310,7 +310,7 @@ for conam in ['acoeff', 'bcoeff']:#, 'asurf', 'bsurf']:
         if ialt > 1 and ialt < n_alts-1:
             if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
                 print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                axes[0].plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1]][2:], axis = 0), alts[1:-1], color = col, linestyle = '--')
+                axes[0].plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
             if np.abs(mco[ialt, ialt])/np.abs(np.mean([mco[ialt-1, ialt-1], mco[ialt+1, ialt+1]])) > 1.5:
                 print('Atm {}. Unstable ialt {}'.format(atm, ialt))
                 axes[1].plot(np.mean([mco[:n_alts, ialt-1][:-2], mco[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
