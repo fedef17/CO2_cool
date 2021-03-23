@@ -94,7 +94,7 @@ for cco2 in range(1, 8):
                 if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
                     print('Atm {}. Unstable ialt {}'.format(atm, ialt))
                     plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
-            plt.title('acoeff - ' + atm + cco2)
+            plt.title('acoeff - ' + atm + str(cco2))
         figs.append(fig)
 npl.plot_pdfpages(cart_out_rep + 'acoeff_atmvar.pdf', figs)
 
@@ -109,7 +109,7 @@ for cco2 in range(1, 8):
                 if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
                     print('Atm {}. Unstable ialt {}'.format(atm, ialt))
                     plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
-            plt.title('bcoeff - ' + atm + cco2)
+            plt.title('bcoeff - ' + atm + str(cco2))
         figs.append(fig)
 npl.plot_pdfpages(cart_out_rep + 'bcoeff_atmvar.pdf', figs)
 
