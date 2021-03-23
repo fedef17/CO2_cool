@@ -290,14 +290,24 @@ def linearregre_coeff(x, coeffs):
     errtrendmat = np.empty_like(coeffs[0])
     cmat = np.empty_like(coeffs[0])
     errcmat = np.empty_like(coeffs[0])
-    for i in np.arange(trendmat.shape[0]):
-        for j in np.arange(trendmat.shape[1]):
-            m, c, err_m, err_c = linear_regre_witherr(x, coeffs[:,i,j])
+
+    if trendmat.ndim == 2:
+        for i in np.arange(trendmat.shape[0]):
+            for j in np.arange(trendmat.shape[1]):
+                m, c, err_m, err_c = linear_regre_witherr(x, coeffs[:,i,j])
+                #coeffs, covmat = np.polyfit(years, var_set[i,j], deg = deg, cov = True)
+                trendmat[i,j] = m
+                errtrendmat[i,j] = err_m
+                cmat[i,j] = c
+                errcmat[i,j] = err_c
+    elif trendmat.ndim == 1:
+        for i in np.arange(trendmat.shape[0]):
+            m, c, err_m, err_c = linear_regre_witherr(x, coeffs[:,i])
             #coeffs, covmat = np.polyfit(years, var_set[i,j], deg = deg, cov = True)
-            trendmat[i,j] = m
-            errtrendmat[i,j] = err_m
-            cmat[i,j] = c
-            errcmat[i,j] = err_c
+            trendmat[i] = m
+            errtrendmat[i] = err_m
+            cmat[i] = c
+            errcmat[i] = err_c
 
     return cmat, trendmat, errcmat, errtrendmat
 
