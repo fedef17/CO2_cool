@@ -213,7 +213,8 @@ def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51):
     """
     This is the LTE cooling rate given a certain set of a and b coefficients.
     """
-    n_alts = len(temp)
+    n_alts = np.min(len(temp), acoeff.shape[1])
+
     epsilon_ab_tot = np.zeros(n_alts, dtype = float)
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
