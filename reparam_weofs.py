@@ -279,7 +279,7 @@ for atm in allatms:
         if ialt > 1 and ialt < n_alts-1:
             if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
                 print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                plt.plot(np.mean([coeff[:n_alts, ialt-1], coeff[:n_alts, ialt+1]], axis = 0), alts, color = col, linestyle = '--')
+                plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1]][2:], axis = 0), alts[1:-1], color = col, linestyle = '--')
         plt.title('acoeff - ' + atm)
     figs.append(fig)
 npl.plot_pdfpages(cartou + 'acoeff_atmvar.pdf', figs)
@@ -293,10 +293,32 @@ for atm in allatms:
         if ialt > 1 and ialt < n_alts-1:
             if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
                 print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                plt.plot(np.mean([coeff[:n_alts, ialt-1], coeff[:n_alts, ialt+1]], axis = 0), alts, color = col, linestyle = '--')
+                plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1]][2:], axis = 0), alts[1:-1], color = col, linestyle = '--')
         plt.title('bcoeff - ' + atm)
     figs.append(fig)
 npl.plot_pdfpages(cartou + 'bcoeff_atmvar.pdf', figs)
+
+
+figs = []
+for conam in ['acoeff', 'bcoeff']:#, 'asurf', 'bsurf']:
+    fig, axes = plt.subplots(figsize = (20,12), nrows=1, ncols=2, sharey=True)
+    coeff = regrcoef[(conam, 'c')]
+    mco = regrcoef[(conam, 'm')]
+    for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
+        axes[0].plot(coeff[:n_alts, ialt], alts, color = col)
+        axes[1].plot(mco[:n_alts, ialt], alts, color = col, linestyle = ':')
+        if ialt > 1 and ialt < n_alts-1:
+            if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
+                print('Atm {}. Unstable ialt {}'.format(atm, ialt))
+                axes[0].plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1]][2:], axis = 0), alts[1:-1], color = col, linestyle = '--')
+            if np.abs(mco[ialt, ialt])/np.abs(np.mean([mco[ialt-1, ialt-1], mco[ialt+1, ialt+1]])) > 1.5:
+                print('Atm {}. Unstable ialt {}'.format(atm, ialt))
+                axes[1].plot(np.mean([mco[:n_alts, ialt-1][:-2], mco[:n_alts, ialt+1]][2:], axis = 0), alts[1:-1], color = col, linestyle = '--')
+    axes[0].title('c')
+    axes[1].title('m')
+    plt.suptitle(conam)
+    figs.append(fig)
+npl.plot_pdfpages(cartou + 'regrcoeff.pdf', figs)
 
 
 ### OK! now I use the dotprods and the regrcoef to reconstruct the a and b coeffs, and compute the hr and check wrt the reference and the varfit5.
