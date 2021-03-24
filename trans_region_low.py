@@ -124,7 +124,7 @@ for cco2 in range(1,8):
             #     if ksk < 0.01:
             #         print('-----------------> ok!! this is crazyyyy')
 
-        hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2)
+        hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2) #### WHY!!!!
         hr_lte_maxalts = hr_lte_fun + hr_lte_hot
 
         for cnam in ['acoeff', 'bcoeff']:
@@ -132,7 +132,8 @@ for cco2 in range(1,8):
         for cnam in ['asurf', 'bsurf']:
             all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_hot/hr_lte_hot)
 
-        ratio = hr_nlte/hr_lte_maxalts
+        #ratio = hr_nlte/hr_lte_maxalts #### WHY!!!! sbagliatoooooo
+        ratio = hr_nlte/hr_lte
         ratio[all_alts < 15] = 1.
         ratio[:40] = 1. # Setting the ratio to 1 to all the LTE region
         for cnam in ['acoeff', 'bcoeff']:

@@ -85,6 +85,28 @@ surfanom = surftemps-np.mean(surftemps)
 # Now for the coeffs. Are the coeffs pcs linked to the temp pcs? (correlation?). If so, the method could work well!
 cco2 = 7
 
+nojumpcoeffs = dict()
+for cco2 in range(1, 8):
+    for atm in allatms:
+        coeff = all_coeffs_nlte[(atm, cco2, 'acoeff')]
+        if (atm == 'sas' and cco2 in [2,3]) or (atm == 'tro' and cco2 == 1):
+            # interp 40 and 41
+            nuco = coeff
+            if atm == 'sas':
+                #anche il 50
+                pass
+        elif atm == 'sas' and cco2 == 1:
+            pass
+            # 40 and 50
+            ialt = 1
+            nuko = np.interp1d(mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0)
+        elif atm == 'sas':
+            # 41 and 50
+            pass
+
+
+
+
 figs = []
 for cco2 in range(1, 8):
     for atm in allatms:
