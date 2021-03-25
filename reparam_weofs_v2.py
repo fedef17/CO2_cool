@@ -189,9 +189,9 @@ for cco2 in range(1,8):
         asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
         bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
-        hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)[:n_alts]
+        hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
 
-        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
+        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
 
         labels = ['ref', 'veof', 'vf5']
         hrs = [hr_ref, hr_new, hr_vf5]
