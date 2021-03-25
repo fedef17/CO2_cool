@@ -141,7 +141,7 @@ figs = []
 a0s = []
 a1s = []
 for cco2 in range(1,8):
-    for atm, dp, dp1, sa in zip(allatms, dotprods, dotprods1, surfanom):
+    for atm in allatms:
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
 
