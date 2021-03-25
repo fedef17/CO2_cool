@@ -62,7 +62,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 
 ################################################################################
-n_alts = 55
+n_alts = 51
 #for n_alts in [41, 46, 51, 56, 61, 66]:
 print(n_alts)
 alts = atm_pt[('mle', 'alts')]
@@ -125,7 +125,7 @@ for cco2 in range(1,8):
         regrcoef[(cco2, conam, 'c')] = cico
         regrcoef[(cco2, conam, 'm')] = regrco
 
-
+pickle.dump(regrcoef, open(cart_out_rep + 'regrcoef_v3.p', 'w'))
 
 # for conam in ['acoeff', 'bcoeff']:
 #     fig = plt.figure()
@@ -167,6 +167,9 @@ dotprods1 = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[1]
 cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 
+colors = npl.color_set(5)
+colors = colors[:3] + [colors[4]]
+
 figs = []
 a0s = []
 a1s = []
@@ -202,7 +205,7 @@ for cco2 in range(1,8):
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'])
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'], colors = colors)
 
         figs.append(fig)
         a0s.append(a0)
