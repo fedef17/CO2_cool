@@ -94,7 +94,7 @@ def prova(cco2, alt1, alt2, use_model = 1):
     tempsgrad = []
     for atm, col in zip(allatms, npl.color_set(6)):
         diffnlte.append(all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2])
-        hra, hrb = hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
+        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
         hras.append(hra[alt1:alt2])
         hrbs.append(hrb[alt1:alt2])
         temps.append(atm_pt[(atm, 'temp')][alt1:alt2])

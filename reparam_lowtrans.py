@@ -158,6 +158,7 @@ for cco2 in range(1,8):
         hra, hrb = npl.hr_from_ab_decomposed(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
         hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1:alt2] + nlte_corr[(cco2, 'm2')] * hrb[alt1:alt2]
         hr_new_v2[alt1:alt2] = hr_new_v2[alt1:alt2] + hr_nlte_corr
+        ax2.plot(hr_nlte_corr, np.arange(alt1, alt2), color = col, linestyle = '--')
 
         tip = 'varfit5_nlte'
         acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
@@ -169,7 +170,10 @@ for cco2 in range(1,8):
         #hr_vf5 = np.concatenate([hr_vf5, np.nan*np.ones(15)])
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
-        ax2.plot(hr_nlte_corr, np.arange(alt1, alt2), color = col, linestyle = '--')
+
+        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
+        hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1:alt2] + nlte_corr[(cco2, 'm2')] * hrb[alt1:alt2]
+        ax2.plot(hr_nlte_corr, np.arange(alt1, alt2), color = col, linestyle = ':')
         ax2.plot(hr_ref[alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2], np.arange(alt1, alt2), color = col, label = atm)
 
         labels = ['ref', 'veof', 'veof2', 'vf5']
