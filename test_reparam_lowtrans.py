@@ -98,6 +98,11 @@ for atm, col in zip(allatms, npl.color_set(6)):
     temps.append(atm_pt[(atm, 'temp')][alt1:alt2])
     tempsgrad.append(np.gradient(atm_pt[(atm, 'temp')])[alt1:alt2])
 
+hras = np.concatenate(hras)
+hrbs = np.concatenate(hrbs)
+temps = np.concatenate(temps)
+tempsgrad = np.concatenate(tempsgrad)
+diffnlte = np.concatenate(diffnlte)
 
 # Mod 1: uso solo hra e hrb
 X = np.stack([hras, hrbs])
