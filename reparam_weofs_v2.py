@@ -103,7 +103,8 @@ for cco2 in range(1,8):
             model1 = LinearRegression().fit(X, Y)
             print(model1.score(X, Y))
 
-            regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
+            #regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
+            regrcoef[(cco2, conam, 'c1')] = np.reshape(model1.intercept_, acos[0].shape)
             regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coef_[:, 0], acos[0].shape)
             regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coef_[:, 1], acos[0].shape)
 
@@ -181,7 +182,7 @@ for cco2 in range(1,8):
                 coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*sa
             else:
                 coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*dp
-                coeffs[(conam, 'v2')] = regrcoef[(cco2, conam, 'mean')] + regrcoef[(cco2, conam, 'm1')]*dp + regrcoef[(cco2, conam, 'm2')]*dp1
+                coeffs[(conam, 'v2')] = regrcoef[(cco2, conam, 'c1')] + regrcoef[(cco2, conam, 'm1')]*dp + regrcoef[(cco2, conam, 'm2')]*dp1
 
         hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
         hr_new_v2 = npl.hr_from_ab(coeffs[('acoeff', 'v2')], coeffs[('bcoeff', 'v2')], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
