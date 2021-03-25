@@ -113,21 +113,48 @@ def prova(alt1, alt2):
     # STANDARDIZZO LE FEATURES
     #scaler = StandardScaler().fit(X)
     #X = scaler.transform(X)
+
+    scores = []
     model1 = LinearRegression().fit(X, Y)
     print(model1.score(X, Y))
+    scores.append(model1.score(X, Y))
 
     # Mod 2: butto dentro anche temperature
     X = np.stack([hras, hrbs, temps]).T
     model2 = LinearRegression().fit(X, Y)
     print(model2.score(X, Y))
-
-    # Mod 4: butto dentro temps
-    X = np.stack([hras, temps]).T
-    model4 = LinearRegression().fit(X, Y)
-    print(model4.score(X, Y))
+    scores.append(model2.score(X, Y))
 
     # Mod 3: solo temp e tempgrad
     X = np.stack([hras, hrbs, temps, tempsgrad]).T
     model3 = LinearRegression().fit(X, Y)
     print(model3.score(X, Y))
+    scores.append(model3.score(X, Y))
+
+    # Mod 4: butto dentro temps
+    X = np.stack([hras, temps]).T
+    model4 = LinearRegression().fit(X, Y)
+    print(model4.score(X, Y))
+    scores.append(model4.score(X, Y))
+
+    # Mod 5: solo temp e tempgrad
+    X = np.stack([temps, tempsgrad]).T
+    model5 = LinearRegression().fit(X, Y)
+    print(model5.score(X, Y))
+    scores.append(model5.score(X, Y))
+
+    models = [model1, model2, model3, model4, model5]
     ##################################################################
+
+    return scores
+
+colors = npl.color_set(5)
+allsco = []
+for alt2 in range(41, 66):
+    allsco.append(prova(alt1, alt2))
+
+allsco = np.stack(allsco).T
+plt.figure()
+for i, (sco,col) in enumerate(zip(allsco, colors)):
+    plt.plot(sco, np.arange(41,66), color = col, label = str(i))
+plt.legend()
