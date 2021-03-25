@@ -61,7 +61,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 
 ################################################################################
-n_alts = 51
+n_alts = 55
 #for n_alts in [41, 46, 51, 56, 61, 66]:
 print(n_alts)
 alts = atm_pt[('mle', 'alts')][:n_alts]
@@ -83,68 +83,13 @@ surfanom = surftemps-np.mean(surftemps)
 # the coeffs will be written as: C = C0 + alpha*C1 + beta*C2, with C1 and C2 being the pcs of the actual temp profile with respect to the first two eofs. Calculation of C1 and C2 implies two dot products over 66 altitudes. Plus the sum to determine C. Affordable? yes!
 
 # Now for the coeffs. Are the coeffs pcs linked to the temp pcs? (correlation?). If so, the method could work well!
-cco2 = 7
 
-nojumpcoeffs = dict()
-for cco2 in range(1, 8):
-    for atm in allatms:
-        coeff = all_coeffs_nlte[(atm, cco2, 'acoeff')]
-        if (atm == 'sas' and cco2 in [2,3]) or (atm == 'tro' and cco2 == 1):
-            # interp 40 and 41
-            nuco = coeff
-            if atm == 'sas':
-                #anche il 50
-                pass
-        elif atm == 'sas' and cco2 == 1:
-            pass
-            # 40 and 50
-            ialt = 1
-            nuko = np.interp1d(mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0)
-        elif atm == 'sas':
-            # 41 and 50
-            pass
-
-
-
-
-figs = []
-for cco2 in range(1, 8):
-    for atm in allatms:
-        fig = plt.figure()
-        coeff = all_coeffs_nlte[(atm, cco2, 'acoeff')]
-        for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
-            plt.plot(coeff[:n_alts, ialt], np.arange(n_alts), color = col)
-            if ialt > 1 and ialt < n_alts-1:
-                if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
-                    print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                    plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), np.arange(n_alts)[1:-1], color = col, linestyle = '--')
-            plt.title('acoeff - ' + atm + str(cco2))
-            plt.grid()
-        figs.append(fig)
-npl.plot_pdfpages(cart_out_rep + 'acoeff_atmvar.pdf', figs)
-
-figs = []
-for cco2 in range(1, 8):
-    for atm in allatms:
-        fig = plt.figure()
-        coeff = all_coeffs_nlte[(atm, cco2, 'bcoeff')]
-        for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
-            plt.plot(coeff[:n_alts, ialt], np.arange(n_alts), color = col)
-            if ialt > 1 and ialt < n_alts-1:
-                if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
-                    print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                    plt.plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), np.arange(n_alts)[1:-1], color = col, linestyle = '--')
-            plt.title('bcoeff - ' + atm + str(cco2))
-            plt.grid()
-        figs.append(fig)
-npl.plot_pdfpages(cart_out_rep + 'bcoeff_atmvar.pdf', figs)
-
-sys.exit()
+### LTE COEFFS
 
 # SIMPLER. Linear (or nonlinear?) regression of coeff with first pc of temp profile
 regrcoef = dict()
 for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-    acos = np.stack([all_coeffs_nlte[(atm, cco2, conam)] for atm in allatms])
+    acos = np.stack([all_coeffs[(atm, cco2, conam)] for atm in allatms]) ### LTE COEFFS!
     if acos.ndim == 3:
         x0 = solver_anom.pcs(pcscaling = 1)[:, 0] # questi sono uguali ai dotprods sotto
         acos = acos[:, :n_alts, ...][..., :n_alts]
@@ -181,70 +126,70 @@ for conam in ['acoeff', 'bcoeff']:
 dotprods = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[0]) for te in temps_anom])
 
 
-figs = []
-for conam in ['acoeff', 'bcoeff']:#, 'asurf', 'bsurf']:
-    fig, axes = plt.subplots(figsize = (20,12), nrows=1, ncols=2, sharey=True)
-    coeff = regrcoef[(conam, 'c')]
-    mco = regrcoef[(conam, 'm')]
-    for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
-        axes[0].plot(coeff[:n_alts, ialt], alts, color = col)
-        axes[1].plot(mco[:n_alts, ialt], alts, color = col, linestyle = ':')
-        if ialt > 1 and ialt < n_alts-1:
-            if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
-                print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                axes[0].plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
-            if np.abs(mco[ialt, ialt])/np.abs(np.mean([mco[ialt-1, ialt-1], mco[ialt+1, ialt+1]])) > 1.5:
-                print('Atm {}. Unstable ialt {}'.format(atm, ialt))
-                axes[1].plot(np.mean([mco[:n_alts, ialt-1][:-2], mco[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
-    axes[0].set_title('c')
-    axes[1].set_title('m')
-    plt.suptitle(conam)
-    figs.append(fig)
-npl.plot_pdfpages(cartou + 'regrcoeff.pdf', figs)
+# figs = []
+# for conam in ['acoeff', 'bcoeff']:#, 'asurf', 'bsurf']:
+#     fig, axes = plt.subplots(figsize = (20,12), nrows=1, ncols=2, sharey=True)
+#     coeff = regrcoef[(conam, 'c')]
+#     mco = regrcoef[(conam, 'm')]
+#     for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
+#         axes[0].plot(coeff[:n_alts, ialt], alts, color = col)
+#         axes[1].plot(mco[:n_alts, ialt], alts, color = col, linestyle = ':')
+#         if ialt > 1 and ialt < n_alts-1:
+#             if np.abs(coeff[ialt, ialt])/np.abs(np.mean([coeff[ialt-1, ialt-1], coeff[ialt+1, ialt+1]])) > 1.5:
+#                 print('Atm {}. Unstable ialt {}'.format(atm, ialt))
+#                 axes[0].plot(np.mean([coeff[:n_alts, ialt-1][:-2], coeff[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
+#             if np.abs(mco[ialt, ialt])/np.abs(np.mean([mco[ialt-1, ialt-1], mco[ialt+1, ialt+1]])) > 1.5:
+#                 print('Atm {}. Unstable ialt {}'.format(atm, ialt))
+#                 axes[1].plot(np.mean([mco[:n_alts, ialt-1][:-2], mco[:n_alts, ialt+1][2:]], axis = 0), alts[1:-1], color = col, linestyle = '--')
+#     axes[0].set_title('c')
+#     axes[1].set_title('m')
+#     plt.suptitle(conam)
+#     figs.append(fig)
+# npl.plot_pdfpages(cartou + 'regrcoeff.pdf', figs)
 
 
 # ### OK! now I use the dotprods and the regrcoef to reconstruct the a and b coeffs, and compute the hr and check wrt the reference and the varfit5.
-# cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
-# tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
-#
-# figs = []
-# a0s = []
-# a1s = []
-# for atm, dp, sa in zip(allatms, dotprods, surfanom):
-#     temp = atm_pt[(atm, 'temp')]
-#     surf_temp = atm_pt[(atm, 'surf_temp')]
-#
-#     coeffs = dict()
-#     for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-#         if 'surf' in conam:
-#             coeffs[conam] = regrcoef[(conam, 'c')] + regrcoef[(conam, 'm')]*sa
-#         else:
-#             coeffs[conam] = regrcoef[(conam, 'c')] + regrcoef[(conam, 'm')]*dp
-#
-#     hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 51)
-#
-#     tip = 'varfit5_nlte'
-#     acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
-#     bcoeff = tot_coeff_co2[(tip, 'bcoeff', cco2)]
-#     asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
-#     bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
-#
-#     hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51)[:n_alts]
-#
-#     hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')][:n_alts]
-#
-#     labels = ['ref', 'veof', 'vf5']
-#     hrs = [hr_ref, hr_new, hr_vf5]
-#     tit = 'co2: {} - atm: {}'.format(cco2, atm)
-#     xlab = 'CR (K/day)'
-#     ylab = 'Alt (km)'
-#     #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-#     fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', ':'])
-#
-#     figs.append(fig)
-#     a0s.append(a0)
-#     a1s.append(a1)
-#
-# npl.adjust_ax_scale(a0s)
-# npl.adjust_ax_scale(a1s)
-# npl.plot_pdfpages(cart_out_rep + 'check_reparam_low.pdf', figs)
+cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2.p', 'rb'))
+
+figs = []
+a0s = []
+a1s = []
+for atm, dp, sa in zip(allatms, dotprods, surfanom):
+    temp = atm_pt[(atm, 'temp')]
+    surf_temp = atm_pt[(atm, 'surf_temp')]
+
+    coeffs = dict()
+    for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+        if 'surf' in conam:
+            coeffs[conam] = regrcoef[(conam, 'c')] + regrcoef[(conam, 'm')]*sa
+        else:
+            coeffs[conam] = regrcoef[(conam, 'c')] + regrcoef[(conam, 'm')]*dp
+
+    hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
+
+    tip = 'varfit5'
+    acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
+    bcoeff = tot_coeff_co2[(tip, 'bcoeff', cco2)]
+    asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
+    bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
+
+    hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)[:n_alts]
+
+    hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
+
+    labels = ['ref', 'veof', 'vf5']
+    hrs = [hr_ref, hr_new, hr_vf5]
+    tit = 'co2: {} - atm: {}'.format(cco2, atm)
+    xlab = 'CR (K/day)'
+    ylab = 'Alt (km)'
+    #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
+    fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', ':'])
+
+    figs.append(fig)
+    a0s.append(a0)
+    a1s.append(a1)
+
+npl.adjust_ax_scale(a0s)
+npl.adjust_ax_scale(a1s)
+npl.plot_pdfpages(cart_out_rep + 'check_reparam_LTE.pdf', figs)

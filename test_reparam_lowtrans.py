@@ -86,7 +86,7 @@ cco2 = 7
 alt1 = 40
 alt2 = 51
 
-def prova(alt1, alt2):
+def prova(cco2, alt1, alt2, use_model = 1):
     diffnlte = []
     hras = []
     hrbs = []
