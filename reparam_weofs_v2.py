@@ -88,38 +88,39 @@ surfanom = surftemps-np.mean(surftemps)
 
 # SIMPLER. Linear (or nonlinear?) regression of coeff with first pc of temp profile
 regrcoef = dict()
-for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-    acos = np.stack([all_coeffs[(atm, cco2, conam)] for atm in allatms]) ### LTE COEFFS!
-    if acos.ndim == 3:
-        x0 = solver_anom.pcs(pcscaling = 1)[:, 0] # questi sono uguali ai dotprods sotto
-        acos = acos[:, :n_alts, ...][..., :n_alts]
+for cco2 in range(1,8):
+    for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+        acos = np.stack([all_coeffs[(atm, cco2, conam)] for atm in allatms]) ### LTE COEFFS!
+        if acos.ndim == 3:
+            x0 = solver_anom.pcs(pcscaling = 1)[:, 0] # questi sono uguali ai dotprods sotto
+            acos = acos[:, :n_alts, ...][..., :n_alts]
 
-        corrco = np.empty_like(acos[0])
-        for i in range(acos[0].shape[0]):
-            for j in range(acos[0].shape[1]):
-                corrco[i,j] = np.corrcoef(x0, acos[:, i, j])[1,0]
-    else:
-        x0 = surfanom # per i cosi surface uso la anomaly di surface temperature
-        acos = acos[:, :n_alts]
+            corrco = np.empty_like(acos[0])
+            for i in range(acos[0].shape[0]):
+                for j in range(acos[0].shape[1]):
+                    corrco[i,j] = np.corrcoef(x0, acos[:, i, j])[1,0]
+        else:
+            x0 = surfanom # per i cosi surface uso la anomaly di surface temperature
+            acos = acos[:, :n_alts]
 
-        corrco = np.empty_like(acos[0])
-        for i in range(acos[0].shape[0]):
-            corrco[i] = np.corrcoef(x0, acos[:, i])[1,0]
+            corrco = np.empty_like(acos[0])
+            for i in range(acos[0].shape[0]):
+                corrco[i] = np.corrcoef(x0, acos[:, i])[1,0]
 
-    cico, regrco, _, _ = npl.linearregre_coeff(x0, acos)
+        cico, regrco, _, _ = npl.linearregre_coeff(x0, acos)
 
-    regrcoef[(conam, 'R')] = corrco
-    regrcoef[(conam, 'c')] = cico
-    regrcoef[(conam, 'm')] = regrco
+        regrcoef[(cco2, conam, 'R')] = corrco
+        regrcoef[(cco2, conam, 'c')] = cico
+        regrcoef[(cco2, conam, 'm')] = regrco
 
 
-for conam in ['acoeff', 'bcoeff']:
-    fig = plt.figure()
-    for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
-        plt.plot(np.abs(regrcoef[(conam, 'R')][:, ialt]), alts, color = col)
-    #plt.xlim(-0.02, 0.02)
-    plt.title(conam + ' - rcorr')
-    fig.savefig(cartou + '{}_rcorr.pdf'.format(conam))
+# for conam in ['acoeff', 'bcoeff']:
+#     fig = plt.figure()
+#     for ialt, col in zip(range(n_alts), npl.color_set(n_alts)):
+#         plt.plot(np.abs(regrcoef[(cco2, conam, 'R')][:, ialt]), alts, color = col)
+#     #plt.xlim(-0.02, 0.02)
+#     plt.title(conam + ' - rcorr')
+#     fig.savefig(cartou + '{}_rcorr.pdf'.format(conam))
 
 
 # the scalar products between the temp anomalies and the first eof of the temperature profile
@@ -155,41 +156,42 @@ tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2.p', 'rb'))
 figs = []
 a0s = []
 a1s = []
-for atm, dp, sa in zip(allatms, dotprods, surfanom):
-    temp = atm_pt[(atm, 'temp')]
-    surf_temp = atm_pt[(atm, 'surf_temp')]
+for cco2 in range(1,8):
+    for atm, dp, sa in zip(allatms, dotprods, surfanom):
+        temp = atm_pt[(atm, 'temp')]
+        surf_temp = atm_pt[(atm, 'surf_temp')]
 
-    coeffs = dict()
-    for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-        if 'surf' in conam:
-            coeffs[conam] = regrcoef[(conam, 'c')] + regrcoef[(conam, 'm')]*sa
-        else:
-            coeffs[conam] = regrcoef[(conam, 'c')] + regrcoef[(conam, 'm')]*dp
+        coeffs = dict()
+        for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+            if 'surf' in conam:
+                coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*sa
+            else:
+                coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*dp
 
-    hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
+        hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
 
-    tip = 'varfit5'
-    acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
-    bcoeff = tot_coeff_co2[(tip, 'bcoeff', cco2)]
-    asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
-    bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
+        tip = 'varfit5'
+        acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
+        bcoeff = tot_coeff_co2[(tip, 'bcoeff', cco2)]
+        asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
+        bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
-    hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)[:n_alts]
+        hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)[:n_alts]
 
-    hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
+        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
 
-    labels = ['ref', 'veof', 'vf5']
-    hrs = [hr_ref, hr_new, hr_vf5]
-    tit = 'co2: {} - atm: {}'.format(cco2, atm)
-    xlab = 'CR (K/day)'
-    ylab = 'Alt (km)'
-    #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-    fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', ':'])
+        labels = ['ref', 'veof', 'vf5']
+        hrs = [hr_ref, hr_new, hr_vf5]
+        tit = 'co2: {} - atm: {}'.format(cco2, atm)
+        xlab = 'CR (K/day)'
+        ylab = 'Alt (km)'
+        #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', ':'])
 
-    figs.append(fig)
-    a0s.append(a0)
-    a1s.append(a1)
+        figs.append(fig)
+        a0s.append(a0)
+        a1s.append(a1)
 
-npl.adjust_ax_scale(a0s)
-npl.adjust_ax_scale(a1s)
-npl.plot_pdfpages(cart_out_rep + 'check_reparam_LTE.pdf', figs)
+    npl.adjust_ax_scale(a0s)
+    npl.adjust_ax_scale(a1s)
+    npl.plot_pdfpages(cart_out_rep + 'check_reparam_LTE.pdf', figs)
