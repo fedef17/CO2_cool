@@ -170,7 +170,7 @@ for cco2 in range(1,8):
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
         ax2.plot(hr_nlte_corr, np.arange(alt1, alt2), color = col, linestyle = '--')
-        ax2.plot(hr_ref-all_coeffs_nlte[(atm, cco2, 'hr_lte')], np.arange(alt1, alt2), color = col, label = atm)
+        ax2.plot(hr_ref[alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2], np.arange(alt1, alt2), color = col, label = atm)
 
         labels = ['ref', 'veof', 'veof2', 'vf5']
         hrs = [hr_ref, hr_new, hr_new_v2, hr_vf5]
