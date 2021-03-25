@@ -62,7 +62,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 
 ################################################################################
-n_alts = 51
+n_alts = 53
 #for n_alts in [41, 46, 51, 56, 61, 66]:
 print(n_alts)
 alts = atm_pt[('mle', 'alts')]
@@ -125,7 +125,12 @@ for cco2 in range(1,8):
         regrcoef[(cco2, conam, 'c')] = cico
         regrcoef[(cco2, conam, 'm')] = regrco
 
-pickle.dump(regrcoef, open(cart_out_rep + 'regrcoef_v3.p', 'w'))
+regrcoef['surfmean'] = np.mean(surftemps)
+regrcoef['amean'] = atm_anom_mean
+regrcoef['eof0'] = solver_anom.eofs(eofscaling=1)[0]
+regrcoef['eof1'] = solver_anom.eofs(eofscaling=1)[1]
+
+pickle.dump(regrcoef, open(cart_out_rep + 'regrcoef_v3.p', 'wb'))
 
 # for conam in ['acoeff', 'bcoeff']:
 #     fig = plt.figure()
@@ -195,7 +200,8 @@ for cco2 in range(1,8):
         asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
         bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
-        hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+        hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51)
+        hr_vf5 = np.concatenate([hr_vf5, np.nan*np.ones(15)])
 
         hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
 
@@ -205,7 +211,7 @@ for cco2 in range(1,8):
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'], colors = colors)
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2, 2), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'], colors = colors)
 
         figs.append(fig)
         a0s.append(a0)

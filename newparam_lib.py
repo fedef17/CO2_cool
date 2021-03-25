@@ -52,6 +52,9 @@ all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 n_alts = 40
 
+regrcoefpath = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_reparam/regrcoef_v3.p'
+regrcoef = pickle.load(open(regrcoefpath, 'rb'))
+
 from scipy.optimize import Bounds, minimize, least_squares
 
 #############################################################
@@ -663,6 +666,33 @@ def absurf_from_xi_varfit(xis, cco2, all_coeffs = all_coeffs, allatms = allatms)
             bsurftot[ialt] += xi*bsurf[ialt]
 
     return asurftot, bsurftot
+
+
+def coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrcoef):
+    """
+    Reconstructs the a and b coeffs for the required atmosphere.
+    """
+
+    surfanom = surf_temp - regrcoef['surfmean']
+    atm_anom_mean = regrcoef['amean']
+    eof0 = regrcoef['eof0']
+    eof1 = regrcoef['eof1']
+    n_alts = len(eof0)
+
+    pc0 = np.dot(temp[:n_alts]-atm_anom_mean, eof0)
+    pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
+
+    coeffs = dict()
+    for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+        if 'surf' in conam:
+            coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*surfanom
+        else:
+            if method == '2eof':
+                coeffs[conam] = regrcoef[(cco2, conam, 'c1')] + regrcoef[(cco2, conam, 'm1')]*pc0 + regrcoef[(cco2, conam, 'm2')]*pc1
+            elif method == '1eof':
+                coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*pc0
+
+    return coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf']
 
 
 def linear_regre_witherr(x, y):
