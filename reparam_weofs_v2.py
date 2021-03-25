@@ -99,13 +99,13 @@ for cco2 in range(1,8):
 
             Y = acos - np.mean(acos, axis = 0)
             Y = Y.reshape(6, acos.shape[1]*acos.shape[2])
-            X = np.stack([x0, x1])
+            X = np.stack([x0, x1]).T
             model1 = LinearRegression().fit(X, Y)
             print(model1.score(X, Y))
 
             regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
-            regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coeff_[0], acos[0].shape)
-            regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coeff_[1], acos[0].shape)
+            regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coeff_[:, 0], acos[0].shape)
+            regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coeff_[:, 1], acos[0].shape)
 
             corrco = np.empty_like(acos[0])
             for i in range(acos[0].shape[0]):
