@@ -151,7 +151,7 @@ dotprods = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[0])
 
 # ### OK! now I use the dotprods and the regrcoef to reconstruct the a and b coeffs, and compute the hr and check wrt the reference and the varfit5.
 cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2.p', 'rb'))
+tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 
 figs = []
 a0s = []
