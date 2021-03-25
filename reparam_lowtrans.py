@@ -138,10 +138,12 @@ colors = npl.color_set(5)
 colors = colors[:3] + [colors[4]]
 
 figs = []
+figs2 = []
 a0s = []
 a1s = []
 for cco2 in range(1,8):
-    for atm in allatms:
+    fig2, ax2 = plt.subplots()
+    for atm, col in zip(allatms, npl.color_set(6)):
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
 
@@ -167,6 +169,8 @@ for cco2 in range(1,8):
         #hr_vf5 = np.concatenate([hr_vf5, np.nan*np.ones(15)])
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
+        ax2.plot(hr_nlte_corr, np.arange(alt1, alt2), color = col, linestyle = '--')
+        ax2.plot(hr_ref-all_coeffs_nlte[(atm, cco2, 'hr_lte')], np.arange(alt1, alt2), color = col, label = atm)
 
         labels = ['ref', 'veof', 'veof2', 'vf5']
         hrs = [hr_ref, hr_new, hr_new_v2, hr_vf5]
@@ -180,6 +184,11 @@ for cco2 in range(1,8):
         a0s.append(a0)
         a1s.append(a1)
 
+    ax2.set_title(str(cco2))
+    figs2.append(fig2)
+
     npl.adjust_ax_scale(a0s)
     npl.adjust_ax_scale(a1s)
-    npl.plot_pdfpages(cart_out_rep + 'check_reparam_NLTE_low.pdf', figs)
+
+npl.plot_pdfpages(cart_out_rep + 'check_reparam_NLTE_low.pdf', figs)
+npl.plot_pdfpages(cart_out_rep + 'check_reparam_NLTEcorrection.pdf', figs2)
