@@ -97,15 +97,15 @@ for cco2 in range(1,8):
             x1 = solver_anom.pcs(pcscaling = 1)[:, 1] # questi sono uguali ai dotprods sotto
             #acos = acos[:, :n_alts, ...][..., :n_alts]
 
-            # Y = acos - np.mean(acos, axis = 0)
-            # Y = Y.reshape(6, acos.shape[1]*acos.shape[2])
-            # X = np.stack([x0, x1])
-            # model1 = LinearRegression().fit(X, Y)
-            # print(model1.score(X, Y))
-            #
-            # regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
-            # regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coeff_[0], acos[0].shape)
-            # regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coeff_[1], acos[0].shape)
+            Y = acos - np.mean(acos, axis = 0)
+            Y = Y.reshape(6, acos.shape[1]*acos.shape[2])
+            X = np.stack([x0, x1])
+            model1 = LinearRegression().fit(X, Y)
+            print(model1.score(X, Y))
+
+            regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
+            regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coeff_[0], acos[0].shape)
+            regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coeff_[1], acos[0].shape)
 
             corrco = np.empty_like(acos[0])
             for i in range(acos[0].shape[0]):
@@ -138,6 +138,7 @@ for cco2 in range(1,8):
 
 # the scalar products between the temp anomalies and the first eof of the temperature profile
 dotprods = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[0]) for te in temps_anom])
+dotprods1 = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[1]) for te in temps_anom])
 
 
 # figs = []
@@ -170,7 +171,7 @@ figs = []
 a0s = []
 a1s = []
 for cco2 in range(1,8):
-    for atm, dp, sa in zip(allatms, dotprods, surfanom):
+    for atm, dp, dp1, sa in zip(allatms, dotprods, dotprods1, surfanom):
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
 
@@ -180,8 +181,10 @@ for cco2 in range(1,8):
                 coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*sa
             else:
                 coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*dp
+                coeffs[(conam, 'v2')] = regrcoef[(cco2, conam, 'mean')] + regrcoef[(cco2, conam, 'm1')]*dp + regrcoef[(cco2, conam, 'm2')]*dp1
 
         hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
+        hr_new_v2 = npl.hr_from_ab(coeffs[('acoeff', 'v2')], coeffs[('bcoeff', 'v2')], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
 
         tip = 'varfit5'
         acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
@@ -193,13 +196,13 @@ for cco2 in range(1,8):
 
         hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
 
-        labels = ['ref', 'veof', 'vf5']
-        hrs = [hr_ref, hr_new, hr_vf5]
+        labels = ['ref', 'veof', 'veof2', 'vf5']
+        hrs = [hr_ref, hr_new, hr_new_v2, hr_vf5]
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', ':'])
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-3, 3), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'])
 
         figs.append(fig)
         a0s.append(a0)
