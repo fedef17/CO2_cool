@@ -84,48 +84,50 @@ cco2 = 7
 # plt.legend()
 
 alt1 = 40
-alt2 = 66
-diffnlte = []
-hras = []
-hrbs = []
-temps = []
-tempsgrad = []
-for atm, col in zip(allatms, npl.color_set(6)):
-    diffnlte.append(all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2])
-    hra, hrb = hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
-    hras.append(hra[alt1:alt2])
-    hrbs.append(hrb[alt1:alt2])
-    temps.append(atm_pt[(atm, 'temp')][alt1:alt2])
-    tempsgrad.append(np.gradient(atm_pt[(atm, 'temp')])[alt1:alt2])
+alt2 = 51
 
-hras = np.concatenate(hras)
-hrbs = np.concatenate(hrbs)
-temps = np.concatenate(temps)
-tempsgrad = np.concatenate(tempsgrad)
-diffnlte = np.concatenate(diffnlte)
+def prova(alt1, alt2):
+    diffnlte = []
+    hras = []
+    hrbs = []
+    temps = []
+    tempsgrad = []
+    for atm, col in zip(allatms, npl.color_set(6)):
+        diffnlte.append(all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2])
+        hra, hrb = hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
+        hras.append(hra[alt1:alt2])
+        hrbs.append(hrb[alt1:alt2])
+        temps.append(atm_pt[(atm, 'temp')][alt1:alt2])
+        tempsgrad.append(np.gradient(atm_pt[(atm, 'temp')])[alt1:alt2])
 
-# Mod 1: uso solo hra e hrb
-X = np.stack([hras, hrbs]).T
-Y = np.stack(diffnlte)
+    hras = np.concatenate(hras)
+    hrbs = np.concatenate(hrbs)
+    temps = np.concatenate(temps)
+    tempsgrad = np.concatenate(tempsgrad)
+    diffnlte = np.concatenate(diffnlte)
 
-# STANDARDIZZO LE FEATURES
-#scaler = StandardScaler().fit(X)
-#X = scaler.transform(X)
-model1 = LinearRegression().fit(X, Y)
-print(model1.score(X, Y))
+    # Mod 1: uso solo hra e hrb
+    X = np.stack([hras, hrbs]).T
+    Y = np.stack(diffnlte)
 
-# Mod 2: butto dentro anche temperature
-X = np.stack([hras, hrbs, temps]).T
-model2 = LinearRegression().fit(X, Y)
-print(model2.score(X, Y))
+    # STANDARDIZZO LE FEATURES
+    #scaler = StandardScaler().fit(X)
+    #X = scaler.transform(X)
+    model1 = LinearRegression().fit(X, Y)
+    print(model1.score(X, Y))
 
-# Mod 4: butto dentro temps
-X = np.stack([hras, temps]).T
-model4 = LinearRegression().fit(X, Y)
-print(model4.score(X, Y))
+    # Mod 2: butto dentro anche temperature
+    X = np.stack([hras, hrbs, temps]).T
+    model2 = LinearRegression().fit(X, Y)
+    print(model2.score(X, Y))
 
-# Mod 3: solo temp e tempgrad
-X = np.stack([hras, hrbs, temps, tempsgrad]).T
-model3 = LinearRegression().fit(X, Y)
-print(model3.score(X, Y))
-##################################################################
+    # Mod 4: butto dentro temps
+    X = np.stack([hras, temps]).T
+    model4 = LinearRegression().fit(X, Y)
+    print(model4.score(X, Y))
+
+    # Mod 3: solo temp e tempgrad
+    X = np.stack([hras, hrbs, temps, tempsgrad]).T
+    model3 = LinearRegression().fit(X, Y)
+    print(model3.score(X, Y))
+    ##################################################################
