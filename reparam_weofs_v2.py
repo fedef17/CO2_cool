@@ -104,8 +104,8 @@ for cco2 in range(1,8):
             print(model1.score(X, Y))
 
             regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
-            regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coeff_[:, 0], acos[0].shape)
-            regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coeff_[:, 1], acos[0].shape)
+            regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coef_[:, 0], acos[0].shape)
+            regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coef_[:, 1], acos[0].shape)
 
             corrco = np.empty_like(acos[0])
             for i in range(acos[0].shape[0]):
