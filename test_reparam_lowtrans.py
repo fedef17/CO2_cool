@@ -84,7 +84,7 @@ cco2 = 7
 # plt.legend()
 
 alt1 = 40
-alt2 = 55
+alt2 = 66
 diffnlte = []
 hras = []
 hrbs = []
@@ -105,7 +105,7 @@ tempsgrad = np.concatenate(tempsgrad)
 diffnlte = np.concatenate(diffnlte)
 
 # Mod 1: uso solo hra e hrb
-X = np.stack([hras, hrbs])
+X = np.stack([hras, hrbs]).T
 Y = np.stack(diffnlte)
 
 # STANDARDIZZO LE FEATURES
@@ -115,13 +115,17 @@ model1 = LinearRegression().fit(X, Y)
 print(model1.score(X, Y))
 
 # Mod 2: butto dentro anche temperature
-X = np.stack([hras, hrbs, temps])
+X = np.stack([hras, hrbs, temps]).T
 model2 = LinearRegression().fit(X, Y)
 print(model2.score(X, Y))
 
+# Mod 4: butto dentro temps
+X = np.stack([hras, temps]).T
+model4 = LinearRegression().fit(X, Y)
+print(model4.score(X, Y))
 
 # Mod 3: solo temp e tempgrad
-X = np.stack([temps, tempsgrad])
+X = np.stack([hras, hrbs, temps, tempsgrad]).T
 model3 = LinearRegression().fit(X, Y)
 print(model3.score(X, Y))
 ##################################################################
