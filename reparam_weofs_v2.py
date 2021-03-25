@@ -97,8 +97,7 @@ for cco2 in range(1,8):
             x1 = solver_anom.pcs(pcscaling = 1)[:, 1] # questi sono uguali ai dotprods sotto
             #acos = acos[:, :n_alts, ...][..., :n_alts]
 
-            Y = acos - np.mean(acos, axis = 0)
-            Y = Y.reshape(6, acos.shape[1]*acos.shape[2])
+            Y = acos.reshape(6, acos.shape[1]*acos.shape[2])
             X = np.stack([x0, x1]).T
             model1 = LinearRegression().fit(X, Y)
             print(model1.score(X, Y))
