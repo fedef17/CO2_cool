@@ -201,7 +201,7 @@ for cco2 in range(1,8):
         bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
         hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51)
-        hr_vf5 = np.concatenate([hr_vf5, np.nan*np.ones(15)])
+        #hr_vf5 = np.concatenate([hr_vf5, np.nan*np.ones(15)])
 
         hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
 
