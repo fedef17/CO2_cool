@@ -31,6 +31,7 @@ cart_out_rep = cart_base + 'NLTE_reparam/'
 
 import newparam_lib as npl
 from eofs.standard import Eof
+from sklearn.linear_model import LinearRegression
 
 plt.rcParams['axes.axisbelow'] = True
 
