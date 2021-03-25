@@ -1348,6 +1348,16 @@ def plot_pdfpages(filename, figs, save_single_figs = False, fig_names = None):
     return
 
 
+def plot_coeff(coeff, n_alts = 51, ax = None):
+    if ax is None:
+        fig, ax = plt.subplots(figsize = (16,12))
+
+    for ialt, col in zip(range(n_alts), color_set(n_alts)):
+        ax.plot(coeff[:n_alts, ialt], np.arange(n_alts), color = col)
+
+    return
+
+
 def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None, linestyles = None, xlim = (None, None), ylim = (None, None), orizlines = [70., 85.]):
     """
     Plots plt.plot(x, y, lab) for each x in xs. Plots the differences of all xs wrt xs[0] in a side plot.
