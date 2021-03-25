@@ -29,6 +29,7 @@ else:
 
 import newparam_lib as npl
 from eofs.standard import Eof
+from sklearn.linear_model import LinearRegression
 
 plt.rcParams['axes.axisbelow'] = True
 
@@ -61,7 +62,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 
 ################################################################################
-n_alts = 66
+n_alts = 55
 #for n_alts in [41, 46, 51, 56, 61, 66]:
 print(n_alts)
 alts = atm_pt[('mle', 'alts')][:n_alts]
@@ -93,7 +94,18 @@ for cco2 in range(1,8):
         acos = np.stack([all_coeffs[(atm, cco2, conam)] for atm in allatms]) ### LTE COEFFS!
         if acos.ndim == 3:
             x0 = solver_anom.pcs(pcscaling = 1)[:, 0] # questi sono uguali ai dotprods sotto
-            acos = acos[:, :n_alts, ...][..., :n_alts]
+            x1 = solver_anom.pcs(pcscaling = 1)[:, 1] # questi sono uguali ai dotprods sotto
+            #acos = acos[:, :n_alts, ...][..., :n_alts]
+
+            # Y = acos - np.mean(acos, axis = 0)
+            # Y = Y.reshape(6, acos.shape[1]*acos.shape[2])
+            # X = np.stack([x0, x1])
+            # model1 = LinearRegression().fit(X, Y)
+            # print(model1.score(X, Y))
+            #
+            # regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
+            # regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coeff_[0], acos[0].shape)
+            # regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coeff_[1], acos[0].shape)
 
             corrco = np.empty_like(acos[0])
             for i in range(acos[0].shape[0]):
@@ -101,7 +113,7 @@ for cco2 in range(1,8):
                     corrco[i,j] = np.corrcoef(x0, acos[:, i, j])[1,0]
         else:
             x0 = surfanom # per i cosi surface uso la anomaly di surface temperature
-            acos = acos[:, :n_alts]
+            #acos = acos[:, :n_alts]
 
             corrco = np.empty_like(acos[0])
             for i in range(acos[0].shape[0]):
@@ -112,6 +124,7 @@ for cco2 in range(1,8):
         regrcoef[(cco2, conam, 'R')] = corrco
         regrcoef[(cco2, conam, 'c')] = cico
         regrcoef[(cco2, conam, 'm')] = regrco
+
 
 
 # for conam in ['acoeff', 'bcoeff']:
