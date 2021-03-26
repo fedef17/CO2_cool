@@ -254,6 +254,28 @@ def hr_from_ab_decomposed(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alt
     return epsilon_ab_tot_a, epsilon_ab_tot_b
 
 
+def hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51):
+    """
+    This is the LTE cooling rate given a certain set of a and b coefficients, separating the contribution from a and b coeffs.
+    """
+    n_alts = np.min([len(temp), acoeff.shape[1]])
+
+    epsilon_ab_tot_diag = np.zeros(n_alts, dtype = float)
+    epsilon_ab_tot_nondiag = np.zeros(n_alts, dtype = float)
+
+    phi_fun = np.exp(-E_fun/(kbc*temp))
+    phi_fun_g = np.exp(-E_fun/(kbc*surf_temp))
+
+    # THIS IS THE FINAL FORMULA FOR RECONSTRUCTING EPSILON FROM a AND b
+    for xi in range(n_alts):
+        epsilon_ab_tot_diag[xi] = acoeff[xi, xi] * phi_fun[xi] + bcoeff[xi, xi]* phi_fun[xi]**2
+
+        epsilon_ab_tot_nondiag[xi] = np.sum((acoeff[:max_alts, xi] + bcoeff[:max_alts, xi]* phi_fun[xi]) * phi_fun[:max_alts]) - epsilon_ab_tot_diag[xi]
+        epsilon_ab_tot_nondiag[xi] += (asurf[xi] + bsurf[xi]* phi_fun[xi]) * phi_fun_g
+
+    return epsilon_ab_tot_diag, epsilon_ab_tot_nondiag
+
+
 def running_mean(var, wnd, remove_nans = False, keep_length = False):
     """
     Performs a running mean (if multidim, the mean is done on the first axis).

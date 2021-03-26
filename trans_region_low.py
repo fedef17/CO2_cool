@@ -132,8 +132,8 @@ for cco2 in range(1,8):
         for cnam in ['asurf', 'bsurf']:
             all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_hot/hr_lte_hot)
 
-        #ratio = hr_nlte/hr_lte_maxalts #### WHY!!!! sbagliatoooooo
-        ratio = hr_nlte/hr_lte
+        #ratio = hr_nlte/hr_lte
+        ratio = hr_nlte/hr_lte_maxalts #### WHY? This is done to be consistent with the use of maxalt = 51. The a and b coeffs are radically changed above i = 40, but hrs calculated this way have less values close to zero, so give less problems for the ratios.
         ratio[all_alts < 15] = 1.
         ratio[:40] = 1. # Setting the ratio to 1 to all the LTE region
         for cnam in ['acoeff', 'bcoeff']:
