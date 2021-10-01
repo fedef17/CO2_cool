@@ -267,7 +267,6 @@ fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, t
 
 fig.savefig(cart_out_4 + 'test_calchr_{}_{}.pdf'.format(atm, cco2))
 
-sys.exit()
 #################################################################
 
 #ok.
