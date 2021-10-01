@@ -152,12 +152,19 @@ alphas_all = np.stack([alpha_fit_nl0[cco2] for cco2 in range(1,8)])
 coeffs_fin['alpha'] = alphas_all
 intfutu = []
 for go in range(alphas_all.shape[-1]):
-    int_fun = npl.interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2-1:n_top])
+    int_fun = npl.interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2:n_top+1])
     intfutu.append(int_fun)
 interp_coeffs[('alpha', 'int_fun')] = intfutu
 #interp_coeffs[('alpha', 'signc')] = signc
 
+coeffs_fin['alpha_min'] = np.stack([alpha_fit_nl0[('min', i)] for i in range(1,8)])
+interp_coeffs[('alpha_min', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_min'], co2profs[:, alt2:n_top+1])
+
+coeffs_fin['alpha_max'] = np.stack([alpha_fit_nl0[('max', i)] for i in range(1,8)])
+interp_coeffs[('alpha_max', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_max'], co2profs[:, alt2:n_top+1])
+
 Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
+Lesc_all[np.isnan(Lesc_all)] = 0.
 coeffs_fin['Lesc'] = Lesc_all
 int_fun = npl.interp_coeff_linco2(Lesc_all, co2profs)
 interp_coeffs[('Lesc', 'int_fun')] = int_fun
@@ -170,7 +177,7 @@ pickle.dump(coeffs_fin, open(cart_out_4 + 'coeffs_finale.p', 'wb'))
 
 ####################################################################################
 # Check per un atm
-atm = 'mle'
+atm = 'mls'
 cco2 = 6
 
 pres = atm_pt[(atm, 'pres')]
@@ -220,14 +227,17 @@ intfutu = interp_coeffs[('alpha', 'int_fun')]
 #sc = interp_coeffs[('alpha', 'signc')]
 allco = []
 for intfu in intfutu:
-    allco.append(npl.coeff_from_interp_lin(intfu, co2vmr))
+    allco.append(npl.coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
 calc_coeffs['alpha_fit'] = np.stack(allco).T
+
+calc_coeffs['alpha_min'] = npl.coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
+calc_coeffs['alpha_max'] = npl.coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
 
 if np.max(np.abs((calc_coeffs['alpha_fit'] - coeffs_fin['alpha'][cco2-1, ...])/calc_coeffs['alpha_fit'])) > 1.e-10:
     print('AAAAAAAAAAAAAAAAAAAAAAARGH', 'alpha')
     print(calc_coeffs['alpha_fit'], coeffs_fin['alpha'][cco2-1, ...])
 
-alpha = npl.alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'])
+alpha = npl.alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_min = calc_coeffs['alpha_min'], alpha_max = calc_coeffs['alpha_max'])
 
 hr_calc_fin = npl.recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
 
@@ -255,9 +265,9 @@ hrs = [hr_ref, hr_lte, hr_calc, hr_calc_fin]#, hr_fomi]
 colors = np.array(npl.color_set(4))
 fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '--', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_top]])
 
-fig.savefig(cart_out_4 + 'test_calchr_mle_6.pdf')
+fig.savefig(cart_out_4 + 'test_calchr_{}_{}.pdf'.format(atm, cco2))
 
-
+sys.exit()
 #################################################################
 
 #ok.

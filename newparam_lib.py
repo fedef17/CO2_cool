@@ -150,9 +150,12 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     alphas_all = coeffs['alpha']
     intfutu = []
     for go in range(alphas_all.shape[-1]):
-        int_fun = interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2-1:n_top])
+        int_fun = interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2:n_top+1])
         intfutu.append(int_fun)
     interp_coeffs[('alpha', 'int_fun')] = intfutu
+
+    interp_coeffs[('alpha_min', 'int_fun')] = npl.interp_coeff_linco2(coeffs['alpha_min'], co2profs[:, alt2:n_top+1])
+    interp_coeffs[('alpha_max', 'int_fun')] = npl.interp_coeff_linco2(coeffs['alpha_max'], co2profs[:, alt2:n_top+1])
 
     Lesc_all = coeffs['Lesc']
     int_fun = interp_coeff_linco2(Lesc_all, co2profs)
@@ -195,12 +198,15 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     intfutu = interp_coeffs[('alpha', 'int_fun')]
     allco = []
     for intfu in intfutu:
-        allco.append(coeff_from_interp_lin(intfu, co2vmr))
+        allco.append(coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
     calc_coeffs['alpha_fit'] = np.stack(allco).T
+
+    calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
+    calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
 
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
     MM = calc_MM(ovmr, o2vmr, n2vmr)
-    alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'])
+    alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'])
 
     L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
 
@@ -854,7 +860,7 @@ def nltecorr_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef
     return hr_nlte_corr
 
 
-def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, method = 'nl0', alt2 = 51, n_top = 65):
+def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, alpha_min = None, alpha_max = None, method = 'nl0', alt2 = 51, n_top = 65):
     """
     Reconstructs alpha. Method: 4e, nl0
     """
@@ -877,10 +883,12 @@ def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, me
 
     #print('setting constraint on alpha! check this part')
     # alpha_min e max are profiles, setting stupid numbers for now
-    lower = alpha < alpha_cose['min']
-    alpha[lower] = alpha_cose['min'][lower]
-    higher = alpha > alpha_cose['max']
-    alpha[higher] = alpha_cose['max'][higher]
+    # if alpha_min is None: alpha_min = alpha_cose['min']
+    # if alpha_max is None: alpha_max = alpha_cose['max']
+    lower = alpha < alpha_min
+    alpha[lower] = alpha_min[lower]
+    higher = alpha > alpha_max
+    alpha[higher] = alpha_max[higher]
 
     return alpha
 
