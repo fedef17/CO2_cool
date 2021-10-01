@@ -103,7 +103,7 @@ for cco2 in allco2:
 pickle.dump(tot_coeff_co2, open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'wb'))
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
-# poi fai un check please con npl.coeff_from_interp()
+# poi fai un check please con npl.coeff_from_interp_log()
 figs = []
 figs2 = []
 a0s = []

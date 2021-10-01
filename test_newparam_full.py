@@ -134,7 +134,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha']:
     int_fun = interp_coeffs[(nam, 'int_fun')]
     sc = interp_coeffs[(nam, 'signc')]
 
-    coeff = npl.coeff_from_interp(int_fun, sc, co2vmr)
+    coeff = npl.coeff_from_interp_log(int_fun, sc, co2vmr)
     calc_coeffs[nam] = coeff
 
     if np.max(np.abs((coeff - coeffs_NLTE[nam][cco2-1, ...])/coeff)) > 1.e-10:
@@ -192,7 +192,7 @@ for cco2 in range(1, 8):
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
-        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
+        hr_calc = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
 
         alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)
         oldco = spline(alt_fomi, hr_fomi)
@@ -237,7 +237,7 @@ for atm in allatms:
     mults = np.arange(0.25, 8.1, 0.25)
     for co2mult in mults:
         co2vmr = co2mult*atm_pt[(atm, 2, 'co2')]
-        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
+        hr_calc = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
         new_cr.append(hr_calc)
 
         alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)

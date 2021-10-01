@@ -54,6 +54,10 @@ n_alts = 40
 regrcoefpath = cart_out + '../NLTE_reparam/regrcoef_v3.p'
 regrcoef = pickle.load(open(regrcoefpath, 'rb'))
 
+alpha_cose = pickle.load(open(cart_out + '../NLTE_reparam/alpha_fit_4e.p', 'rb'))
+alpha_cose['min'] = np.min(np.stack([alpha_cose[('min', i)] for i in range(1,8)]), axis = 0)
+alpha_cose['max'] = np.max(np.stack([alpha_cose[('max', i)] for i in range(1,8)]), axis = 0)
+
 nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb'))
 
 from scipy.optimize import Bounds, minimize, least_squares
@@ -61,7 +65,7 @@ from scipy.optimize import Bounds, minimize, least_squares
 #############################################################
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p'):
+def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p'):
     """
     New param valid for the full atmosphere.
     """
@@ -87,7 +91,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         int_fun = interp_coeffs[(nam, 'int_fun')]
         sc = interp_coeffs[(nam, 'signc')]
 
-        coeff = coeff_from_interp(int_fun, sc, co2vmr)
+        coeff = coeff_from_interp_log(int_fun, sc, co2vmr)
         calc_coeffs[nam] = coeff
 
     hr_calc = hr_from_ab(calc_coeffs['acoeff'], calc_coeffs['bcoeff'], calc_coeffs['asurf'], calc_coeffs['bsurf'], temp, surf_temp)
@@ -104,6 +108,106 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     return hr_calc
 
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p'):
+    """
+    New param with new strategy (1/10/21).
+    """
+
+    alt1 = 40
+    alt2 = 51
+    n_top = 65
+
+    if coeffs is None:
+        coeffs = pickle.load(open(coeff_file, 'rb'))
+
+    ########################################################
+    #### PREPARING INTERPOLATION FUNCTIONS (should be done only once in a climate run)
+    co2profs = coeffs['co2profs']
+
+    interp_coeffs = dict() ## l'interpolazione
+    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+        kosi = ['c1', 'm1', 'm2']
+        if 'surf' in nam:
+            kosi = ['c', 'm']
+
+        for regco in kosi:
+            ko = coeffs[(nam, regco)]
+            if regco in ['c', 'c1']:
+                int_fun, signc = interp_coeff_logco2(ko, co2profs)
+                interp_coeffs[(nam, regco, 'int_fun')] = int_fun
+                interp_coeffs[(nam, regco, 'signc')] = signc
+            else:
+                int_fun = interp_coeff_linco2(ko, co2profs)
+                interp_coeffs[(nam, regco, 'int_fun')] = int_fun
+
+    #### NLTE correction (low trans)
+    nam = 'nltecorr'
+    for regco in ['c', 'm1', 'm2', 'm3', 'm4']:
+        ko = coeffs[(nam, regco)]
+        int_fun = interp_coeff_linco2(ko, co2profs[:, alt1:alt2])
+        interp_coeffs[(nam, regco, 'int_fun')] = int_fun
+
+    alphas_all = coeffs['alpha']
+    intfutu = []
+    for go in range(alphas_all.shape[-1]):
+        int_fun = interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2-1:n_top])
+        intfutu.append(int_fun)
+    interp_coeffs[('alpha', 'int_fun')] = intfutu
+
+    Lesc_all = coeffs['Lesc']
+    int_fun = interp_coeff_linco2(Lesc_all, co2profs)
+    interp_coeffs[('Lesc', 'int_fun')] = int_fun
+
+    ###### END PREPARING
+    ##########################################################
+
+    ########## INTERPOLATING TO ACTUAL CO2
+    calc_coeffs = dict()
+    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
+        for regco in ['c', 'm', 'c1', 'm1', 'm2', 'm3', 'm4']:
+            if (nam, regco, 'int_fun') not in interp_coeffs:
+                continue
+            int_fun = interp_coeffs[(nam, regco, 'int_fun')]
+
+            if regco in ['c', 'c1'] and nam != 'nltecorr':
+                sc = interp_coeffs[(nam, regco, 'signc')]
+                coeff = coeff_from_interp_log(int_fun, sc, co2vmr)
+            else:
+                coeff = coeff_from_interp_lin(int_fun, co2vmr)
+
+            calc_coeffs[(nam, regco)] = coeff
+
+    ###### END INTERP
+
+    #### CALCULATION
+
+    #lte
+    acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
+    hr_lte = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+
+    #### nltecorr
+    hr_nlte_corr = nltecorr_from_eofreg_single(temp, surf_temp, calc_coeffs, alt1 = alt1, alt2 = alt2)
+
+    hr_calc = hr_lte.copy()
+    hr_calc[alt1:alt2] += hr_nlte_corr
+
+    #### upper atm
+    intfutu = interp_coeffs[('alpha', 'int_fun')]
+    allco = []
+    for intfu in intfutu:
+        allco.append(coeff_from_interp_lin(intfu, co2vmr))
+    calc_coeffs['alpha_fit'] = np.stack(allco).T
+
+    lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
+    MM = calc_MM(ovmr, o2vmr, n2vmr)
+    alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'])
+
+    L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+
+    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+
+    return hr_calc_fin
+
 
 def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
     """
@@ -117,7 +221,7 @@ def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
         int_fun = interp_coeffs[(tip, nam, 'int_fun')]
         sc = interp_coeffs[(tip, nam, 'signc')]
 
-        coeffs.append(coeff_from_interp(int_fun, sc, co2pr))
+        coeffs.append(coeff_from_interp_log(int_fun, sc, co2pr))
 
     acoeff, bcoeff, asurf, bsurf = coeffs
 
@@ -741,16 +845,16 @@ def nltecorr_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef
     pc0 = np.dot(temp[:n_alts]-atm_anom_mean, eof0)
     pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
 
-    acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
+    acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, singlecoef)
 
-    hra, hrb = npl.hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
 
     hr_nlte_corr = singlecoef[('nltecorr', 'c')] + singlecoef[('nltecorr', 'm1')] * hra[alt1:alt2] + singlecoef[('nltecorr', 'm2')] * hrb[alt1:alt2] + singlecoef[('nltecorr', 'm3')] * pc0 + singlecoef[('nltecorr', 'm4')] * pc1
 
     return hr_nlte_corr
 
 
-def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, method = 'nl0', alt2 = 51, n_top = 65, alpha_min = 1., alpha_max = 10.):
+def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, method = 'nl0', alt2 = 51, n_top = 65):
     """
     Reconstructs alpha. Method: 4e, nl0
     """
@@ -760,8 +864,8 @@ def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, method = 'nl0', alt2 = 51, 
     lambdivA = lamb[alt2:n_top+1]/1.5988
     popup = lambdivA*phifunz
 
-    popup_mean = alpha_fit['popup_mean']
-    eofs_all = [alpha_fit['eof{}'.format(i) for i in range(4)]
+    popup_mean = alpha_cose['popup_mean']
+    eofs_all = [alpha_cose['eof{}'.format(i)] for i in range(4)]
 
     dotprods = np.array([np.dot(popup-popup_mean, eoff) for eoff in eofs_all])
     dotprods2 = np.array([dotprods[0], dotprods[0]**2] + [dotprods[1], dotprods[1]**2])
@@ -771,10 +875,12 @@ def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, method = 'nl0', alt2 = 51, 
     elif method == 'nl0':
         alpha = alpha_fit[:, 0] + np.sum(alpha_fit[:, 1:] * dotprods2[np.newaxis, :], axis = 1)
 
-    print('setting constraint on alpha! check this part')
+    #print('setting constraint on alpha! check this part')
     # alpha_min e max are profiles, setting stupid numbers for now
-    alpha[alpha < alpha_min] = alpha_min#[alpha < alpha_min]
-    alpha[alpha > alpha_max] = alpha_max#[alpha > alpha_max]
+    lower = alpha < alpha_cose['min']
+    alpha[lower] = alpha_cose['min'][lower]
+    higher = alpha > alpha_cose['max']
+    alpha[higher] = alpha_cose['max'][higher]
 
     return alpha
 
@@ -912,7 +1018,34 @@ def interp_coeff_logco2(coeffs, co2_profs):
     return int_fun, sign_coeff
 
 
-def coeff_from_interp(int_fun, sign_coeff, co2_prof):
+def interp_coeff_linco2(coeffs, co2_profs):
+    """
+    Interpolates linearly the coeff against cco2.
+    """
+
+    ndim = coeffs[0].ndim
+    int_fun = np.empty(coeffs[0].shape, dtype = object)
+
+    n_alts = coeffs[0].shape[0]
+
+    for ialt in range(n_alts):
+        co2p = np.array([co[ialt] for co in co2_profs])
+        if ndim == 2:
+            for j in range(n_alts):
+                cval = np.array([co[j, ialt] for co in coeffs])
+
+                int_fun[j, ialt] = interpolate.interp1d(co2p, cval, fill_value = "extrapolate")
+        elif ndim == 1:
+            cval = np.array([co[ialt] for co in coeffs])
+
+            int_fun[ialt] = interpolate.interp1d(co2p, cval, fill_value = "extrapolate")
+        else:
+            raise ValueError('Not implemented for ndim = {}'.format(ndim))
+
+    return int_fun
+
+
+def coeff_from_interp_log(int_fun, sign_coeff, co2_prof):
     """
     Reconstructs the acoeff.
     """
@@ -933,7 +1066,7 @@ def coeff_from_interp(int_fun, sign_coeff, co2_prof):
     return coeff
 
 
-def coeff_from_interp_v2(regr_cp, co2_prof):
+def coeff_from_interp_lin(int_fun, co2_prof):
     """
     Reconstructs the acoeff.
     """
@@ -945,11 +1078,11 @@ def coeff_from_interp_v2(regr_cp, co2_prof):
 
     for ialt in range(n_alts):
         if ndim == 1:
-            interplog = int_fun[ialt](co2_prof[ialt])
+            interpcos = int_fun[ialt](co2_prof[ialt])
         else:
-            interplog = np.array([intfu(co2_prof[ialt]) for intfu in int_fun[..., ialt]])
+            interpcos = np.array([intfu(co2_prof[ialt]) for intfu in int_fun[..., ialt]])
 
-        coeff[..., ialt] = sign_coeff[..., ialt] * co2_prof[ialt] * np.exp(interplog)
+        coeff[..., ialt] = interpcos
 
     return coeff
 
@@ -1316,7 +1449,7 @@ def hr_reparam_full(pres, temp, surf_temp, co2vmr, ovmr, o2vmr, n2vmr, regrcoef 
 
     #L_esc = AAAAAAAAAAAAAAAA
 
-    hr_full = npl.recformula(alpha5, L_esc, lamb, hr_new, co2vmr, MM, temp, n_alts_trlo = alt2_nlte, n_alts_trhi = n_top)
+    hr_full = recformula(alpha5, L_esc, lamb, hr_new, co2vmr, MM, temp, n_alts_trlo = alt2_nlte, n_alts_trhi = n_top)
 
     # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     # manca L_esc, da mettere dipendente da cco2
@@ -1510,7 +1643,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     With full vectors.
     """
     n_alts = len(hr)
-    hr_new = 1.*hr
+    hr_new = hr.copy()
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
 
@@ -1531,7 +1664,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
         Fj = (1 - lamb[j]*(1-Djj))
         Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
 
-        print(j, Djj, Djjm1, Fj, Fjm1)
+        #print(j, Djj, Djjm1, Fj, Fjm1)
         eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
     fac = (2.63187e11 * co2vmr * (1-lamb))/MM

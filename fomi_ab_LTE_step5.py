@@ -112,7 +112,7 @@ for tip in ['unifit', 'varfit']:
         int_fun = interp_coeffs[(tip, nam, 'int_fun')]
         sc = interp_coeffs[(tip, nam, 'signc')]
 
-        coeff = npl.coeff_from_interp(int_fun, sc, co2pr)
+        coeff = npl.coeff_from_interp_log(int_fun, sc, co2pr)
 
         # i coeff specifici per ogni cco2:
         coeff_cco2 = tot_coeff_co2[(tip, nam, cco2)]
@@ -133,7 +133,7 @@ for tip in ['unifit', 'varfit']:
 
     # plt.ioff()
 
-    # poi fai un check please con npl.coeff_from_interp()
+    # poi fai un check please con npl.coeff_from_interp_log()
     figs = []
     a0s = []
     a1s = []
@@ -147,7 +147,7 @@ for tip in ['unifit', 'varfit']:
             int_fun = interp_coeffs[(tip, nam, 'int_fun')]
             sc = interp_coeffs[(tip, nam, 'signc')]
 
-            coeffs.append(npl.coeff_from_interp(int_fun, sc, co2pr))
+            coeffs.append(npl.coeff_from_interp_log(int_fun, sc, co2pr))
 
         acoeff, bcoeff, asurf, bsurf = coeffs
 
@@ -206,7 +206,7 @@ for tip in ['unifit', 'varfit']:
                 int_fun = interp_coeffs[(tip, nam, 'int_fun')]
                 sc = interp_coeffs[(tip, nam, 'signc')]
 
-                coeffs.append(npl.coeff_from_interp(int_fun, sc, co2pr))
+                coeffs.append(npl.coeff_from_interp_log(int_fun, sc, co2pr))
 
             acoeff, bcoeff, asurf, bsurf = coeffs
 
@@ -243,7 +243,7 @@ for tip in ['unifit', 'varfit']:
     npl.adjust_ax_scale(axes)
     npl.plot_pdfpages(cart_out + 'check_newparam_LTE_moreco2_{}.pdf'.format(tip), figs)
 
-# poi fai un check please con npl.coeff_from_interp()
+# poi fai un check please con npl.coeff_from_interp_log()
 figs = []
 figs2 = []
 a0s = []
