@@ -43,3 +43,29 @@ Per la param della upper transition region e della cool-to-space region:
 -----
 Full atmosphere check:
 8 - test_newparam_full.py
+
+
+#################################################
+----- Flow con nuova strategia.
+
+LTE + low trans:
+
+1 - reparam_weofs_v2.py -> produces the new set of coeffs for LTE (regression with 1st and 2nd eofs):
+    -> regrcoef_v3.p : new set of LTE coefficients
+    -> check_reparam_LTE.pdf : ci dev'essere un errore nel plot (spero)
+
+2 - reparam_lowtrans_v3.py -> implementation of the LTE and NLTE low trans correction:
+    -> nlte_corr_low.p : coeffs for nlte correction
+    -> check_reparam_nLTE_low.pdf : check HR LTE + low trans
+    -> check_reparam_NLTEcorrection.pdf : check of the NLTE low trans correction
+
+high trans:
+
+3 - reparam_high_v8fin.py -> implements the fit of the alpha correction for the recurrence formula:
+    -> alpha_fit_high.p : regression coefficients for the pop_4e strategy (pop_nl0 not saved yet)
+    -> check_alpha_popup_relerr_v8.pdf : check of the alpha fit with the different strategies
+    -> check_reparam_high_v8.pdf : check HR high trans
+
+full atm:
+
+4 - test_reparam_full.py

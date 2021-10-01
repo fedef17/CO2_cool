@@ -211,7 +211,7 @@ for cco2 in range(1,8):
         xlab = 'CR (K/day)'
         ylab = 'index'
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(np.arange(66), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2, 2), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'], colors = colors)
+        fig, a0, a1 = npl.manuel_plot(np.arange(51), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2, 2), xlim = (-40, 10), ylim = (0, 51), linestyles = ['-', '--', '--', ':'], colors = colors, orizlines = [40., 51.])
 
         figs.append(fig)
         a0s.append(a0)

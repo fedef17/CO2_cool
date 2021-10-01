@@ -17,12 +17,11 @@ from scipy.interpolate import PchipInterpolator as spline
 from subprocess import call
 
 import pickle
-import pandas as pd
 
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+if os.uname()[1] == 'xaru':
+    sys.path.insert(0, '/home/fedef/Research/git/SpectRobot/')
+    sys.path.insert(0, '/home/fedef/Research/git/pythall/')
+    cart_out = '/home/fedef/Research/lavori/CO2_cooling/new_param/LTE/'
 elif os.uname()[1] == 'hobbes':
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
@@ -52,15 +51,17 @@ all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
 atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
 n_alts = 40
 
-regrcoefpath = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_reparam/regrcoef_v3.p'
+regrcoefpath = cart_out + '../NLTE_reparam/regrcoef_v3.p'
 regrcoef = pickle.load(open(regrcoefpath, 'rb'))
+
+nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb'))
 
 from scipy.optimize import Bounds, minimize, least_squares
 
 #############################################################
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = '/home/fabiano/Research/lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale.p'):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p'):
     """
     New param valid for the full atmosphere.
     """
@@ -282,31 +283,16 @@ def running_mean(var, wnd, remove_nans = False, keep_length = False):
 
     < wnd > : is the window length.
     """
-    if var.ndim == 1:
-        tempser = pd.Series(var)
-        rollpi_temp = tempser.rolling(wnd, center = True).mean()
-        if remove_nans:
-            rollpi_temp = np.array(rollpi_temp)
-            okvals = ~np.isnan(rollpi_temp)
-            coso = rollpi_temp[okvals]
-            if keep_length:
-                for ii in range(wnd):
-                    if np.isnan(rollpi_temp[ii]):
-                        rollpi_temp[ii] = coso[0]
-                    if np.isnan(rollpi_temp[-ii]):
-                        rollpi_temp[-ii] = coso[-1]
-            else:
-                rollpi_temp = coso
-    else:
-        rollpi_temp = []
-        for i in range(len(var)):
-            if i-wnd//2 < 0 or i + wnd//2 > len(var)-1:
-                if remove_nans: continue
-                rollpi_temp.append(np.nan*np.ones(var[0].shape))
-            else:
-                rollpi_temp.append(np.mean(var[i-wnd//2:i+wnd//2+1, ...], axis = 0))
 
-        rollpi_temp = np.stack(rollpi_temp)
+    rollpi_temp = []
+    for i in range(len(var)):
+        if i-wnd//2 < 0 or i + wnd//2 > len(var)-1:
+            if remove_nans: continue
+            rollpi_temp.append(np.nan*np.ones(var[0].shape))
+        else:
+            rollpi_temp.append(np.mean(var[i-wnd//2:i+wnd//2+1, ...], axis = 0))
+
+    rollpi_temp = np.stack(rollpi_temp)
 
     return rollpi_temp
 
@@ -717,6 +703,82 @@ def coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrco
     return coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf']
 
 
+def coeffs_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef):
+    """
+    Reconstructs the a and b coeffs for the required atmosphere.
+    """
+
+    surfanom = surf_temp - regrcoef['surfmean']
+    atm_anom_mean = regrcoef['amean']
+    eof0 = regrcoef['eof0']
+    eof1 = regrcoef['eof1']
+    n_alts = len(eof0)
+
+    pc0 = np.dot(temp[:n_alts]-atm_anom_mean, eof0)
+    pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
+
+    coeffs = dict()
+    for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+        if 'surf' in conam:
+            coeffs[conam] = singlecoef[(conam, 'c')] + singlecoef[(conam, 'm')]*surfanom
+        else:
+            coeffs[conam] = singlecoef[(conam, 'c1')] + singlecoef[(conam, 'm1')]*pc0 + singlecoef[(conam, 'm2')]*pc1
+
+    return coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf']
+
+
+def nltecorr_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef, alt1 = 40, alt2 = 51):
+    """
+    Reconstructs the a and b coeffs for the required atmosphere.
+    """
+
+    surfanom = surf_temp - regrcoef['surfmean']
+    atm_anom_mean = regrcoef['amean']
+    eof0 = regrcoef['eof0']
+    eof1 = regrcoef['eof1']
+    n_alts = len(eof0)
+
+    pc0 = np.dot(temp[:n_alts]-atm_anom_mean, eof0)
+    pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
+
+    acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
+
+    hra, hrb = npl.hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+
+    hr_nlte_corr = singlecoef[('nltecorr', 'c')] + singlecoef[('nltecorr', 'm1')] * hra[alt1:alt2] + singlecoef[('nltecorr', 'm2')] * hrb[alt1:alt2] + singlecoef[('nltecorr', 'm3')] * pc0 + singlecoef[('nltecorr', 'm4')] * pc1
+
+    return hr_nlte_corr
+
+
+def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, method = 'nl0', alt2 = 51, n_top = 65, alpha_min = 1., alpha_max = 10.):
+    """
+    Reconstructs alpha. Method: 4e, nl0
+    """
+
+    # population upper state
+    phifunz = np.exp(-E_fun/(kbc*temp[alt2:n_top+1]))
+    lambdivA = lamb[alt2:n_top+1]/1.5988
+    popup = lambdivA*phifunz
+
+    popup_mean = alpha_fit['popup_mean']
+    eofs_all = [alpha_fit['eof{}'.format(i) for i in range(4)]
+
+    dotprods = np.array([np.dot(popup-popup_mean, eoff) for eoff in eofs_all])
+    dotprods2 = np.array([dotprods[0], dotprods[0]**2] + [dotprods[1], dotprods[1]**2])
+
+    if method == '4e':
+        alpha = alpha_fit[:, 0] + np.sum(alpha_fit[:, 1:] * dotprods[np.newaxis, :], axis = 1)
+    elif method == 'nl0':
+        alpha = alpha_fit[:, 0] + np.sum(alpha_fit[:, 1:] * dotprods2[np.newaxis, :], axis = 1)
+
+    print('setting constraint on alpha! check this part')
+    # alpha_min e max are profiles, setting stupid numbers for now
+    alpha[alpha < alpha_min] = alpha_min#[alpha < alpha_min]
+    alpha[alpha > alpha_max] = alpha_max#[alpha > alpha_max]
+
+    return alpha
+
+
 def linear_regre_witherr(x, y):
     """
     Makes a linear regression of dataset y in function of x using numpy.polyfit. Returns the coefficient m and c: y = mx + c. And their estimated error.
@@ -851,6 +913,27 @@ def interp_coeff_logco2(coeffs, co2_profs):
 
 
 def coeff_from_interp(int_fun, sign_coeff, co2_prof):
+    """
+    Reconstructs the acoeff.
+    """
+
+    coeff = np.zeros(int_fun.shape)
+
+    n_alts = int_fun.shape[0]
+    ndim = int_fun.ndim
+
+    for ialt in range(n_alts):
+        if ndim == 1:
+            interplog = int_fun[ialt](co2_prof[ialt])
+        else:
+            interplog = np.array([intfu(co2_prof[ialt]) for intfu in int_fun[..., ialt]])
+
+        coeff[..., ialt] = sign_coeff[..., ialt] * co2_prof[ialt] * np.exp(interplog)
+
+    return coeff
+
+
+def coeff_from_interp_v2(regr_cp, co2_prof):
     """
     Reconstructs the acoeff.
     """
@@ -1160,6 +1243,88 @@ def jacdelta_xi_all_x0s_fast(xis, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt
 
     return J
 
+#########################   REPARAM LOW  ##################################
+
+def hr_reparam_low(cco2, temp, surf_temp, regrcoef = regrcoef, nlte_corr = nlte_corr, all_coeffs = all_coeffs, alt1_nlte = 40, alt2_nlte = 51):
+    """
+    Calculates cooling rate in LTE + low NLTE region.
+    """
+
+    surfanom = surf_temp - regrcoef['surfmean']
+    atm_anom_mean = regrcoef['amean']
+    eof0 = regrcoef['eof0']
+    eof1 = regrcoef['eof1']
+    n_alts = len(eof0)
+
+    pc0 = np.dot(temp[:n_alts]-atm_anom_mean, eof0)
+    pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
+
+    acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrcoef)
+    hr_new = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+
+    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+    hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm2')] * hrb[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm3')] * pc0 + nlte_corr[(cco2, 'm4')] * pc1
+
+    hr_new[alt1_nlte:alt2_nlte] = hr_new[alt1_nlte:alt2_nlte] + hr_nlte_corr
+    hr_new[alt2_nlte:] = np.nan
+
+    return hr_new
+
+
+def hr_reparam_full(pres, temp, surf_temp, co2vmr, ovmr, o2vmr, n2vmr, regrcoef = regrcoef, nlte_corr = nlte_corr, alpha_fit = None, all_coeffs = all_coeffs, alt1_nlte = 40, alt2_nlte = 51):
+    """
+    Calculates cooling rate in LTE + low NLTE region.
+    """
+
+    surfanom = surf_temp - regrcoef['surfmean']
+    atm_anom_mean = regrcoef['amean']
+    eof0 = regrcoef['eof0']
+    eof1 = regrcoef['eof1']
+    n_alts = len(eof0)
+
+    pc0 = np.dot(temp[:n_alts]-atm_anom_mean, eof0)
+    pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
+
+    acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrcoef)
+    hr_new = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+
+    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+    hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm2')] * hrb[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm3')] * pc0 + nlte_corr[(cco2, 'm4')] * pc1
+
+    hr_new[alt1_nlte:alt2_nlte] = hr_new[alt1_nlte:alt2_nlte] + hr_nlte_corr
+    hr_new[alt2_nlte:] = np.nan
+
+    ### E ora la parte high
+    lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
+    MM = calc_MM(ovmr, o2vmr, n2vmr)
+
+    hra = hra[alt2_nlte:n_top+1]
+    hrb = hrb[alt2_nlte:n_top+1]
+    # population upper state
+    phifunz = np.exp(-E_fun/(kbc*temp[alt2_nlte:n_top+1]))
+    lambdivA = lamb[alt2_nlte:n_top+1]/1.5988
+    popup = lambdivA*phifunz
+
+    atm_anom_mean = alpha_fit['amean']
+    eof0 = alpha_fit['eof0']
+    eof1 = alpha_fit['eof1']
+    pc0 = np.dot(temp[alt2_nlte:n_top+1]-atm_anom_mean, eof0)
+    pc1 = np.dot(temp[alt2_nlte:n_top+1]-atm_anom_mean, eof1)
+
+    mod = 5
+    alpha5 = alpha_fit[(cco2, 'c', mod)] + alpha_fit[(cco2, 'm1', mod)] * pc0 + alpha_fit[(cco2, 'm2', mod)] * pc1 + alpha_fit[(cco2, 'm3', mod)] * popup + alpha_fit[(cco2, 'm4', mod)] * hra + alpha_fit[(cco2, 'm5', mod)] * hrb
+
+    #L_esc = AAAAAAAAAAAAAAAA
+
+    hr_full = npl.recformula(alpha5, L_esc, lamb, hr_new, co2vmr, MM, temp, n_alts_trlo = alt2_nlte, n_alts_trhi = n_top)
+
+    # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    # manca L_esc, da mettere dipendente da cco2
+    # e poi in realta cco2 qui non ci deve stare, deve dipendere solo da co2vmr
+
+    return hr_new
+
+
 
 ###########################################################
 # Upper trans region
@@ -1365,6 +1530,8 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
         Fj = (1 - lamb[j]*(1-Djj))
         Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
+
+        print(j, Djj, Djjm1, Fj, Fjm1)
         eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
     fac = (2.63187e11 * co2vmr * (1-lamb))/MM
