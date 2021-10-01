@@ -272,6 +272,9 @@ fig.savefig(cart_out_4 + 'test_calchr_{}_{}.pdf'.format(atm, cco2))
 #ok.
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
+interp_coeffs_old = npl.precalc_interp_old()
+interp_coeffs = npl.precalc_interp()
+
 # Check per ogni atm
 figs = []
 a0s = []
@@ -290,8 +293,8 @@ for cco2 in range(1, 8):
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
-        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_fin)
-        hr_calc_old = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)
+        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs)#, coeffs = coeffs_fin)
+        hr_calc_old = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old)
 
         alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)
         oldco = spline(alt_fomi, hr_fomi)

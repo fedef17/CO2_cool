@@ -65,7 +65,7 @@ from scipy.optimize import Bounds, minimize, least_squares
 #############################################################
 
 
-def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p'):
+def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', interp_coeffs = None):
     """
     New param valid for the full atmosphere.
     """
@@ -79,11 +79,8 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
         coeffs = pickle.load(open(coeff_file, 'rb'))
 
     ### Interpolation of the coefficients to the actual CO2 profile
-    interp_coeffs = dict()
-    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha', 'Lesc']:
-        int_fun, signc = interp_coeff_logco2(coeffs[nam], coeffs['co2profs'])
-        interp_coeffs[(nam, 'int_fun')] = int_fun
-        interp_coeffs[(nam, 'signc')] = signc
+    if interp_coeffs is None:
+        interp_coeffs = precalc_interp_old(coeffs = coeffs, coeff_file = coeff_file)
 
     print('Coeffs from interpolation!')
     calc_coeffs = dict()
@@ -108,11 +105,23 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
 
     return hr_calc
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p'):
-    """
-    New param with new strategy (1/10/21).
-    """
+def precalc_interp_old(coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p'):
 
+    if coeffs is None:
+        coeffs = pickle.load(open(coeff_file, 'rb'))
+
+    interp_coeffs = dict()
+    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha', 'Lesc']:
+        int_fun, signc = interp_coeff_logco2(coeffs[nam], coeffs['co2profs'])
+        interp_coeffs[(nam, 'int_fun')] = int_fun
+        interp_coeffs[(nam, 'signc')] = signc
+
+    return interp_coeffs
+
+def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p'):
+    """
+    Calculates the interpolating functions. (this makes new_param_full much faster)
+    """
     alt1 = 40
     alt2 = 51
     n_top = 65
@@ -122,6 +131,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     ########################################################
     #### PREPARING INTERPOLATION FUNCTIONS (should be done only once in a climate run)
+
     co2profs = coeffs['co2profs']
 
     interp_coeffs = dict() ## l'interpolazione
@@ -154,8 +164,8 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         intfutu.append(int_fun)
     interp_coeffs[('alpha', 'int_fun')] = intfutu
 
-    interp_coeffs[('alpha_min', 'int_fun')] = npl.interp_coeff_linco2(coeffs['alpha_min'], co2profs[:, alt2:n_top+1])
-    interp_coeffs[('alpha_max', 'int_fun')] = npl.interp_coeff_linco2(coeffs['alpha_max'], co2profs[:, alt2:n_top+1])
+    interp_coeffs[('alpha_min', 'int_fun')] = interp_coeff_linco2(coeffs['alpha_min'], co2profs[:, alt2:n_top+1])
+    interp_coeffs[('alpha_max', 'int_fun')] = interp_coeff_linco2(coeffs['alpha_max'], co2profs[:, alt2:n_top+1])
 
     Lesc_all = coeffs['Lesc']
     int_fun = interp_coeff_linco2(Lesc_all, co2profs)
@@ -164,7 +174,24 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     ###### END PREPARING
     ##########################################################
 
-    ########## INTERPOLATING TO ACTUAL CO2
+    return interp_coeffs
+
+
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None):
+    """
+    New param with new strategy (1/10/21).
+    """
+
+    alt1 = 40
+    alt2 = 51
+    n_top = 65
+
+    if interp_coeffs is None:
+        print('Precalculate interp function for faster calculations')
+        interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file)
+
+    ############################################
+    ##### INTERPOLATING TO ACTUAL CO2
     calc_coeffs = dict()
     for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
         for regco in ['c', 'm', 'c1', 'm1', 'm2', 'm3', 'm4']:
@@ -180,8 +207,22 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
             calc_coeffs[(nam, regco)] = coeff
 
-    ###### END INTERP
+    # upper atm
+    intfutu = interp_coeffs[('alpha', 'int_fun')]
+    allco = []
+    for intfu in intfutu:
+        allco.append(coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
+    calc_coeffs['alpha_fit'] = np.stack(allco).T
 
+    calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
+    calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
+
+    L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+
+    ###############################################
+    #### END INTERP
+
+    ###############################################
     #### CALCULATION
 
     #lte
@@ -195,22 +236,16 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     hr_calc[alt1:alt2] += hr_nlte_corr
 
     #### upper atm
-    intfutu = interp_coeffs[('alpha', 'int_fun')]
-    allco = []
-    for intfu in intfutu:
-        allco.append(coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
-    calc_coeffs['alpha_fit'] = np.stack(allco).T
-
-    calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
-    calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
-
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
     MM = calc_MM(ovmr, o2vmr, n2vmr)
     alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'])
 
-    L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
-
     hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+
+    ##### HERE the cool-to-space part
+    # now for the cs region:
+    # Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
+    # eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 
     return hr_calc_fin
 
