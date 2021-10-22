@@ -311,8 +311,8 @@ for cco2 in range(1, 8):
         ylab = 'Alt (km)'
         # labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
         # hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
-        labels = ['nlte_ref', 'np_nointerp', 'new param', 'param vf5', 'fomi']
-        hrs = [hr_ref, hr_calc_ni, hr_calc, hr_calc_old, hr_fomi]
+        labels = ['nlte_ref', 'new param', 'param vf5', 'fomi']
+        hrs = [hr_ref, hr_calc, hr_calc_old, hr_fomi]
 
         #colors = np.array(npl.color_set(3))
         colors = ['violet', 'forestgreen', 'indianred', 'steelblue']
