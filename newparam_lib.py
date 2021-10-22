@@ -13,6 +13,7 @@ from scipy import io
 import scipy.constants as const
 from scipy import interpolate
 from scipy.interpolate import PchipInterpolator as spline
+from scipy.interpolate import interp1d
 
 from subprocess import call
 
@@ -34,6 +35,8 @@ import spect_classes as spcl
 
 kbc = const.k/(const.h*100*const.c) # 0.69503
 kboltz = 1.38064853e-23 # J/K
+kb = 1.38065e-19 # boltzmann constant to use with P in hPa, n in cm-3, T in K (10^-4 * Kb standard)
+
 E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 
 cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
@@ -171,16 +174,20 @@ def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coe
     int_fun = interp_coeff_linco2(Lesc_all, co2profs)
     interp_coeffs[('Lesc', 'int_fun')] = int_fun
 
+    interp_coeffs['uco2'] = coeffs['uco2']
+
     ###### END PREPARING
     ##########################################################
 
     return interp_coeffs
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alts, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
     """
     New param with new strategy (1/10/21).
     """
+
+    ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
 
     alt1 = 40
     alt2 = 51
@@ -217,7 +224,19 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
     calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
 
-    L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+    L_all = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+    uco2 = interp_coeffs['uco2']
+
+    Lspl_all = spline(uco2, L_all, extrapolate = False)
+    uok2 = calc_co2column(alts, pres, temp, co2vmr)
+    L_esc = Lspl_all(uok2)
+    L_esc[np.isnan(L_esc)] = 0.
+
+    # print('! TO be changed, L_esc to be calc from L function and integrated CO2 prof above')
+    # L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+    if debug_Lesc is not None:
+        print('Getting L_esc externally for DEBUG!!!')
+        L_esc = debug_Lesc
 
     ###############################################
     #### END INTERP
@@ -247,7 +266,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     # Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
     # eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 
-    return hr_calc_fin
+    DEBUG = [alpha, MM, lamb, L_esc, hr_calc, hr_lte]
+
+    return hr_calc_fin, DEBUG
 
 
 def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
@@ -1674,6 +1695,42 @@ def calc_lamb(pres, temp, ovmr, o2vmr, n2vmr):
 
     return lamb
 
+
+def calc_co2column(alts, pres, temp, co2vmr):
+    """
+    Calculates CO2 column above a certain point. (to be used for L_escape)
+    """
+
+    n_dens = num_density(pres, temp)
+    n_co2 = n_dens * co2vmr
+
+    #uok = []
+    uok2 = []
+
+    nco2spl = interp1d(alts, np.log(n_co2), fill_value = 'extrapolate')
+    morealts = np.linspace(alts[0], 200., 1000)
+    morenco2 = np.exp(nco2spl(morealts))
+    for ial in range(len(alts)):
+        #uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
+        alok = morealts >= alts[ial]
+        uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
+
+    #utop = uok[-2] # Setting upper column equal to last step
+    print('utop = {:7.2e}'.format(uok2[-1]))
+
+    #uok = np.array(uok)
+    uok2 = np.array(uok2)
+
+    return uok2
+
+
+def num_density(P, T, vmr = 1.0):
+    """
+    Calculates num density. P in hPa, T in K, vmr in absolute fraction (not ppm!!)
+    """
+    n = P*vmr/(T*kb) # num. density in cm-3
+
+    return n
 
 def calc_MM(ovmr, o2vmr, n2vmr):
     MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass

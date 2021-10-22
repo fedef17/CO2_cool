@@ -163,10 +163,15 @@ interp_coeffs[('alpha_min', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['al
 coeffs_fin['alpha_max'] = np.stack([alpha_fit_nl0[('max', i)] for i in range(1,8)])
 interp_coeffs[('alpha_max', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_max'], co2profs[:, alt2:n_top+1])
 
-Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
-Lesc_all[np.isnan(Lesc_all)] = 0.
-coeffs_fin['Lesc'] = Lesc_all
-int_fun = npl.interp_coeff_linco2(Lesc_all, co2profs)
+L_all = np.stack([np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0) for cco2 in range(1,8)])
+uco2 = all_coeffs_nlte[('mle', 1, 'uco2')] # same for all
+coeffs_fin['Lesc'] = L_all
+coeffs_fin['uco2'] = uco2
+
+# Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
+# Lesc_all[np.isnan(Lesc_all)] = 0.
+# coeffs_fin['Lesc'] = Lesc_all
+int_fun = npl.interp_coeff_linco2(L_all, co2profs)
 interp_coeffs[('Lesc', 'int_fun')] = int_fun
 #interp_coeffs[('Lesc', 'signc')] = signc
 
@@ -279,6 +284,7 @@ interp_coeffs = npl.precalc_interp()
 figs = []
 a0s = []
 a1s = []
+
 for cco2 in range(1, 8):
     for atm in allatms:
         temp = atm_pt[(atm, 'temp')]
@@ -293,7 +299,7 @@ for cco2 in range(1, 8):
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
-        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs)#, coeffs = coeffs_fin)
+        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alts, interp_coeffs = interp_coeffs)#, coeffs = coeffs_fin)
         hr_calc_old = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old)
 
         alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)
@@ -305,8 +311,8 @@ for cco2 in range(1, 8):
         ylab = 'Alt (km)'
         # labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
         # hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
-        labels = ['nlte_ref', 'new param', 'param vf5', 'fomi']
-        hrs = [hr_ref, hr_calc, hr_calc_old, hr_fomi]
+        labels = ['nlte_ref', 'np_nointerp', 'new param', 'param vf5', 'fomi']
+        hrs = [hr_ref, hr_calc_ni, hr_calc, hr_calc_old, hr_fomi]
 
         #colors = np.array(npl.color_set(3))
         colors = ['violet', 'forestgreen', 'indianred', 'steelblue']
