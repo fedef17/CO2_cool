@@ -266,9 +266,12 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alts, coef
     # Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
     # eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 
-    DEBUG = [alpha, MM, lamb, L_esc, hr_calc, hr_lte]
+    if debug_Lesc:
+        DEBUG = [alpha, MM, lamb, L_esc, hr_calc, hr_lte]
 
-    return hr_calc_fin, DEBUG
+        return hr_calc_fin, DEBUG
+    else:
+        return hr_calc_fin
 
 
 def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
