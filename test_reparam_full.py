@@ -175,6 +175,7 @@ int_fun = npl.interp_coeff_linco2(L_all, co2profs)
 interp_coeffs[('Lesc', 'int_fun')] = int_fun
 #interp_coeffs[('Lesc', 'signc')] = signc
 
+coeffs_fin['alts'] = alts
 coeffs_fin['co2profs'] = co2profs
 pickle.dump(coeffs_fin, open(cart_out_4 + 'coeffs_finale.p', 'wb'))
 
@@ -299,7 +300,7 @@ for cco2 in range(1, 8):
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
-        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alts, interp_coeffs = interp_coeffs)#, coeffs = coeffs_fin)
+        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs)#, coeffs = coeffs_fin)
         hr_calc_old = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old)
 
         alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)

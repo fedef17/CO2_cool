@@ -69,8 +69,10 @@ res = res.view(np.recarray)
 restot = res
 
 # Prova 1: atmosfera polare media durante un SSW
-alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man('gases_120.dat', version = 2)
+alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart + 'gases_120.dat', version = 2)
 alt_manuel = np.linspace(0,120,121)
+
+sys.exit()
 
 # for il in range(2):
 old_param = []
@@ -110,7 +112,7 @@ for il in range(len(CR)):
     alt_fomi, cr_fomi = sbm.leggioutfomi(nomeout)
 
     cr_fomi = npl.old_param(alt_manuel, temp, pres, CO2con, Oprof = Ocon)
-    cr_new = npl.new_param(temp, temp[0], pres, CO2con, Ocon, o2vmr, n2vmr, alt_manuel)
+    cr_new = npl.new_param_full_allgrids(alt_manuel, temp, temp[0], pres, CO2con, Ocon, o2vmr, n2vmr)
 
     obs.append(res.cr_mipas[0])
     old_param.append(cr_fomi)

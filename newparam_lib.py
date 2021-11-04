@@ -175,19 +175,60 @@ def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coe
     interp_coeffs[('Lesc', 'int_fun')] = int_fun
 
     interp_coeffs['uco2'] = coeffs['uco2']
+    interp_coeffs['alts'] = coeffs['alts']
 
     ###### END PREPARING
     ##########################################################
 
     return interp_coeffs
 
+def new_param_full_allgrids(alts, temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
+    """
+    Wrapper for new_param_full that takes in input vectors on arbitrary grids.
+    """
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alts, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
+    if interp_coeffs is None:
+        print('Precalculate interp function for faster calculations')
+        interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file)
+
+    alts_grid = interp_coeffs['alts']
+
+    ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
+    spl = spline(alts, temp)
+    temp_rg = spl(alts_grid)
+
+    spl = spline(alts, np.log(pres))
+    pres_rg = spl(alts_grid)
+    pres_rg = np.exp(pres_rg)
+
+    spl = spline(alts, ovmr)
+    ovmr_rg = spl(alts_grid)
+
+    spl = spline(alts, o2vmr)
+    o2vmr_rg = spl(alts_grid)
+
+    spl = spline(alts, co2vmr)
+    co2vmr_rg = spl(alts_grid)
+
+    spl = spline(alts, n2vmr)
+    n2vmr_rg = spl(alts_grid)
+
+    ########## Call new param
+
+    hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc)
+
+    ##### INTERPOLATE OUTPUT TO ORIGINAL GRID ####
+
+    spl = spline(alts_grid, hr_calc_fin)
+    hr_calc = spl(alts)
+
+    return hr_calc
+
+
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
     """
     New param with new strategy (1/10/21).
     """
-
-    ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
 
     alt1 = 40
     alt2 = 51
@@ -196,6 +237,8 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alts, coef
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
         interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file)
+
+    alts = interp_coeffs['alts']
 
     ############################################
     ##### INTERPOLATING TO ACTUAL CO2
