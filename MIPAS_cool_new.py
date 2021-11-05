@@ -64,7 +64,7 @@ CR_eq = CR[(CR.latitude < t_n) & (CR.latitude > t_s)]
 # Creo struttura dei risultati
 
 tipi = [('date', 'O'), ('latitude', '>f4'), ('longitude', '>f4'), ('sza', '>f4'), ('altitude', 'O'), ('pressure', 'O'),
-        ('temperature', 'O'), ('cr_mipas', 'O'), ('alt_fomi', 'O'), ('cr_fomi', 'O'), ('cr_fomi_int', 'O')]
+        ('temperature', 'O'), ('cr_mipas', 'O'), ('alt_fomi', 'O'), ('cr_fomi', 'O'), ('cr_fomi_int', 'O'), ('cr_new', 'O')]
 res = np.empty(1, dtype = tipi)
 res = res.view(np.recarray)
 
@@ -139,6 +139,7 @@ for il in range(len(CR)):
     res.cr_mipas[0] = CR.target[il]
     res.alt_fomi[0] = alt_fomi
     res.cr_fomi[0] = cr_fomi
+    res.cr_new[0] = cr_new
 
     splcr = spline(alt_fomi, cr_fomi)
     res.cr_fomi_int[0] = splcr(res.altitude[0])
