@@ -338,14 +338,18 @@ def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
     return hr_calc
 
 
-def old_param(alts, temp, pres, CO2prof, Oprof = None, O2prof = None, N2prof = None, cart_run_fomi = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/'):
+def old_param(alts, temp, pres, CO2prof, Oprof = None, O2prof = None, N2prof = None, cart_run_fomi = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/', input_in_ppm = False):
     """
     Run the old param.
 
-    PROBLEM: does not take in input the atomic O profile
+    Default input in ppm. Instead set input_in_ppm to False to specify concentrations.
 
-    WARNING!!! CO2prof should be in concentration (not ppm!). Gets converted to ppm inside the routine.
     """
+    if input_in_ppm:
+        fact = 1.0
+    else:
+        print('Converting inputs to ppm!')
+        fact = 1.e6
 
     fil_VMR = cart_run_fomi + 'gases_120.dat'
     alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(fil_VMR, version = 2)
@@ -353,23 +357,23 @@ def old_param(alts, temp, pres, CO2prof, Oprof = None, O2prof = None, N2prof = N
     splCO2 = spline(alts, CO2prof)
     CO2con = splCO2(alt_manuel)
     print('piooo CO2', np.median(CO2con))
-    mol_vmrs['CO2'] = CO2con*1.e6
+    mol_vmrs['CO2'] = CO2con*fact
     # Also update O2, O, N2
     if Oprof is not None:
         splO = spline(alts, Oprof)
         Ocon = splO(alt_manuel)
         print('piooo O', np.median(Ocon))
-        mol_vmrs['O'] = Ocon*1.e6
+        mol_vmrs['O'] = Ocon*fact
     if O2prof is not None:
         splO2 = spline(alts, O2prof)
         O2con = splO2(alt_manuel)
         print('piooo O2', np.median(O2con))
-        mol_vmrs['O2'] = O2con*1.e6
+        mol_vmrs['O2'] = O2con*fact
     if N2prof is not None:
         splN2 = spline(alts, N2prof)
         N2con = splN2(alt_manuel)
         print('piooo N2', np.median(N2con))
-        mol_vmrs['N2'] = N2con*1.e6
+        mol_vmrs['N2'] = N2con*fact
 
     splT = spline(alts, temp)
     temp = splT(alt_manuel)

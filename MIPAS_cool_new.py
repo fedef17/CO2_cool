@@ -26,6 +26,8 @@ else:
 import spect_base_module as sbm
 import spect_classes as spcl
 
+import newparam_lib as npl
+
 if not os.path.exists(cart_out): os.mkdir(cart_out)
 
 cart = '/home/fabiano/Research/lavori/CO2_cooling/MIPAS_2009/'
@@ -72,48 +74,56 @@ restot = res
 alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart + 'gases_120.dat', version = 2)
 alt_manuel = np.linspace(0,120,121)
 
-sys.exit()
-
 # for il in range(2):
 old_param = []
 new_param = []
 obs = []
 for il in range(len(CR)):
     print(il)
-    temp = T.target[il]
-    pres = T.pressure[il]
+    temp_or = T.target[il]
+    pres_or = T.pressure[il]
 
-    Ocon = O.target[il]
-    splO = spline(alts, np.log(Ocon))
+    Ocon_or = O.target[il]
+    splO = spline(alts, np.log(Ocon_or))
     Ocon = splO(alt_manuel)
     Ocon = np.exp(Ocon)
 
-    CO2con = CO2.target[il]
-    splCO2 = spline(alts, CO2con)
+    CO2con_or = CO2.target[il]
+    splCO2 = spline(alts, CO2con_or)
     CO2con = splCO2(alt_manuel)
 
-    splT = spline(alts,temp)
+    splT = spline(alts,temp_or)
     temp = splT(alt_manuel)
 
-    splP = spline(alts,np.log(pres))
+    splP = spline(alts,np.log(pres_or))
     pres = splP(alt_manuel)
     pres = np.exp(pres)
 
-    filename = cart+'atm_manuel.dat'
-    sbm.scriviinputmanuel(alt_manuel,temp,pres,filename)
+    # filename = cart+'atm_manuel.dat'
+    # sbm.scriviinputmanuel(alt_manuel,temp,pres,filename)
+    #
+    # mol_vmrs['CO2'] = CO2con
+    # mol_vmrs['O'] = Ocon
+    # filename = cart+'vmr_atm_manuel.dat'
+    # sbm.write_input_vmr_man(filename, alt_manuel, mol_vmrs, hit_gas_list = molist, hit_gas_num = molnums, version = 2)
+    #
+    # call(cart+'./fomi_mipas')
+    # nomeout = cart+'output__mipas.dat'
+    # alt_fomi, cr_fomi = sbm.leggioutfomi(nomeout)
 
-    mol_vmrs['CO2'] = CO2con
-    mol_vmrs['O'] = Ocon
-    filename = cart+'vmr_atm_manuel.dat'
-    sbm.write_input_vmr_man(filename, alt_manuel, mol_vmrs, hit_gas_list = molist, hit_gas_num = molnums, version = 2)
+    alt_fomi, cr_fomi = npl.old_param(alt_manuel, temp, pres, CO2con, Oprof = Ocon, input_in_ppm = True)
 
-    call(cart+'./fomi_mipas')
-    nomeout = cart+'output__mipas.dat'
-    alt_fomi, cr_fomi = sbm.leggioutfomi(nomeout)
+    #######
+    o2vmr = mol_vmrs['O2']*1.e-6
+    n2vmr = mol_vmrs['N2']*1.e-6
+    spl = spline(alt_manuel, o2vmr)
+    o2vmr_or = spl(alts)
+    spl = spline(alt_manuel, n2vmr)
+    n2vmr_or = spl(alts)
 
-    cr_fomi = npl.old_param(alt_manuel, temp, pres, CO2con, Oprof = Ocon)
-    cr_new = npl.new_param_full_allgrids(alt_manuel, temp, temp[0], pres, CO2con, Ocon, o2vmr, n2vmr)
+    cr_new = npl.new_param_full_allgrids(alts, temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or)
 
+    ####
     obs.append(res.cr_mipas[0])
     old_param.append(cr_fomi)
     new_param.append(cr_new)
@@ -130,7 +140,7 @@ for il in range(len(CR)):
     res.alt_fomi[0] = alt_fomi
     res.cr_fomi[0] = cr_fomi
 
-    splcr = spline(alt_fomi,cr_fomi)
+    splcr = spline(alt_fomi, cr_fomi)
     res.cr_fomi_int[0] = splcr(res.altitude[0])
 
     restot = np.append(restot,res)
