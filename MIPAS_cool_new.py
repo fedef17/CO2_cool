@@ -81,7 +81,9 @@ obs = []
 for il in range(len(CR)):
     print(il)
     temp_or = T.target[il]
+    #T.target_ig[il]
     pres_or = T.pressure[il]
+    #P.target_ig[il]
 
     Ocon_or = O.target[il]
     splO = spline(alts, np.log(Ocon_or))
@@ -123,6 +125,8 @@ for il in range(len(CR)):
 
     cr_new = npl.new_param_full_allgrids(alts, temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or)
 
+    # cr_new = npl.new_param_full_allgrids(alts, temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or)
+
     ####
     obs.append(res.cr_mipas[0])
     old_param.append(cr_fomi)
@@ -150,7 +154,7 @@ for il in range(len(CR)):
 restot = restot[1:]
 restot = restot.view(np.recarray)
 
-pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam.p','wb'))
+pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam_xinterp.p','wb'))
 
 # produco atmosfera di input in formato manuel ->
 # lancio fomi

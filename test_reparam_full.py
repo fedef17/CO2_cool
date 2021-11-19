@@ -90,7 +90,7 @@ print('high trans at {}, {:7.2f} km {:7.2f}'.format(n_alts_trhi, alts[n_alts_trh
 # il cool-to-space è fuori dalle 66 alts
 # n_alts_cs = np.sum(x < 16.5)
 # print('cool-to-space at {}, {:7.2f} km'.format(n_alts_cs, alts[n_alts_cs]))
-
+sys.exit()
 n_alts_lte = 40
 
 #############################################################
