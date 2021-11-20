@@ -193,11 +193,17 @@ def new_param_full_allgrids(alts, temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2
 
     alts_grid = interp_coeffs['alts']
 
-    x_ref = np.array([ 0.125,  0.375,  0.625,  0.875,  1.125,  1.375,  1.625,  1.875, 2.125,  2.375,  2.625,  2.875,  3.125,  3.375,  3.625,  3.875, 4.125,  4.375,  4.625,  4.875,  5.125,  5.375,  5.625,  5.875, 6.125,  6.375,  6.625,  6.875,  7.125,  7.375,  7.625,  7.875, 8.125,  8.375,  8.625,  8.875,  9.125,  9.375,  9.625,  9.875,  10.125, 10.375, 10.625, 10.875, 11.125, 11.375, 11.625, 11.875, 12.125, 12.375, 12.625, 12.875, 13.125, 13.375, 13.625, 13.875, 14.125, 14.375, 14.625, 14.875, 15.125, 15.375, 15.625, 15.875, 16.125, 16.375])
-
-    ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
+    ## custom x grid
     x = np.log(1000./pres)
 
+    ## reference x grid
+    x_ref_max = 16.735
+    if np.max(x) > x_ref_max:
+        x_ref = np.arange(0.125, np.max(x), 0.25)
+    else:
+        x_ref = np.arange(0.125, x_ref_max + 0.001, 0.25)
+
+    ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
     spl = spline(x, temp)
     temp_rg = spl(x_ref)
 
@@ -1811,7 +1817,7 @@ def calc_MM(ovmr, o2vmr, n2vmr):
     MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass
     return MM
 
-def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56):
+def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65):
     """
     Recurrence formula in the upper transition region (with alpha).
 
@@ -1842,7 +1848,16 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
         #print(j, Djj, Djjm1, Fj, Fjm1)
         eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
+
     fac = (2.63187e11 * co2vmr * (1-lamb))/MM
+
+    ##### HERE the cool-to-space part
+    # now for the cs region:
+    if len(temp) > n_alts_cs:
+        Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
+        eps_gn[n_alts_cs:] = (Phi_165 - phi_fun[n_alts_cs:])
+        #eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
+
     hr_new[n_alts_trlo:] = fac[n_alts_trlo:] * eps_gn[n_alts_trlo:]  # Formula 7
     hr_new[n_alts_trlo:] = hr_new[n_alts_trlo:] * (24*60*60) / cp # convert back to K/day
 

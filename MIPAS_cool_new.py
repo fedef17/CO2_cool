@@ -154,7 +154,7 @@ for il in range(len(CR)):
 restot = restot[1:]
 restot = restot.view(np.recarray)
 
-pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam_xinterp.p','wb'))
+pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam_xinterp_wcs.p','wb'))
 
 # produco atmosfera di input in formato manuel ->
 # lancio fomi
