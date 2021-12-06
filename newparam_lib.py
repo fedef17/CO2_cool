@@ -39,7 +39,7 @@ kb = 1.38065e-19 # boltzmann constant to use with P in hPa, n in cm-3, T in K (1
 
 E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 
-cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
+cp_0 = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 
 NLTE_DEBUG = True
 #############################################################
@@ -424,9 +424,42 @@ def old_param(alts, temp, pres, CO2prof, Oprof = None, O2prof = None, N2prof = N
     call('./fomi_mipas')
     os.chdir(wd)
     nomeout = cart_run_fomi + 'output__mipas.dat'
-    alt_fomi, cr_fomi = sbm.leggioutfomi(nomeout)
+    alt_fomi, x_fomi, cr_fomi = leggioutfomi(nomeout)
 
-    return alt_fomi, cr_fomi
+    return alt_fomi, x_fomi, cr_fomi
+
+
+def trova_spip(ifile, hasha = '#', read_past = False):
+    """
+    Trova il '#' nei file .dat
+    """
+    gigi = 'a'
+    while gigi != hasha :
+        linea = ifile.readline()
+        gigi = linea[0]
+    else:
+        if read_past:
+            return linea[1:]
+        else:
+            return
+
+
+def leggioutfomi(nomeout):
+    """
+    Reads Fomichev output.
+    :param nomeout:
+    :return:
+    """
+    fi = open(nomeout,'r')
+    trova_spip(fi)
+
+    data = np.array([map(float, line.split()) for line in fi])
+
+    alt_fomi = np.array(data[:,0])
+    x_fomi = np.array(data[:,4])
+    cr_fomi = np.array(data[:,5])
+
+    return alt_fomi, x_fomi, cr_fomi
 
 
 def get_interp_coeffs(tot_coeff_co2):
@@ -1613,7 +1646,7 @@ def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7):
 
     n_trans = n_alts_trhi-n_alts_trlo+1
     """
-    eps125 = eps125 * cp / (24*60*60)
+    eps125 = eps125 * cp_0 / (24*60*60)
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
     dj = L_esc*alpha
@@ -1633,7 +1666,7 @@ def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7):
     fac = (2.63187e11 * co2vmr * (1-lamb))/MM
     eps = fac * eps_gn # Formula 7
 
-    eps = eps * (24*60*60) / cp # convert back to K/day
+    eps = eps * (24*60*60) / cp_0 # convert back to K/day
 
     return eps[1:]
 
@@ -1817,7 +1850,11 @@ def calc_MM(ovmr, o2vmr, n2vmr):
     MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass
     return MM
 
-def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65):
+def calc_cp(MM, ovmr):
+    cp = 8.31441e7/MM*(7./2.*(1.-ovmr)+5./2.*ovmr)
+    return cp
+
+def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65, ovmr = None, debug = False):
     """
     Recurrence formula in the upper transition region (with alpha).
 
@@ -1828,15 +1865,35 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
 
-    eps125 = hr[n_alts_trlo-1] * cp / (24*60*60)
+    # MMfom = np.ones(len(hr))
+    # MMfom[:50] = 28.96
+    # pruz = np.array([28.95,28.94,28.93,28.90,28.87,28.82,28.76,28.69,28.61,28.52,28.40,28.25,28.08,27.89,27.69,27.48,27.27,27.06,26.83,26.55,26.20])
+    # spl = spline(np.arange(len(pruz)), pruz)
+    # pruz_ok = spl(np.arange(len(hr)-50))
+    # MMfom[50:] = pruz_ok
+    # MM = MMfom
+
+    if ovmr is not None:
+        cp = calc_cp(MM, ovmr)
+    else:
+        cp = np.ones(len(hr))*cp_0
+
+    if debug: print('cp', cp)
+
+    eps125 = hr[n_alts_trlo-1] * cp[n_alts_trlo-1] / (24*60*60)
 
     alpha_ok = np.ones(n_alts)
     alpha_ok[n_alts_trlo-1:n_alts_trhi] = alpha
     dj = L_esc*alpha_ok
-    #print(alpha_ok)
+    if debug: print('alpha', alpha_ok[n_alts_trlo-1:])
+    if debug: print('L_corr', dj[n_alts_trlo-1:])
+
+    #fac = (2.63187e11 * co2vmr * (1-lamb))/MM
+    fac = (2.55520997e11 *co2vmr * (1-lamb))/MM
 
     eps_gn = np.zeros(n_alts)
-    eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1]))
+    #eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1])) ### should change sign to be consistent with fomichev's (cooling rate)?
+    eps_gn[n_alts_trlo-1] = eps125/fac[n_alts_trlo-1]
 
     for j in range(n_alts_trlo, n_alts): # Formula 9
         Djj = 0.25*(dj[j-1] + 3*dj[j])
@@ -1848,9 +1905,36 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
         #print(j, Djj, Djjm1, Fj, Fjm1)
         eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
 
+    #c --- the reccurence formula
+          # do 11 I=2,17
+          #     im=i-1
+          #     aa1=1.-lambda(im)*(1.-.25*AL(i)-.75*AL(im))
+          #     aa2=1.-lambda(i)*(1.-.75*AL(i)-.25*AL(im))
+          #     d1=-.25*(AL(i)+3.*AL(im))
+          #     d2=.25*(3.*AL(i)+AL(im))
+          #     h2=(aa1*h1-d1*su(im+50)-d2*su(i+50))/aa2
+          #     H(i+42)=h2*CO2(i)*(1.-lambda(i))/AM(i)*const
+          #     h1=h2
+          # end do
 
-    fac = (2.63187e11 * co2vmr * (1-lamb))/MM
 
+    h1 = eps_gn[n_alts_trlo-1]
+    for j in range(n_alts_trlo, n_alts):
+        aa1=1.-lamb[j-1]*(1.-.25*dj[j]-.75*dj[j-1])
+        aa2=1.-lamb[j]*(1.-.75*dj[j]-.25*dj[j-1])
+        d1=-.25*(dj[j]+3.*dj[j-1])
+        d2=.25*(3.*dj[j]+dj[j-1])
+        h2=(aa1*h1-d1*phi_fun[j-1]-d2*phi_fun[j])/aa2
+        eps_gn[j] = h2
+        if debug:
+            #print(j-n_alts_trlo, aa1, aa2, d1, d2, h1, h2, co2vmr[j], lamb[j], MM[j], fac[j]*h2)
+            print(fac[j]*h2)
+        h1 = h2
+
+    if debug:
+        print('\n')
+        for j in range(n_alts_trlo, n_alts):
+            print(j, eps_gn[j], fac[j]*eps_gn[j])
     ##### HERE the cool-to-space part
     # now for the cs region:
     if len(temp) > n_alts_cs:
@@ -1858,8 +1942,24 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
         eps_gn[n_alts_cs:] = (Phi_165 - phi_fun[n_alts_cs:])
         #eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 
-    hr_new[n_alts_trlo:] = fac[n_alts_trlo:] * eps_gn[n_alts_trlo:]  # Formula 7
-    hr_new[n_alts_trlo:] = hr_new[n_alts_trlo:] * (24*60*60) / cp # convert back to K/day
+    if debug:
+        print(n_alts_cs)
+        print('\n')
+        for j in range(n_alts_trlo, n_alts):
+            print(j, eps_gn[j], fac[j]*eps_gn[j])
+
+    hr_new[n_alts_trlo:] = fac[n_alts_trlo:] * eps_gn[n_alts_trlo:]  # Formula 7 ### change sign back to heating rate if changed above
+
+    if debug:
+        print('\n')
+        for j in range(n_alts_trlo, n_alts):
+            print(j, eps_gn[j], fac[j]*eps_gn[j], hr_new[j])
+    # for j in range(n_alts_trlo, n_alts):
+    #     print(j, hr_new[j])
+
+    hr_new[n_alts_trlo:] = hr_new[n_alts_trlo:] * (24*60*60) / cp[n_alts_trlo:] # convert back to K/day
+    # for j in range(n_alts_trlo, n_alts):
+    #     print(j, hr_new[j])
 
     return hr_new
 
