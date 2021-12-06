@@ -182,7 +182,8 @@ def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coe
 
     return interp_coeffs
 
-def new_param_full_allgrids(alts, temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
+
+def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
@@ -190,8 +191,6 @@ def new_param_full_allgrids(alts, temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
         interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file)
-
-    alts_grid = interp_coeffs['alts']
 
     ## custom x grid
     x = np.log(1000./pres)
@@ -223,25 +222,6 @@ def new_param_full_allgrids(alts, temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2
     spl = spline(x, n2vmr)
     n2vmr_rg = spl(x_ref)
 
-    # spl = spline(alts, temp)
-    # temp_rg = spl(alts_grid)
-    #
-    # spl = spline(alts, np.log(pres))
-    # pres_rg = spl(alts_grid)
-    # pres_rg = np.exp(pres_rg)
-    #
-    # spl = spline(alts, ovmr)
-    # ovmr_rg = spl(alts_grid)
-    #
-    # spl = spline(alts, o2vmr)
-    # o2vmr_rg = spl(alts_grid)
-    #
-    # spl = spline(alts, co2vmr)
-    # co2vmr_rg = spl(alts_grid)
-    #
-    # spl = spline(alts, n2vmr)
-    # n2vmr_rg = spl(alts_grid)
-
     ########## Call new param
 
     hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc)
@@ -250,8 +230,6 @@ def new_param_full_allgrids(alts, temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2
 
     spl = spline(x_ref, hr_calc_fin)
     hr_calc = spl(x)
-    # spl = spline(alts_grid, hr_calc_fin)
-    # hr_calc = spl(alts)
 
     return hr_calc
 
@@ -261,9 +239,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     New param with new strategy (1/10/21).
     """
 
-    alt1 = 40
-    alt2 = 51
-    n_top = 65
+    alt1 = 40 # start non-LTE correction
+    alt2 = 51 # start non-LTE upper region (alpha, L_esc)
+    n_top = 65 # max alt to apply alpha correction
 
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
@@ -302,7 +280,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     uco2 = interp_coeffs['uco2']
 
     Lspl_all = spline(uco2, L_all, extrapolate = False)
-    uok2 = calc_co2column(alts, pres, temp, co2vmr)
+    #uok2 = calc_co2column(alts, pres, temp, co2vmr)
+    MM = calc_MM(ovmr, o2vmr, n2vmr)
+    uok2 = calc_co2column_P(pres, co2vmr, MM)
     L_esc = Lspl_all(uok2)
     L_esc[np.isnan(L_esc)] = 0.
 
@@ -330,10 +310,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     #### upper atm
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
-    MM = calc_MM(ovmr, o2vmr, n2vmr)
     alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'])
 
-    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, n_alts_cs = n_top, ovmr = ovmr)
 
     ##### HERE the cool-to-space part
     # now for the cs region:
@@ -1838,6 +1817,44 @@ def calc_co2column(alts, pres, temp, co2vmr):
     return uok2
 
 
+def calc_co2column_P(pres, co2vmr, MM, extrapolate = True, minlogP = -14):
+    """
+    Calculates CO2 column above a certain point in pressure. Assumes hydrostatically stable column.
+    """
+
+    Nav = 6.02e23
+    g_grav = 9.81
+
+    kost = -100*1000*Nav/g_grav # pres to Pa, MM to kg
+
+    if extrapolate:
+        prlog = np.log(pres)
+        p2 = np.append(prlog, np.arange(prlog[-1], minlogP, prlog[-1]-prlog[-2]))
+        p2ex = np.exp(p2)
+
+        nco2spl = interp1d(prlog, co2vmr, fill_value = 'extrapolate')
+        morenco2 = nco2spl(p2)
+        morenco2[morenco2 < 0] = 0.
+
+        nmmspl = interp1d(prlog, MM, fill_value = 'extrapolate')
+        moremm = nmmspl(p2)
+
+        uok = []
+        for ial in range(len(pres)):
+            #alok = p2ex < pres[ial]
+            uok.append(kost*np.trapz(morenco2[ial:]/moremm[ial:], p2ex[ial:])) # faccio tutto in SI
+    else:
+        uok = []
+        for ial in range(len(pres)):
+            uok.append(kost*np.trapz(co2vmr[ial:]/MM[ial:], pres[ial:])) # faccio tutto in SI
+
+    uok = np.array(uok) * 1e-4 # to cm-2
+    if extrapolate:
+        print('utop = {:7.2e}'.format(uok[-1]))
+
+    return uok
+
+
 def num_density(P, T, vmr = 1.0):
     """
     Calculates num density. P in hPa, T in K, vmr in absolute fraction (not ppm!!)
@@ -1860,8 +1877,11 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
     With full vectors.
     """
-    n_alts = len(hr)
-    hr_new = hr.copy()
+    # n_alts = len(hr)
+    # hr_new = hr.copy()
+    n_alts = len(temp)
+    hr_new = np.zeros(len(temp))
+    hr_new[:len(hr)] = hr[:]
 
     phi_fun = np.exp(-E_fun/(kbc*temp))
 
@@ -1876,7 +1896,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     if ovmr is not None:
         cp = calc_cp(MM, ovmr)
     else:
-        cp = np.ones(len(hr))*cp_0
+        cp = np.ones(n_alts)*cp_0
 
     if debug: print('cp', cp)
 
@@ -1895,7 +1915,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     #eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1])) ### should change sign to be consistent with fomichev's (cooling rate)?
     eps_gn[n_alts_trlo-1] = eps125/fac[n_alts_trlo-1]
 
-    for j in range(n_alts_trlo, n_alts): # Formula 9
+    for j in range(n_alts_trlo, n_alts_cs): # Formula 9
         Djj = 0.25*(dj[j-1] + 3*dj[j])
         Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
 
@@ -1919,7 +1939,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
 
     h1 = eps_gn[n_alts_trlo-1]
-    for j in range(n_alts_trlo, n_alts):
+    for j in range(n_alts_trlo, n_alts_cs):
         aa1=1.-lamb[j-1]*(1.-.25*dj[j]-.75*dj[j-1])
         aa2=1.-lamb[j]*(1.-.75*dj[j]-.25*dj[j-1])
         d1=-.25*(dj[j]+3.*dj[j-1])
@@ -1933,11 +1953,11 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
     if debug:
         print('\n')
-        for j in range(n_alts_trlo, n_alts):
+        for j in range(n_alts_trlo, n_alts_cs):
             print(j, eps_gn[j], fac[j]*eps_gn[j])
     ##### HERE the cool-to-space part
     # now for the cs region:
-    if len(temp) > n_alts_cs:
+    if n_alts > n_alts_cs:
         Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
         eps_gn[n_alts_cs:] = (Phi_165 - phi_fun[n_alts_cs:])
         #eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])

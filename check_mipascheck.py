@@ -314,7 +314,7 @@ if check_single_2:
 
     hr_rec = npl.recformula(alpha_fom, L_esc, lamb, crok, co2vmr_rg, MM, temp_rg, n_alts_trlo = 50, n_alts_trhi = 55, n_alts_cs = 55)
 
-    alt_fomi2, cr_fomi2 = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, input_in_ppm = False, cart_run_fomi = '/home/fedef/Research/lavori/CO2_cooling/cart_run_fomi/')
+    alt_fomi2, x_fomi2, cr_fomi2 = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, input_in_ppm = False, cart_run_fomi = '/home/fedef/Research/lavori/CO2_cooling/cart_run_fomi/')
     len(cr_fomi2)
     # plt.figure()
     # plt.plot(cr_fomi2, 1.75 + x_ref[:62])
