@@ -113,7 +113,7 @@ for il in range(len(CR)):
     # nomeout = cart+'output__mipas.dat'
     # alt_fomi, cr_fomi = sbm.leggioutfomi(nomeout)
 
-    alt_fomi, cr_fomi = npl.old_param(alt_manuel, temp, pres, CO2con, Oprof = Ocon, input_in_ppm = True)
+    alt_fomi, x_fomi, cr_fomi = npl.old_param(alt_manuel, temp, pres, CO2con, Oprof = Ocon, input_in_ppm = True)
 
     #######
     o2vmr = mol_vmrs['O2']*1.e-6
