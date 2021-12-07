@@ -79,6 +79,8 @@ alt_manuel = np.linspace(0,120,121)
 # for il in range(2):
 old_param = []
 new_param = []
+new_param_fa = []
+
 obs = []
 for il in range(len(CR)):
     print(il)
@@ -127,12 +129,16 @@ for il in range(len(CR)):
 
     cr_new = npl.new_param_full_allgrids(temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, interp_coeffs = interp_coeffs)
 
-    # cr_new = npl.new_param_full_allgrids(alts, temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or)
+    alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
+    fomialpha = np.append(alpha_fom, np.ones(9))
+
+    cr_new_fa = npl.new_param_full_allgrids(alts, temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, debug_alpha = fomialpha, interp_coeffs = interp_coeffs)
 
     ####
     obs.append(res.cr_mipas[0])
     old_param.append(cr_fomi)
     new_param.append(cr_new)
+    new_param_fa.append(cr_new_fa)
 
     res.date[0] = CR.date[il]
     res.latitude[0] = CR.latitude[il]
@@ -157,6 +163,8 @@ restot = restot[1:]
 restot = restot.view(np.recarray)
 
 pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam_xinterp_v3.p','wb'))
+
+pickle.dump([obs, old_param, new_param, new_param_fa], open(cart_out+'out_ssw2009_xinterp_v3.p','wb'))
 
 # produco atmosfera di input in formato manuel ->
 # lancio fomi
