@@ -70,6 +70,8 @@ res = res.view(np.recarray)
 
 restot = res
 
+interp_coeffs = npl.precalc_interp()
+
 # Prova 1: atmosfera polare media durante un SSW
 alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart + 'gases_120.dat', version = 2)
 alt_manuel = np.linspace(0,120,121)
@@ -123,7 +125,7 @@ for il in range(len(CR)):
     spl = spline(alt_manuel, n2vmr)
     n2vmr_or = spl(alts)
 
-    cr_new = npl.new_param_full_allgrids(temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or)
+    cr_new = npl.new_param_full_allgrids(temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, interp_coeffs = interp_coeffs)
 
     # cr_new = npl.new_param_full_allgrids(alts, temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or)
 
@@ -154,7 +156,7 @@ for il in range(len(CR)):
 restot = restot[1:]
 restot = restot.view(np.recarray)
 
-pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam_xinterp_v2.p','wb'))
+pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam_xinterp_v3.p','wb'))
 
 # produco atmosfera di input in formato manuel ->
 # lancio fomi

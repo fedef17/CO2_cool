@@ -74,7 +74,7 @@ n_top = 65
 
 cart_out = cart_base + 'lavori/CO2_cooling/new_param/mipas_check/'
 
-version = '_xinterp'
+version = '_xinterp_v2'
 
 fil = 'ssw2009_v3_okTOCO2_1e13_newparam{}.p'.format(version)
 
@@ -131,6 +131,8 @@ if test_recfor:
         pres = gigi.pressure[ii]
         ovmr = 1.e-6*O.target[ii]
         co2vmr = 1.e-6*CO2.target[ii]
+
+        sys.exit()
 
         # x_ref_max = 16.735
         x_ref = np.arange(0.125, np.max(x) + 0.001, 0.25)
@@ -399,8 +401,7 @@ if check_single_2:
     hr_rec_Lok_51 = npl.recformula(realpha, reL, lamb, crok, co2vmr_rg, MM, temp_rg, n_alts_trlo = 51, n_alts_trhi = 56, n_alts_cs = 56)
     plt.plot(hr_rec_Lok_51, x_ref, color = 'forestgreen', ls = ':')
 
-sys.exit()
-
+#################################################################
 
 check_cr = True
 

@@ -183,7 +183,7 @@ def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coe
     return interp_coeffs
 
 
-def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
+def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
@@ -224,7 +224,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
 
     ########## Call new param
 
-    hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc)
+    hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha)
 
     ##### INTERPOLATE OUTPUT TO ORIGINAL GRID ####
 
@@ -234,14 +234,15 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None):
     """
     New param with new strategy (1/10/21).
     """
 
     alt1 = 40 # start non-LTE correction
-    alt2 = 51 # start non-LTE upper region (alpha, L_esc)
-    n_top = 65 # max alt to apply alpha correction
+    alt2 = 51 # end of lower correction
+    alt2up = 50 # start non-LTE upper region (alpha, L_esc)
+    n_top = 64 # max alt to apply alpha correction
 
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
@@ -270,11 +271,11 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     intfutu = interp_coeffs[('alpha', 'int_fun')]
     allco = []
     for intfu in intfutu:
-        allco.append(coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
+        allco.append(coeff_from_interp_lin(intfu, co2vmr[alt2up:n_top+1]))
     calc_coeffs['alpha_fit'] = np.stack(allco).T
 
-    calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
-    calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
+    calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2up:n_top+1])
+    calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2up:n_top+1])
 
     L_all = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
     uco2 = interp_coeffs['uco2']
@@ -312,19 +313,24 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
     alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'])
 
-    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, n_alts_cs = n_top, ovmr = ovmr)
+    if debug_alpha is not None:
+        print(alpha)
+        print('Getting alpha externally for DEBUG!!!')
+        alpha = debug_alpha
+
+    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_top, ovmr = ovmr)
 
     ##### HERE the cool-to-space part
     # now for the cs region:
     # Phi_165 = eps_gn[n_alts_cs] + phi_fun[n_alts_cs]
     # eps[n_alts_cs:] = fac[n_alts_cs:] * (Phi_165 - phi_fun[j])
 
-    if debug_Lesc:
-        DEBUG = [alpha, MM, lamb, L_esc, hr_calc, hr_lte]
-
-        return hr_calc_fin, DEBUG
-    else:
-        return hr_calc_fin
+    # if debug_Lesc is not None:
+    #     DEBUG = [alpha, MM, lamb, L_esc, hr_calc, hr_lte]
+    #
+    #     return hr_calc_fin, DEBUG
+    # else:
+    return hr_calc_fin
 
 
 def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
@@ -1915,7 +1921,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     #eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1])) ### should change sign to be consistent with fomichev's (cooling rate)?
     eps_gn[n_alts_trlo-1] = eps125/fac[n_alts_trlo-1]
 
-    for j in range(n_alts_trlo, n_alts_cs): # Formula 9
+    for j in range(n_alts_trlo, n_alts): # Formula 9
         Djj = 0.25*(dj[j-1] + 3*dj[j])
         Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
 
@@ -1939,7 +1945,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
 
     h1 = eps_gn[n_alts_trlo-1]
-    for j in range(n_alts_trlo, n_alts_cs):
+    for j in range(n_alts_trlo, n_alts):
         aa1=1.-lamb[j-1]*(1.-.25*dj[j]-.75*dj[j-1])
         aa2=1.-lamb[j]*(1.-.75*dj[j]-.25*dj[j-1])
         d1=-.25*(dj[j]+3.*dj[j-1])
