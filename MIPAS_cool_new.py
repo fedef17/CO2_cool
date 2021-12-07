@@ -132,7 +132,7 @@ for il in range(len(CR)):
     alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
     fomialpha = np.append(alpha_fom, np.ones(9))
 
-    cr_new_fa = npl.new_param_full_allgrids(alts, temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, debug_alpha = fomialpha, interp_coeffs = interp_coeffs)
+    cr_new_fa = npl.new_param_full_allgrids(temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, debug_alpha = fomialpha, interp_coeffs = interp_coeffs)
 
     ####
     obs.append(res.cr_mipas[0])
