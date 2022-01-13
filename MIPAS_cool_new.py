@@ -135,7 +135,6 @@ for il in range(len(CR)):
     cr_new_fa = npl.new_param_full_allgrids(temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, debug_alpha = fomialpha, interp_coeffs = interp_coeffs)
 
     ####
-    obs.append(res.cr_mipas[0])
     old_param.append(cr_fomi)
     new_param.append(cr_new)
     new_param_fa.append(cr_new_fa)
@@ -149,6 +148,7 @@ for il in range(len(CR)):
     res.temperature[0] = CR.temperature[il]
 
     res.cr_mipas[0] = CR.target[il]
+    obs.append(CR.target[il])
     res.alt_fomi[0] = alt_fomi
     res.cr_fomi[0] = cr_fomi
     res.cr_new[0] = cr_new

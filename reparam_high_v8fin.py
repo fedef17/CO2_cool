@@ -98,30 +98,32 @@ n_trans = n_top-alt2+1
 
 bounds = (0.1*np.ones(n_trans), 100*np.ones(n_trans))
 
-# atmweights = np.ones(6)
-#
-# alpha_unif = []
-# alpha_dic_atm = dict()
-# start = np.ones(n_trans)
-# name_escape_fun = 'L_esc_all_wutop'
-# for cco2 in range(1, 8):
-#     result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)
-#     alpha_unif.append(result.x)
-#
-#     alphas = []
-#     for atm in allatms:
-#         print(atm, cco2)
-#         cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-#         result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-#         #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-#         print('least_squares', result)
-#         alphas.append(result.x)
-#
-#     alpha_dic_atm[cco2] = np.stack(alphas)
-#
-# alpha_unif = np.stack(alpha_unif)
-#
-# pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm.p', 'wb'))
+atmweights = np.ones(6)
+
+alpha_unif = []
+alpha_dic_atm = dict()
+start = np.ones(n_trans)
+name_escape_fun = 'L_esc_all_wutop'
+for cco2 in range(1, 8):
+    result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)
+    alpha_unif.append(result.x)
+
+    alphas = []
+    for atm in allatms:
+        print(atm, cco2)
+        cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
+        result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+        #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+        print('least_squares', result)
+        alphas.append(result.x)
+
+    alpha_dic_atm[cco2] = np.stack(alphas)
+
+alpha_unif = np.stack(alpha_unif)
+
+pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v2.p', 'wb'))
+
+sys.exit()
 
 alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm.p', 'rb'))
 

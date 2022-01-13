@@ -1656,6 +1656,53 @@ def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7):
     return eps[1:]
 
 
+def transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7, ovmr = None):
+    """
+    Recurrence formula in the upper transition region (with alpha).
+
+    n_trans = n_trans_trhi-n_trans_trlo+1
+    """
+
+    phi_fun = np.exp(-E_fun/(kbc*temp))
+
+    if ovmr is not None:
+        cp = calc_cp(MM, ovmr)
+    else:
+        cp = np.ones(n_trans)*cp_0
+
+    eps125 = eps125 * cp[0] / (24*60*60)
+
+    dj = L_esc*alpha
+
+    #fac = (2.63187e11 * co2vmr * (1-lamb))/MM
+    fac = (2.55520997e11 *co2vmr * (1-lamb))/MM
+
+    eps_gn = np.zeros(n_trans)
+    eps_gn[0] = eps125/fac[0]
+
+    for j in range(1, n_trans): # Formula 9
+        Djj = 0.25*(dj[j-1] + 3*dj[j])
+        Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
+
+        Fj = (1 - lamb[j]*(1-Djj))
+        Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
+
+        #print(j, Djj, Djjm1, Fj, Fjm1)
+        eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
+
+    # ##### HERE the cool-to-space part
+    # # now for the cs region:
+    # if  > n_trans:
+    #     Phi_165 = eps_gn[n_trans] + phi_fun[n_trans]
+    #     eps_gn[n_trans:] = (Phi_165 - phi_fun[n_trans:])
+
+    hr_new = fac * eps_gn  # Formula 7 ### change sign back to heating rate if changed above
+
+    hr_new = hr_new * (24*60*60) / cp # convert back to K/day
+
+    return hr_new[1:]
+
+
 def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt):
     """
     This is done for all n_trans = 6 altitudes at a time.
@@ -1742,6 +1789,41 @@ def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_a
     return fu
 
 
+def delta_alpha_rec3_general(alpha, eps125, hr_ref, temp, pres, co2vmr, ovmr, o2vmr, n2vmr, n_alts_trlo = 50, n_alts_trhi = 56, interp_coeffs = None, L_esc = None, MM = None, lamb = None):
+    """
+    To fit alpha for an arbitrary profile (knowing the reference).
+
+    The profile must be put in a fixed x grid first. (NOT altitude grid!)
+    """
+
+    if MM is None:
+        MM = calc_MM(ovmr, o2vmr, n2vmr)
+
+    if L_esc is None:
+        L_all = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+        uco2 = interp_coeffs['uco2']
+        Lspl_all = spline(uco2, L_all, extrapolate = False)
+
+        uok = calc_co2column_P(pres, co2vmr, MM)
+
+        L_esc = Lspl_all(uok)
+        L_esc[np.isnan(L_esc)] = 0.
+
+    if lamb is None:
+        lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
+
+    ####
+
+    n_trans = n_alts_trhi-n_alts_trlo+1
+
+    hr_calc = transrecformula2(alpha, L_esc[n_alts_trlo-1:n_alts_trhi], lamb[n_alts_trlo-1:n_alts_trhi], eps125, co2vmr[n_alts_trlo-1:n_alts_trhi], MM[n_alts_trlo-1:n_alts_trhi], temp[n_alts_trlo-1:n_alts_trhi], n_trans = n_alts_trhi-n_alts_trlo+1)
+
+    # atmweights will be squared by the loss function inside least_quares
+    fu = hr_calc - hr_ref[n_alts_trlo:n_alts_trhi]
+
+    return fu
+
+
 def delta_alpha_rec3(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc'):
     """
     This is done for all n_trans = 6 altitudes at a time.
@@ -1815,7 +1897,7 @@ def calc_co2column(alts, pres, temp, co2vmr):
         uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
 
     #utop = uok[-2] # Setting upper column equal to last step
-    print('utop = {:7.2e}'.format(uok2[-1]))
+    #print('utop = {:7.2e}'.format(uok2[-1]))
 
     #uok = np.array(uok)
     uok2 = np.array(uok2)
@@ -1855,8 +1937,8 @@ def calc_co2column_P(pres, co2vmr, MM, extrapolate = True, minlogP = -14):
             uok.append(kost*np.trapz(co2vmr[ial:]/MM[ial:], pres[ial:])) # faccio tutto in SI
 
     uok = np.array(uok) * 1e-4 # to cm-2
-    if extrapolate:
-        print('utop = {:7.2e}'.format(uok[-1]))
+    #if extrapolate:
+    #    print('utop = {:7.2e}'.format(uok[-1]))
 
     return uok
 
@@ -1944,18 +2026,19 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
           # end do
 
 
-    h1 = eps_gn[n_alts_trlo-1]
-    for j in range(n_alts_trlo, n_alts):
-        aa1=1.-lamb[j-1]*(1.-.25*dj[j]-.75*dj[j-1])
-        aa2=1.-lamb[j]*(1.-.75*dj[j]-.25*dj[j-1])
-        d1=-.25*(dj[j]+3.*dj[j-1])
-        d2=.25*(3.*dj[j]+dj[j-1])
-        h2=(aa1*h1-d1*phi_fun[j-1]-d2*phi_fun[j])/aa2
-        eps_gn[j] = h2
-        if debug:
-            #print(j-n_alts_trlo, aa1, aa2, d1, d2, h1, h2, co2vmr[j], lamb[j], MM[j], fac[j]*h2)
-            print(fac[j]*h2)
-        h1 = h2
+    # Redoing the calculation with fomichev's formula (THIS IS PERFECTLY EQUIVALENT: checked on 8/12/21)
+    # h1 = eps_gn[n_alts_trlo-1]
+    # for j in range(n_alts_trlo, n_alts):
+    #     aa1=1.-lamb[j-1]*(1.-.25*dj[j]-.75*dj[j-1])
+    #     aa2=1.-lamb[j]*(1.-.75*dj[j]-.25*dj[j-1])
+    #     d1=-.25*(dj[j]+3.*dj[j-1])
+    #     d2=.25*(3.*dj[j]+dj[j-1])
+    #     h2=(aa1*h1-d1*phi_fun[j-1]-d2*phi_fun[j])/aa2
+    #     eps_gn[j] = h2
+    #     if debug:
+    #         #print(j-n_alts_trlo, aa1, aa2, d1, d2, h1, h2, co2vmr[j], lamb[j], MM[j], fac[j]*h2)
+    #         print(fac[j]*h2)
+    #     h1 = h2
 
     if debug:
         print('\n')
