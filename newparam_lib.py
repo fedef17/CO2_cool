@@ -234,15 +234,15 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, factor_from_code = True):
     """
     New param with new strategy (1/10/21).
     """
 
     alt1 = 40 # start non-LTE correction
     alt2 = 51 # end of lower correction
-    alt2up = 50 # start non-LTE upper region (alpha, L_esc)
-    n_top = 64 # max alt to apply alpha correction
+    # alt2up = 50 # start non-LTE upper region (alpha, L_esc)
+    # n_top = 64 # max alt to apply alpha correction
 
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
@@ -291,7 +291,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     # L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
     if debug_Lesc is not None:
         print('Getting L_esc externally for DEBUG!!!')
+        print('old: ', L_esc)
         L_esc = debug_Lesc
+        print('new: ', L_esc)
 
     ###############################################
     #### END INTERP
@@ -314,11 +316,12 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'])
 
     if debug_alpha is not None:
-        print(alpha)
         print('Getting alpha externally for DEBUG!!!')
+        print('old: ',alpha)
         alpha = debug_alpha
+        print('new: ',alpha)
 
-    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_top, ovmr = ovmr)
+    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_top, ovmr = ovmr, factor_from_code = factor_from_code)
 
     ##### HERE the cool-to-space part
     # now for the cs region:
@@ -1959,7 +1962,7 @@ def calc_cp(MM, ovmr):
     cp = 8.31441e7/MM*(7./2.*(1.-ovmr)+5./2.*ovmr)
     return cp
 
-def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65, ovmr = None, debug = False):
+def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65, ovmr = None, debug = False, factor_from_code = True):
     """
     Recurrence formula in the upper transition region (with alpha).
 
@@ -1996,8 +1999,13 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     if debug: print('alpha', alpha_ok[n_alts_trlo-1:])
     if debug: print('L_corr', dj[n_alts_trlo-1:])
 
+    if factor_from_code:
+        numfac = 2.55520997e11
+    else:
+        numfac = 2.63187e11
+
     #fac = (2.63187e11 * co2vmr * (1-lamb))/MM
-    fac = (2.55520997e11 *co2vmr * (1-lamb))/MM
+    fac = (numfac * co2vmr * (1-lamb))/MM
 
     eps_gn = np.zeros(n_alts)
     #eps_gn[n_alts_trlo-1] = 1.10036e-10*eps125/(co2vmr[n_alts_trlo-1] * (1-lamb[n_alts_trlo-1])) ### should change sign to be consistent with fomichev's (cooling rate)?
