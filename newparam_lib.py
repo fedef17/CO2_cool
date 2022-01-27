@@ -1824,6 +1824,42 @@ def delta_alpha_rec3_general(alpha, eps125, hr_ref, temp, pres, co2vmr, ovmr, o2
     return fu
 
 
+def delta_alpha_rec3gen_single(alpha, eps, hr_ref, temp, pres, co2vmr, ovmr, o2vmr, n2vmr, n_alts_trlo = 50, n_alts_trhi = 56, interp_coeffs = None, L_esc = None, MM = None, lamb = None):
+    """
+    This fits alpha for a single point, knowing the previous.
+
+    The profile must be put in a fixed x grid first. (NOT altitude grid!)
+    """
+
+    if MM is None:
+        MM = calc_MM(ovmr, o2vmr, n2vmr)
+
+    if L_esc is None:
+        L_all = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+        uco2 = interp_coeffs['uco2']
+        Lspl_all = spline(uco2, L_all, extrapolate = False)
+
+        uok = calc_co2column_P(pres, co2vmr, MM)
+
+        L_esc = Lspl_all(uok)
+        L_esc[np.isnan(L_esc)] = 0.
+
+    if lamb is None:
+        lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
+
+    ####
+
+    n_trans = n_alts_trhi-n_alts_trlo+1
+
+    hr_calc = transrecformula2(alpha, L_esc[n_alts_trlo-1:n_alts_trhi], lamb[n_alts_trlo-1:n_alts_trhi], eps125, co2vmr[n_alts_trlo-1:n_alts_trhi], MM[n_alts_trlo-1:n_alts_trhi], temp[n_alts_trlo-1:n_alts_trhi], n_trans = n_alts_trhi-n_alts_trlo+1)
+
+    # atmweights will be squared by the loss function inside least_quares
+    fu = hr_calc - hr_ref[n_alts_trlo:n_alts_trhi]
+
+    return fu
+
+
+
 def delta_alpha_rec3(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc'):
     """
     This is done for all n_trans = 6 altitudes at a time.
