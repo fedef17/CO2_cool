@@ -76,9 +76,13 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 
-crun = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/'
+#crun = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/'
+crun = '/home/fedef/Research/lavori/CO2_cooling/cart_run_fomi/'
 ################################################################################
+cart_out_mip = cart_base + 'mipas_check/'
+
 all_alts = atm_pt[('mle', 'alts')]
+interp_coeffs = npl.precalc_interp()
 
 figs = []
 a0s = []
@@ -99,15 +103,15 @@ for cco2 in range(1, 8):
         o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
         n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
 
-        # L_esc = cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')]
-        # lamb = cose_upper_atm[(atm, cco2, 'lamb')]
-        # MM = cose_upper_atm[(atm, cco2, 'MM')]
+        L_esc = cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')]
+        MM = cose_upper_atm[(atm, cco2, 'MM')]
 
         alt_fomi, x_fomi, cr_fomi = npl.old_param(all_alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = crun)
         spl = spline(x_fomi, cr_fomi)
         crok = spl(x_ref)
 
-        #i0 = 49
+        # i0 = 49
         i0 = 50
 
         # Loading exactly fomi alpha and L_esc
@@ -115,22 +119,51 @@ for cco2 in range(1, 8):
         X_fom = zunk[:, 1]
         spl = spline(X_fom, np.exp(zunk[:,3]))
         realpha = spl(x_ref[i0:i0+6])
+        print(cco2, realpha)
+        alp = np.append(realpha, np.ones(9))
 
-        cr_fomialpha = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug_alpha = realpha)
+        cr_fomialpha = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug_alpha = alp)
+
+        ali = np.exp(zunk[:,4]) # with no correction
+        spl = spline(X_fom, ali)
+        reLesc = spl(x_ref[i0:i0+17])
+        reL = np.zeros(len(L_esc))
+        reL[i0:i0+17] = reLesc
+        reL[i0+17:] = 1.
+
+        if len(reL) >= len(x_ref):
+            relok = reL[:len(x_ref)]
+        else:
+            relok = np.append(reL, np.ones(len(x_ref)-len(reL)))
+
+        cr_fa_fL = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug_alpha = alp, debug_Lesc = relok)
+
+        ####### ora faccio un fa_fL ma partendo esattamente da fomi a x = 12.5
+        cr_fa_fL_start = npl.recformula(alp[:6], relok, lamb, crok, co2vmr, MM, temp, n_alts_trlo = i0+1, n_alts_trhi = i0+6, n_alts_cs = 65, ovmr = ovmr)
+
 
         cr_new = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs)
+
+        cr_new_oldfactor = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, factor_from_code = False)
+
+        cr_fa_fL_start_new = npl.recformula(alp[:6], relok, lamb, cr_new, co2vmr, MM, temp, n_alts_trlo = i0+1, n_alts_trhi = i0+6, n_alts_cs = 65, ovmr = ovmr)
 
 
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'index'
-        # labels = ['nlte_ref'] + [modnams[4]] + [modnams[5]] + ['alphaok', 'vf5', 'auni']
-        # hrs = [hr_ref, hr_calc5, hr_calc6, hr_calc_aok, hr_calc_vf5, hr_calc_aunif]
-        labels = ['nlte_ref', 'pop_nl0_wt', 'fomialpha', 'old']#, 'fomi']
-        hrs = [hr_ref, cr_new, cr_fomialpha, crok]
-        colors = ['violet', 'red', 'orange', 'blue']
 
-        fig, a0, a1 = npl.manuel_plot(np.arange(66), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-10, 10), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', ':', ':', ':', ':'], colors = colors, orizlines = [40, alt2, n_top])
+        # labels = ['nlte_ref', 'pop_nl0_wt', 'fomialpha', 'fa_fL' , 'old']#, 'fomi']
+        # hrs = [hr_ref, cr_new, cr_fomialpha, cr_fa_fL, crok]
+        # colors = ['violet', 'red', 'orange', 'forestgreen', 'blue']
+
+        # fa_fL e fa_fL_start_new sono identici!
+
+        labels = ['nlte_ref', 'pop_nl0_wt', 'fomialpha', 'old', 'fa_fL_start', 'fa_fL_start_new', 'new_oldfact']#, 'fomi']
+        hrs = [hr_ref, cr_new, cr_fomialpha, crok, cr_fa_fL_start, cr_fa_fL_start_new, cr_new_oldfactor]
+        colors = ['violet', 'red', 'orange', 'blue', 'forestgreen', 'brown', 'grey']
+
+        fig, a0, a1 = npl.manuel_plot(np.arange(66), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', '-', ':', ':', ':'], colors = colors, orizlines = [40, 50])
 
         figs.append(fig)
         a0s.append(a0)
@@ -139,4 +172,4 @@ for cco2 in range(1, 8):
         npl.adjust_ax_scale(a0s)
         npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out + 'check_fomialpha_refatm.pdf', figs)
+npl.plot_pdfpages(cart_out_mip + 'check_fomialpha_refatm.pdf', figs)
