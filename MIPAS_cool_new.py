@@ -173,7 +173,7 @@ pickle.dump(restot, open(cart_out+'ssw2009_v3_okTOCO2_1e13_newparam_xinterp_v3.p
 
 pickle.dump([obs, old_param, new_param, new_param_fa], open(cart_out+'out_ssw2009_xinterp_v3.p','wb'))
 
-pickle.dump([alpha_debug, L_esc_debug, co2column_debug], open(cart_out+'out_ssw2009_xinterp_v3.p','wb'))
+pickle.dump([alpha_debug, L_esc_debug, co2column_debug], open(cart_out+'debug_ssw2009_xinterp_v3.p','wb'))
 
 # produco atmosfera di input in formato manuel ->
 # lancio fomi
