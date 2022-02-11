@@ -1661,6 +1661,8 @@ def transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7):
 
 def transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7, ovmr = None):
     """
+    THIS IS THE NEW ONE!
+
     Recurrence formula in the upper transition region (with alpha).
 
     n_trans = n_trans_trhi-n_trans_trlo+1
@@ -1704,6 +1706,54 @@ def transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7, 
     hr_new = hr_new * (24*60*60) / cp # convert back to K/day
 
     return hr_new[1:]
+
+
+def transrec_step(nu_alpha, ii, alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7, ovmr = None, factor_from_code = True):
+    """
+    this makes a single step. ii is the index of the new point, starting from ii-1. Can be more efficient than this, but this is quicker to write. ii ranges btw 1 and n_trans
+
+    Recurrence formula in the upper transition region (with alpha).
+
+    n_trans = n_trans_trhi-n_trans_trlo+1
+    """
+
+    phi_fun = np.exp(-E_fun/(kbc*temp))
+
+    if ovmr is not None:
+        cp = calc_cp(MM, ovmr)
+    else:
+        cp = np.ones(n_trans)*cp_0
+
+    eps125 = eps125 * cp[0] / (24*60*60)
+
+    dj = L_esc*alpha
+    dj[ii] = L_esc[ii]*nu_alpha # SETTING THE NEW ALPHA for the point ii
+
+    if factor_from_code:
+        numfac = 2.55520997e11
+    else:
+        numfac = 2.63187e11
+    fac = (numfac *co2vmr * (1-lamb))/MM
+
+    eps_gn = np.zeros(n_trans)
+    eps_gn[0] = eps125/fac[0]
+
+    #for j in range(1, n_trans): # Formula 9
+
+    j = ii
+    Djj = 0.25*(dj[j-1] + 3*dj[j])
+    Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
+
+    Fj = (1 - lamb[j]*(1-Djj))
+    Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
+
+    eps_gn[j] = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
+
+    hr_new = fac * eps_gn  # Formula 7 ### change sign back to heating rate if changed above
+
+    hr_new = hr_new * (24*60*60) / cp # convert back to K/day
+
+    return hr_new[ii]
 
 
 def delta_alpha_rec(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt):
@@ -1827,9 +1877,12 @@ def delta_alpha_rec3_general(alpha, eps125, hr_ref, temp, pres, co2vmr, ovmr, o2
     return fu
 
 
-def delta_alpha_rec3gen_single(alpha, eps, hr_ref, temp, pres, co2vmr, ovmr, o2vmr, n2vmr, n_alts_trlo = 50, n_alts_trhi = 56, interp_coeffs = None, L_esc = None, MM = None, lamb = None):
+def delta_alpha_rec3gen_single(nu_alpha, ii, alpha, eps125, hr_ref, temp, pres, co2vmr, ovmr, o2vmr, n2vmr, n_alts_trlo = 50, n_alts_trhi = 56, interp_coeffs = None, L_esc = None, MM = None, lamb = None):
     """
     This fits alpha for a single point, knowing the previous.
+    - nu_alpha is the alpha for the new point (which we want to fit)
+    - ii is the index of the new point (starts from 1 to n_trans)
+    - alpha is the alpha vector, with previous points already filled in with the fitted values
 
     The profile must be put in a fixed x grid first. (NOT altitude grid!)
     """
@@ -1854,10 +1907,12 @@ def delta_alpha_rec3gen_single(alpha, eps, hr_ref, temp, pres, co2vmr, ovmr, o2v
 
     n_trans = n_alts_trhi-n_alts_trlo+1
 
-    hr_calc = transrecformula2(alpha, L_esc[n_alts_trlo-1:n_alts_trhi], lamb[n_alts_trlo-1:n_alts_trhi], eps125, co2vmr[n_alts_trlo-1:n_alts_trhi], MM[n_alts_trlo-1:n_alts_trhi], temp[n_alts_trlo-1:n_alts_trhi], n_trans = n_alts_trhi-n_alts_trlo+1)
+    hr_calc = transrec_step(nu_alpha, ii, alpha, L_esc[n_alts_trlo-1:n_alts_trhi], lamb[n_alts_trlo-1:n_alts_trhi], eps125, co2vmr[n_alts_trlo-1:n_alts_trhi], MM[n_alts_trlo-1:n_alts_trhi], temp[n_alts_trlo-1:n_alts_trhi], n_trans = n_alts_trhi-n_alts_trlo+1)
 
     # atmweights will be squared by the loss function inside least_quares
-    fu = hr_calc - hr_ref[n_alts_trlo:n_alts_trhi]
+    fu = hr_calc - hr_ref[n_alts_trlo+ii]
+
+    print(ii, nu_alpha, hr_ref[n_alts_trlo+ii], hr_calc)
 
     return fu
 
