@@ -92,6 +92,8 @@ CR = savCR.result
 O = savO.result
 CO2 = savCO2.result
 
+sys.exit()
+
 fil = 'ssw2009_v3_okTOCO2_1e13_newparam{}.p'.format(version)
 
 gigi = pickle.load(open(cart_out+fil, 'rb'))

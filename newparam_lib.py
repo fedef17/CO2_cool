@@ -183,7 +183,7 @@ def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coe
     return interp_coeffs
 
 
-def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None):
+def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
@@ -224,17 +224,21 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
 
     ########## Call new param
 
-    hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha)
+    #hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha)
+    hr_calc_fin, cose = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug)
 
     ##### INTERPOLATE OUTPUT TO ORIGINAL GRID ####
 
     spl = spline(x_ref, hr_calc_fin)
     hr_calc = spl(x)
 
-    return hr_calc
+    if debug:
+        return hr_calc, cose
+    else:
+        return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, factor_from_code = True):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, factor_from_code = True, debug = False):
     """
     New param with new strategy (1/10/21).
     """
@@ -289,6 +293,12 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     # print('! TO be changed, L_esc to be calc from L function and integrated CO2 prof above')
     # L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+
+    if debug:
+        debug_cose = dict()
+        debug_cose['L_esc'] = L_esc
+        debug_cose['co2_column'] = uok2
+
     if debug_Lesc is not None:
         print('Getting L_esc externally for DEBUG!!!')
         print('old: ', L_esc)
@@ -315,6 +325,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
     alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'])
 
+    if debug:
+        debug_cose['alpha'] = alpha
+
     if debug_alpha is not None:
         print('Getting alpha externally for DEBUG!!!')
         print('old: ',alpha)
@@ -333,7 +346,10 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     #
     #     return hr_calc_fin, DEBUG
     # else:
-    return hr_calc_fin
+    if debug:
+        return hr_calc_fin, debug_cose
+    else:
+        return hr_calc_fin
 
 
 def new_param_LTE(interp_coeffs, temp, co2pr, surf_temp = None, tip = 'varfit'):
