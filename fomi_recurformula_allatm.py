@@ -47,12 +47,12 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
-n_alts = 66
+n_alts = npl.n_alts_all
 alts = atm_pt[('mle', 'alts')]
 
 pres = atm_pt[('mle', 'pres')]
@@ -73,7 +73,7 @@ n_alts_lte = 40
 #tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
-co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
+co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)]
 
 # OK. now.
 # Prendo gli epsilon alla top quota di sotto: 54. mi ricavo epsilon gn. estendo in alto con la recurrence formula. Poi aggiungo il fattore alpha.
@@ -85,7 +85,7 @@ cco2 = 3
 
 cose_upper_atm = dict()
 
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     L_all = np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0)
     uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
     Lspl_all = spline(uco2, L_all, extrapolate = False)
@@ -208,7 +208,7 @@ for n_top in [n_alts_trhi, n_alts_trhi + 5]:
     #start = np.linspace(2.0, 1.0, n_trans)
     start = np.ones(n_trans)
     for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop', 'L_esc_fom']:
-        for cco2 in range(1, 8):
+        for cco2 in range(1, npl.n_co2prof+1):
             print(cco2)
             result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
             #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
@@ -233,7 +233,7 @@ bounds2 = tuple(n_trans*[(1.,20.)])
 #start = np.linspace(2.0, 1.0, n_trans)
 start = np.ones(n_trans)
 name_escape_fun = 'L_esc_wutop'
-for cco2 in range(1, 8):
+for cco2 in range(1, npl.n_co2prof+1):
     for atm in allatms:
         print(atm, cco2)
         result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
@@ -251,7 +251,7 @@ for cco2 in range(1, 8):
 figs = []
 a0s = []
 a1s = []
-for cco2 in range(1, 8):
+for cco2 in range(1, npl.n_co2prof+1):
     tip = 'varfit5_nlte'
     acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
     bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
@@ -317,7 +317,7 @@ npl.plot_pdfpages(cart_out_3 + 'check_uppertrans_all_checkLfomi.pdf', figs)
 figs = []
 a0s = []
 a1s = []
-for cco2 in range(1, 8):
+for cco2 in range(1, npl.n_co2prof+1):
     tip = 'varfit5_nlte'
     acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
     bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]

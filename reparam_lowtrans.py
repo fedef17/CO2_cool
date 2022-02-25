@@ -46,10 +46,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 
 all_alts = atm_pt[('mle', 'alts')]
@@ -82,7 +82,7 @@ def prova(cco2, alt1, alt2, use_model = 1):
     tempsgrad = []
     for atm, col in zip(allatms, npl.color_set(6)):
         diffnlte.append(all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2])
-        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
+        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=npl.n_alts_all)
         hras.append(hra[alt1:alt2])
         hrbs.append(hrb[alt1:alt2])
         temps.append(atm_pt[(atm, 'temp')][alt1:alt2])
@@ -121,7 +121,7 @@ alt1 = 40
 alt2 = 53
 
 nlte_corr = dict()
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     c, ms = prova(cco2, alt1, alt2)
     nlte_corr[(cco2, 'c')] = c
     nlte_corr[(cco2, 'm1')] = ms[0]
@@ -141,21 +141,21 @@ figs = []
 figs2 = []
 a0s = []
 a1s = []
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     fig2, ax2 = plt.subplots()
     for atm, col in zip(allatms, npl.color_set(6)):
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
 
         acoeff, bcoeff, asurf, bsurf = npl.coeffs_from_eofreg(cco2, temp, surf_temp, method = '1eof', regrcoef = regrcoef)
-        hr_new = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
-        hra, hrb = npl.hr_from_ab_decomposed(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+        hr_new = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = npl.n_alts_all)
+        hra, hrb = npl.hr_from_ab_decomposed(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=npl.n_alts_all)
         hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1:alt2] + nlte_corr[(cco2, 'm2')] * hrb[alt1:alt2]
         hr_new[alt1:alt2] = hr_new[alt1:alt2] + hr_nlte_corr
 
         acoeff, bcoeff, asurf, bsurf = npl.coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrcoef)
-        hr_new_v2 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
-        hra, hrb = npl.hr_from_ab_decomposed(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+        hr_new_v2 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = npl.n_alts_all)
+        hra, hrb = npl.hr_from_ab_decomposed(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=npl.n_alts_all)
         hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1:alt2] + nlte_corr[(cco2, 'm2')] * hrb[alt1:alt2]
         hr_new_v2[alt1:alt2] = hr_new_v2[alt1:alt2] + hr_nlte_corr
         ax2.plot(hr_nlte_corr, np.arange(alt1, alt2), color = col, linestyle = '--')
@@ -171,7 +171,7 @@ for cco2 in range(1,8):
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
 
-        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
+        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=npl.n_alts_all)
         hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1:alt2] + nlte_corr[(cco2, 'm2')] * hrb[alt1:alt2]
         ax2.plot(hr_nlte_corr, np.arange(alt1, alt2), color = col, linestyle = ':')
         ax2.plot(hr_ref[alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2], np.arange(alt1, alt2), color = col, label = atm)
@@ -182,7 +182,7 @@ for cco2 in range(1,8):
         xlab = 'CR (K/day)'
         ylab = 'index'
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(np.arange(66), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2, 2), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'], colors = colors)
+        fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2, 2), xlim = (-40, 10), ylim = (10, 90), linestyles = ['-', '--', '--', ':'], colors = colors)
 
         figs.append(fig)
         a0s.append(a0)

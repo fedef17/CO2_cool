@@ -41,10 +41,10 @@ atmweigths = dict(zip(allatms, atmweigths))
 atmweigths2 = np.ones(6)/6.
 atmweigths2 = dict(zip(allatms, atmweigths2))
 
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 n_alts = 40
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
@@ -75,8 +75,8 @@ xis_a_start = np.ones(6)
 xis_b_start = np.ones(6)
 
 ##### Rescaling both a and b by hr_nlte/hr_lte
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         doloop = True
         jloop = 1
         xis_b = None
@@ -133,8 +133,8 @@ pickle.dump(varfit_xis, open(cart_out_2+'varfit_NLTE_v4.p', 'wb'))
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         doloop = True
         jloop = 1
         xis_b = None
@@ -193,8 +193,8 @@ varfit_xis_3 = dict()
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         doloop = True
         jloop = 1
         xis_b = None
@@ -250,8 +250,8 @@ atmweigths4 = [0., 0., 0., 0., 0.5, 0.5]
 atmweigths4 = dict(zip(allatms, atmweigths4))
 varfit_xis_4 = dict()
 
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         doloop = True
         jloop = 1
         xis_b = None
@@ -306,8 +306,8 @@ pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v7_arctic.p', 'wb'))
 bounds = (0.1*np.ones(6), np.ones(6))
 varfit_xis_4 = dict()
 
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         doloop = True
         jloop = 1
         xis_b = None
@@ -360,8 +360,8 @@ print('######################################################')
 pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v8_lim01.p', 'wb'))
 
 # THE LM METHOD MAKES THE xis_b EXPLODE. why?
-# for cco2 in range(1,8):
-#     for ialt in range(66):
+# for cco2 in range(1,npl.n_co2prof+1):
+#     for ialt in range(npl.n_alts_all):
 #         doloop = True
 #         jloop = 1
 #         xis_b = None
@@ -411,8 +411,8 @@ for iatmw in range(6):
     #xis_b_start[iatmw] = 10
 
     varfit_xis_2 = dict()
-    for cco2 in range(1,8):
-        for ialt in range(66):
+    for cco2 in range(1,npl.n_co2prof+1):
+        for ialt in range(npl.n_alts_all):
             doloop = True
             jloop = 1
             xis_b = None

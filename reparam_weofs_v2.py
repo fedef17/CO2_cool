@@ -16,16 +16,20 @@ import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
 
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+if os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
+elif os.uname()[1] == 'hobbes':
+    cart_base = '/home/fabiano/Research/'
 else:
-    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
-    cart_out_rep = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_reparam/'
+    raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
+
+sys.path.insert(0, cart_base + 'git/SpectRobot/')
+sys.path.insert(0, cart_base + 'git/pythall/')
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
+cart_out_2 = cart_base + 'lavori/CO2_cooling/new_param/NLTE/'
+cart_out_rep = cart_base + 'lavori/CO2_cooling/new_param/NLTE_reparam/'
+
+if not os.path.exists(cart_out_rep): os.mkdir(cart_out_rep)
 
 import newparam_lib as npl
 from eofs.standard import Eof
@@ -44,10 +48,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 
 all_alts = atm_pt[('mle', 'alts')]
@@ -89,7 +93,7 @@ surfanom = surftemps-np.mean(surftemps)
 
 # SIMPLER. Linear (or nonlinear?) regression of coeff with first pc of temp profile
 regrcoef = dict()
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
         acos = np.stack([all_coeffs[(atm, cco2, conam)] for atm in allatms]) ### LTE COEFFS!
         if acos.ndim == 3:
@@ -169,7 +173,7 @@ dotprods1 = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[1]
 
 
 # ### OK! now I use the dotprods and the regrcoef to reconstruct the a and b coeffs, and compute the hr and check wrt the reference and the varfit5.
-cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 
 colors = npl.color_set(5)
@@ -178,7 +182,7 @@ colors = colors[:3] + [colors[4]]
 figs = []
 a0s = []
 a1s = []
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     for atm, dp, dp1, sa in zip(allatms, dotprods, dotprods1, surfanom):
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
@@ -191,8 +195,8 @@ for cco2 in range(1,8):
                 coeffs[conam] = regrcoef[(cco2, conam, 'c')] + regrcoef[(cco2, conam, 'm')]*dp
                 coeffs[(conam, 'v2')] = regrcoef[(cco2, conam, 'c1')] + regrcoef[(cco2, conam, 'm1')]*dp + regrcoef[(cco2, conam, 'm2')]*dp1
 
-        hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
-        hr_new_v2 = npl.hr_from_ab(coeffs[('acoeff', 'v2')], coeffs[('bcoeff', 'v2')], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = 66)
+        hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = npl.n_alts_all)
+        hr_new_v2 = npl.hr_from_ab(coeffs[('acoeff', 'v2')], coeffs[('bcoeff', 'v2')], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = npl.n_alts_all)
 
         tip = 'varfit5'
         acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
@@ -207,11 +211,12 @@ for cco2 in range(1,8):
 
         labels = ['ref', 'veof', 'veof2', 'vf5']
         hrs = [hr_ref, hr_new, hr_new_v2, hr_vf5]
+        hrs_ok = [hh[:n_alts_trlo+2] for hh in hrs]
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'index'
         #labels = ['ref'] + alltips + ['fomi rescale (no fit)', 'old param']
-        fig, a0, a1 = npl.manuel_plot(np.arange(51), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2, 2), xlim = (-40, 10), ylim = (0, 51), linestyles = ['-', '--', '--', ':'], colors = colors, orizlines = [40., 51.])
+        fig, a0, a1 = npl.manuel_plot(np.arange(n_alts_trlo+2), hrs_ok, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2, 2), xlim = (-40, 10), ylim = (0, 51), linestyles = ['-', '--', '--', ':'], colors = colors, orizlines = [40., 51.])
 
         figs.append(fig)
         a0s.append(a0)

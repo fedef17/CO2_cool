@@ -46,10 +46,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 
 all_alts = atm_pt[('mle', 'alts')]
@@ -67,7 +67,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 cco2 = 7
 
 # plt.ion()
-# for cco2 in [7]:#range(1,8):
+# for cco2 in [7]:#range(1,npl.n_co2prof+1):
 #     ratios = [all_coeffs_nlte[(atm, cco2, 'hr_ref')]/all_coeffs_nlte[(atm, cco2, 'hr_lte')] for atm in allatms]
 #     plt.figure()
 #     for atm, col in zip(allatms, npl.color_set(6)):
@@ -94,7 +94,7 @@ def prova(cco2, alt1, alt2, use_model = 1):
     tempsgrad = []
     for atm, col in zip(allatms, npl.color_set(6)):
         diffnlte.append(all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt1:alt2]-all_coeffs_nlte[(atm, cco2, 'hr_lte')][alt1:alt2])
-        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=66)
+        hra, hrb = npl.hr_from_ab_decomposed(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts=npl.n_alts_all)
         hras.append(hra[alt1:alt2])
         hrbs.append(hrb[alt1:alt2])
         temps.append(atm_pt[(atm, 'temp')][alt1:alt2])
@@ -150,11 +150,11 @@ def prova(cco2, alt1, alt2, use_model = 1):
 
 colors = npl.color_set(5)
 allsco = []
-for alt2 in range(41, 66):
+for alt2 in range(41, npl.n_alts_all):
     allsco.append(prova(alt1, alt2))
 
 allsco = np.stack(allsco).T
 plt.figure()
 for i, (sco,col) in enumerate(zip(allsco, colors)):
-    plt.plot(sco, np.arange(41,66), color = col, label = str(i))
+    plt.plot(sco, np.arange(41,npl.n_alts_all), color = col, label = str(i))
 plt.legend()

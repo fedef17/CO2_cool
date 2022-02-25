@@ -40,10 +40,10 @@ atmweigths = dict(zip(allatms, atmweigths))
 atmweigths2 = np.ones(6)/6.
 atmweigths2 = dict(zip(allatms, atmweigths2))
 
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 n_alts = 40
 
 from scipy.optimize import Bounds, minimize, least_squares
@@ -63,8 +63,8 @@ allres_varfit = dict()
 varfit_xis = dict()
 varfit_xis_2 = dict()
 
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         # result = least_squares(npl.delta_xi_at_x0, np.ones(6), jac=npl.jacdelta_xi_at_x0, args=(cco2, ialt,), verbose=1, method = 'trf', bounds = bounds, gtol = None)
         # print(ialt, result.x)
         # allres_varfit[(cco2, ialt)] = result

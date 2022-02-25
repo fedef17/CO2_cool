@@ -41,27 +41,36 @@ E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 
 cp_0 = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 
-NLTE_DEBUG = True
+NLTE_DEBUG = False
 #############################################################
 
+# Define global parameters
+n_alts_all = 83 # vertical size of reference atmosphere
+n_co2prof = 8 # number of reference co2 profiles
+
+#############################################################
 
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 n_alts = 40
 
 regrcoefpath = cart_out + '../NLTE_reparam/regrcoef_v3.p'
-regrcoef = pickle.load(open(regrcoefpath, 'rb'))
+#regrcoef = pickle.load(open(regrcoefpath, 'rb'))
+regrcoef = None
+alpha_cose = None
+nlte_corr = None
 
-alpha_cose = pickle.load(open(cart_out + '../NLTE_reparam/alpha_fit_4e.p', 'rb'))
-alpha_cose['min'] = np.min(np.stack([alpha_cose[('min', i)] for i in range(1,8)]), axis = 0)
-alpha_cose['max'] = np.max(np.stack([alpha_cose[('max', i)] for i in range(1,8)]), axis = 0)
-
-nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb'))
+# UNCOMMENT HERE!!
+# alpha_cose = pickle.load(open(cart_out + '../NLTE_reparam/alpha_fit_4e.p', 'rb'))
+# alpha_cose['min'] = np.min(np.stack([alpha_cose[('min', i)] for i in range(1,n_co2prof+1)]), axis = 0)
+# alpha_cose['max'] = np.max(np.stack([alpha_cose[('max', i)] for i in range(1,n_co2prof+1)]), axis = 0)
+#
+# nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb'))
 
 from scipy.optimize import Bounds, minimize, least_squares
 
@@ -315,7 +324,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     #lte
     acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
-    hr_lte = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+    hr_lte = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = n_alts_all)
 
     #### nltecorr
     hr_nlte_corr = nltecorr_from_eofreg_single(temp, surf_temp, calc_coeffs, alt1 = alt1, alt2 = alt2)
@@ -471,10 +480,10 @@ def leggioutfomi(nomeout):
 def get_interp_coeffs(tot_coeff_co2):
     interp_coeffs = dict()
     for tip in ['unifit', 'varfit']:
-        co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
+        co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,n_co2prof+1)]
 
         for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-            coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,8)]
+            coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,n_co2prof+1)]
 
             int_fun, signc = interp_coeff_logco2(coeffs, co2profs)
             interp_coeffs[(tip, nam, 'int_fun')] = int_fun
@@ -1029,7 +1038,7 @@ def nltecorr_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef
 
     acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, singlecoef)
 
-    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=n_alts_all)
 
     hr_nlte_corr = singlecoef[('nltecorr', 'c')] + singlecoef[('nltecorr', 'm1')] * hra[alt1:alt2] + singlecoef[('nltecorr', 'm2')] * hrb[alt1:alt2] + singlecoef[('nltecorr', 'm3')] * pc0 + singlecoef[('nltecorr', 'm4')] * pc1
 
@@ -1577,9 +1586,9 @@ def hr_reparam_low(cco2, temp, surf_temp, regrcoef = regrcoef, nlte_corr = nlte_
     pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
 
     acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrcoef)
-    hr_new = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+    hr_new = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = n_alts_all)
 
-    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=n_alts_all)
     hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm2')] * hrb[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm3')] * pc0 + nlte_corr[(cco2, 'm4')] * pc1
 
     hr_new[alt1_nlte:alt2_nlte] = hr_new[alt1_nlte:alt2_nlte] + hr_nlte_corr
@@ -1603,9 +1612,9 @@ def hr_reparam_full(pres, temp, surf_temp, co2vmr, ovmr, o2vmr, n2vmr, regrcoef 
     pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
 
     acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrcoef)
-    hr_new = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+    hr_new = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = n_alts_all)
 
-    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=66)
+    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=n_alts_all)
     hr_nlte_corr = nlte_corr[(cco2, 'c')] + nlte_corr[(cco2, 'm1')] * hra[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm2')] * hrb[alt1_nlte:alt2_nlte] + nlte_corr[(cco2, 'm3')] * pc0 + nlte_corr[(cco2, 'm4')] * pc1
 
     hr_new[alt1_nlte:alt2_nlte] = hr_new[alt1_nlte:alt2_nlte] + hr_nlte_corr

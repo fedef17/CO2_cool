@@ -14,15 +14,18 @@ import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
 
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
-else:
-    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
+if os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
+elif os.uname()[1] == 'hobbes':
+    cart_base = '/home/fabiano/Research/'
+
+sys.path.insert(0, cart_base + 'git/SpectRobot/')
+sys.path.insert(0, cart_base + 'git/pythall/')
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
+cart_out_2 = cart_base + 'lavori/CO2_cooling/new_param/NLTE/'
+
+cartsav = cart_base + 'lavori/CO2_cooling/new_param/sent8_hr_nlte_ext_v4.1/sav_v4/'
+filsav = 'cr_nlte_{}_co2_{}.sav'
 
 import newparam_lib as npl
 
@@ -37,10 +40,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 n_alts = 54
 
@@ -55,16 +58,14 @@ print('low trans at {} km, ialt {}'.format(alts[n_alts_trlo], n_alts_trlo))
 
 n_alts_lte = 40
 
-tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
-
-ratiooo = pickle.load(open(cart_out_2 + 'ratios_NLTE_smooth.p', 'rb'))
+# tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
+#
+# ratiooo = pickle.load(open(cart_out_2 + 'ratios_NLTE_smooth.p', 'rb'))
 
 # Now. We are in the low transition region and need to adjust the LTE coeffs to non-LTE.
-cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sav_v3.3/'
-filsav = 'cr_nlte_{}_co2_{}.sav'
 all_coeffs_nlte = dict()
 
-for cco2 in range(1,8):
+for cco2 in range(1, npl.n_co2prof+1):
     for atm in allatms:
         coso = io.readsav(cartsav+filsav.format(atm, cco2))['data']
         nomi = 'HR_NLTE HR_NLTE_FB HR_NLTE_HOT HR_NLTE_ISO HR_LTE CO2_VMR O_VMR UCO2 L_ESC L_ESC_FOM O2_VMR N2_VMR'
@@ -86,7 +87,7 @@ for cco2 in range(1,8):
                 all_coeffs_nlte[(atm, savcco2, nom.lower())] = vara
 
 # per ogni atm faccio:
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     for atm in allatms:
         #print(atm, cco2)
         # for cnam in ['acoeff', 'bcoeff']:
@@ -141,32 +142,32 @@ for cco2 in range(1,8):
         for cnam in ['asurf', 'bsurf']:
             all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*ratio
 
-        ratsmoo = npl.running_mean(hr_nlte/hr_lte, 5, remove_nans = True, keep_length = True)
-        for cnam in ['acoeff', 'bcoeff']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_smoo')] = all_coeffs[(atm, cco2, cnam)]*ratsmoo[np.newaxis, :]
-        for cnam in ['asurf', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_smoo')] = all_coeffs[(atm, cco2, cnam)]*ratsmoo
-
-        ratscut = hr_nlte/hr_lte
-        for cnam in ['acoeff', 'bcoeff']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_inv')] = all_coeffs[(atm, cco2, cnam)]*ratscut[:, np.newaxis]
-        for cnam in ['asurf', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_inv')] = all_coeffs[(atm, cco2, cnam)]*ratscut
-
-        ratscut = hr_nlte/hr_lte
-        ratscut[n_alts_trlo:] = 1.
-        for cnam in ['acoeff', 'bcoeff']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_cut')] = all_coeffs[(atm, cco2, cnam)]*ratscut[np.newaxis, :]
-        for cnam in ['asurf', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_cut')] = all_coeffs[(atm, cco2, cnam)]*ratscut
-
-        rat = hr_nlte/hr_lte
-        for cnam in ['acoeff', 'bcoeff']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_diag')] = all_coeffs[(atm, cco2, cnam)]
-            for ii, ira in enumerate(rat):
-                all_coeffs_nlte[(atm, cco2, cnam+'_diag')][ii, ii] *= ira
-        for cnam in ['asurf', 'bsurf']:
-            all_coeffs_nlte[(atm, cco2, cnam+'_diag')] = all_coeffs[(atm, cco2, cnam)]*rat
+        # ratsmoo = npl.running_mean(hr_nlte/hr_lte, 5, remove_nans = True, keep_length = True)
+        # for cnam in ['acoeff', 'bcoeff']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_smoo')] = all_coeffs[(atm, cco2, cnam)]*ratsmoo[np.newaxis, :]
+        # for cnam in ['asurf', 'bsurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_smoo')] = all_coeffs[(atm, cco2, cnam)]*ratsmoo
+        #
+        # ratscut = hr_nlte/hr_lte
+        # for cnam in ['acoeff', 'bcoeff']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_inv')] = all_coeffs[(atm, cco2, cnam)]*ratscut[:, np.newaxis]
+        # for cnam in ['asurf', 'bsurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_inv')] = all_coeffs[(atm, cco2, cnam)]*ratscut
+        #
+        # ratscut = hr_nlte/hr_lte
+        # ratscut[n_alts_trlo:] = 1.
+        # for cnam in ['acoeff', 'bcoeff']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_cut')] = all_coeffs[(atm, cco2, cnam)]*ratscut[np.newaxis, :]
+        # for cnam in ['asurf', 'bsurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_cut')] = all_coeffs[(atm, cco2, cnam)]*ratscut
+        #
+        # rat = hr_nlte/hr_lte
+        # for cnam in ['acoeff', 'bcoeff']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_diag')] = all_coeffs[(atm, cco2, cnam)]
+        #     for ii, ira in enumerate(rat):
+        #         all_coeffs_nlte[(atm, cco2, cnam+'_diag')][ii, ii] *= ira
+        # for cnam in ['asurf', 'bsurf']:
+        #     all_coeffs_nlte[(atm, cco2, cnam+'_diag')] = all_coeffs[(atm, cco2, cnam)]*rat
 
 
 pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))

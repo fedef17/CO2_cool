@@ -14,15 +14,17 @@ import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
 
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+if os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
+elif os.uname()[1] == 'hobbes':
+    cart_base = '/home/fabiano/Research/'
 else:
-    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
+    raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
+
+sys.path.insert(0, cart_base + 'git/SpectRobot/')
+sys.path.insert(0, cart_base + 'git/pythall/')
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
+cart_out_2 = cart_base + 'lavori/CO2_cooling/new_param/NLTE/'
 
 import newparam_lib as npl
 
@@ -37,10 +39,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 n_alts = 54
 
@@ -53,47 +55,47 @@ figs = []
 a0s = []
 a1s = []
 
-tot_coeff_co2_old = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
 tot_coeff_co2 = dict()
-
-varfit_xis = pickle.load(open(cart_out+'varfit_LTE_v2b.p', 'rb'))
-varfit_xis_2 = pickle.load(open(cart_out+'varfit_LTE_v3b.p', 'rb'))
-
+# tot_coeff_co2_old = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
+#
+# varfit_xis = pickle.load(open(cart_out+'varfit_LTE_v2b.p', 'rb'))
+# varfit_xis_2 = pickle.load(open(cart_out+'varfit_LTE_v3b.p', 'rb'))
+#
 varfit_xis_4 = pickle.load(open(cart_out+'varfit_LTE_v4.p', 'rb'))
 varfit_xis_5 = pickle.load(open(cart_out+'varfit_LTE_v5.p', 'rb'))
 
 for cco2 in allco2:
-    acoeff, bcoeff = npl.ab_from_xi_varfit(varfit_xis, cco2)
-    asurf, bsurf = npl.absurf_from_xi_varfit(varfit_xis, cco2)
+    # acoeff, bcoeff = npl.ab_from_xi_varfit(varfit_xis, cco2)
+    # asurf, bsurf = npl.absurf_from_xi_varfit(varfit_xis, cco2)
+    #
+    # tot_coeff_co2[('varfit2', 'acoeff', cco2)] = acoeff
+    # tot_coeff_co2[('varfit2', 'bcoeff', cco2)] = bcoeff
+    # tot_coeff_co2[('varfit2', 'asurf', cco2)] = asurf
+    # tot_coeff_co2[('varfit2', 'bsurf', cco2)] = bsurf
+    #
+    # acoeff, bcoeff = npl.ab_from_xi_varfit(varfit_xis_2, cco2)
+    # asurf, bsurf = npl.absurf_from_xi_varfit(varfit_xis_2, cco2)
+    #
+    # tot_coeff_co2[('varfit3', 'acoeff', cco2)] = acoeff
+    # tot_coeff_co2[('varfit3', 'bcoeff', cco2)] = bcoeff
+    # tot_coeff_co2[('varfit3', 'asurf', cco2)] = asurf
+    # tot_coeff_co2[('varfit3', 'bsurf', cco2)] = bsurf
+    #
+    # # PATCH: the old version only had 6 co2 profiles, setting the lowest profile to nan
+    # for cotip in ['unifit', 'varfit']:
+    #     for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+    #         if cco2 == 1:
+    #             tot_coeff_co2[(cotip, conam, cco2)] = np.nan * tot_coeff_co2_old[(cotip, conam, 1)]
+    #         else:
+    #             tot_coeff_co2[(cotip, conam, cco2)] = tot_coeff_co2_old[(cotip, conam, cco2-1)]
 
-    tot_coeff_co2[('varfit2', 'acoeff', cco2)] = acoeff
-    tot_coeff_co2[('varfit2', 'bcoeff', cco2)] = bcoeff
-    tot_coeff_co2[('varfit2', 'asurf', cco2)] = asurf
-    tot_coeff_co2[('varfit2', 'bsurf', cco2)] = bsurf
-
-    acoeff, bcoeff = npl.ab_from_xi_varfit(varfit_xis_2, cco2)
-    asurf, bsurf = npl.absurf_from_xi_varfit(varfit_xis_2, cco2)
-
-    tot_coeff_co2[('varfit3', 'acoeff', cco2)] = acoeff
-    tot_coeff_co2[('varfit3', 'bcoeff', cco2)] = bcoeff
-    tot_coeff_co2[('varfit3', 'asurf', cco2)] = asurf
-    tot_coeff_co2[('varfit3', 'bsurf', cco2)] = bsurf
-
-    # PATCH: the old version only had 6 co2 profiles, setting the lowest profile to nan
-    for cotip in ['unifit', 'varfit']:
-        for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-            if cco2 == 1:
-                tot_coeff_co2[(cotip, conam, cco2)] = np.nan * tot_coeff_co2_old[(cotip, conam, 1)]
-            else:
-                tot_coeff_co2[(cotip, conam, cco2)] = tot_coeff_co2_old[(cotip, conam, cco2-1)]
-
-    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit(varfit_xis_4, cco2)
+    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_4, cco2)
     tot_coeff_co2[('varfit4', 'acoeff', cco2)] = acoeff
     tot_coeff_co2[('varfit4', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit4', 'asurf', cco2)] = asurf
     tot_coeff_co2[('varfit4', 'bsurf', cco2)] = bsurf
 
-    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit(varfit_xis_5, cco2)
+    acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_5, cco2)
     tot_coeff_co2[('varfit5', 'acoeff', cco2)] = acoeff
     tot_coeff_co2[('varfit5', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit5', 'asurf', cco2)] = asurf
@@ -108,16 +110,17 @@ figs2 = []
 a0s = []
 a1s = []
 
-co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
+co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)]
 
 fit_score = dict()
-alltips = ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']
+#alltips = ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']
+alltips = ['varfit4', 'varfit5']
 for tip in alltips:
     for sco in ['lte', 'lte+trans']:
         for cos in ['std', 'max']:
             fit_score[(tip, sco, cos)] = []
 
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     co2pr = co2profs[cco2-1]
 
     for atm in allatms:
@@ -131,7 +134,7 @@ for cco2 in range(1,8):
         hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
 
         hr_calcs = []
-        for tip in ['unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']:
+        for tip in alltips:
             acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
             bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
             asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
@@ -163,7 +166,7 @@ for cco2 in range(1,8):
         # a1s.append(a1)
 
         hrs = [hr_ref] + hr_calcs
-        labels = ['ref', 'unifit', 'varfit', 'varfit2', 'varfit3', 'varfit4', 'varfit5']
+        labels = ['ref'] + alltips
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
 
         figs2.append(fig)
@@ -208,7 +211,7 @@ for cos in ['std', 'max']:
         print('BEST TIP FOR SAS and SAW: {} \n'.format(alltips[np.argmin(allsco)]))
 
 
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     co2pr = co2profs[cco2-1]
 
     for atm in allatms:

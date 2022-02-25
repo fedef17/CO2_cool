@@ -41,10 +41,10 @@ atmweigths = dict(zip(allatms, atmweigths))
 atmweigths2 = np.ones(6)/6.
 atmweigths2 = dict(zip(allatms, atmweigths2))
 
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 n_alts = 40
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
@@ -77,7 +77,7 @@ xis_b_start = np.ones(6)
 ##### Rescaling both a and b by hr_nlte/hr_lte
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
-# for cco2 in range(1,8):
+# for cco2 in range(1,npl.n_co2prof+1):
 #     for atm in allatms:
 #         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
 #         hr_ref[:40] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:40]
@@ -101,8 +101,8 @@ for xisinit in [np.ones(6), [10., 1., 1., 1., 1., 1.], [100., 0.1, 0.1, 0.1, 0.1
         weigatm[iatmw] = 1.0
         weigatm = dict(zip(allatms, weigatm))
 
-        for cco2 in [7]:#range(1,8):
-            for ialt in [47]:#range(66):
+        for cco2 in [7]:#range(1,npl.n_co2prof+1):
+            for ialt in [47]:#range(npl.n_alts_all):
                 print('\n######################### ', ialt, ' #########################\n')
                 doloop = True
                 jloop = 1

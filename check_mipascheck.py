@@ -51,10 +51,10 @@ allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 #atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweights = np.ones(6)/6.
 atmweights = dict(zip(allatms, atmweights))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 all_alts = atm_pt[('mle', 'alts')]
 
@@ -571,7 +571,7 @@ press = np.stack([atm_pt[(atm, 'pres')][alt2:n_top+1] for atm in allatms])
 kbc = 0.69503
 E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
 phifunz = np.exp(-E_fun/(kbc*temps))
-popup = np.array([phifunz[ii]*cose_upper_atm[(atm, cco2, 'lamb')][alt2:n_top+1]/1.5988 for ii, atm in enumerate(allatms) for cco2 in range(1,8)])
+popup = np.array([phifunz[ii]*cose_upper_atm[(atm, cco2, 'lamb')][alt2:n_top+1]/1.5988 for ii, atm in enumerate(allatms) for cco2 in range(1,npl.n_co2prof+1)])
 
 popup_mean = np.mean(popup, axis = 0)
 popup_anom = popup-popup_mean

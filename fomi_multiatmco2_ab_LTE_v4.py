@@ -12,23 +12,26 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+if os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
 elif os.uname()[1] == 'hobbes':
-    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
+    cart_base = '/home/fabiano/Research/'
 else:
     raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
+
+sys.path.insert(0, cart_base + 'git/SpectRobot/')
+sys.path.insert(0, cart_base + 'git/pythall/')
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
 
 import spect_base_module as sbm
 import spect_classes as spcl
 
-kbc = const.k/(const.h*100*const.c) # 0.69503
-kboltz = 1.38064853e-23 # J/K
-E_fun = 667.3799 # cm-1 energy of the 0110 -> 0000 transition
+from scipy.optimize import Bounds, minimize, least_squares
+import newparam_lib as npl
+
+kbc = npl.kbc #const.k/(const.h*100*const.c) # 0.69503
+kboltz = npl.kboltz #1.38064853e-23 # J/K
+E_fun = npl.E_fun #667.3799 # cm-1 energy of the 0110 -> 0000 transition
 
 cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 #############################################################
@@ -40,22 +43,21 @@ atmweigths = dict(zip(allatms, atmweigths))
 atmweigths2 = np.ones(6)/6.
 atmweigths2 = dict(zip(allatms, atmweigths2))
 
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 n_alts = 40
 
-from scipy.optimize import Bounds, minimize, least_squares
-import newparam_lib as npl
 #############################################################
 
-tutti3 = pickle.load(open(cart_out+'tutti3_vals.p'))
-tuttil3 = np.array([cu[1] for cu in tutti3])
-ind = tuttil3.argmin()
-print(tutti3[ind])
-
-start = tutti3[ind][0]
+# tutti3 = pickle.load(open(cart_out+'tutti3_vals.p'))
+# tuttil3 = np.array([cu[1] for cu in tutti3])
+# ind = tuttil3.argmin()
+# print(tutti3[ind])
+#
+# start = tutti3[ind][0]
+start = np.ones(6)
 
 bounds = (np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1]), np.array([100, 100, 100, 100, 100, 100]))
 
@@ -66,8 +68,8 @@ varfit_xis_2 = dict()
 thresloop = 0.001
 nloops = 10
 
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         doloop = True
         jloop = 1
         xis_b = None
@@ -102,8 +104,8 @@ for cco2 in range(1,8):
 print('######################################################')
 pickle.dump(varfit_xis, open(cart_out+'varfit_LTE_v4.p', 'wb'))
 
-for cco2 in range(1,8):
-    for ialt in range(66):
+for cco2 in range(1,npl.n_co2prof+1):
+    for ialt in range(npl.n_alts_all):
         doloop = True
         jloop = 1
         xis_b = None

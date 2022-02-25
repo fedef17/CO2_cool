@@ -58,10 +58,10 @@ allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 #atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweights = np.ones(6)/6.
 atmweights = dict(zip(allatms, atmweights))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 
 all_alts = atm_pt[('mle', 'alts')]
@@ -87,7 +87,7 @@ interp_coeffs = npl.precalc_interp()
 figs = []
 a0s = []
 a1s = []
-for cco2 in range(1, 8):
+for cco2 in range(1, npl.n_co2prof+1):
     for ii, atm in enumerate(allatms):
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]
@@ -163,7 +163,7 @@ for cco2 in range(1, 8):
         hrs = [hr_ref, cr_new, cr_fomialpha, crok, cr_fa_fL_start, cr_fa_fL_start_new, cr_new_oldfactor]
         colors = ['violet', 'red', 'orange', 'blue', 'forestgreen', 'brown', 'grey']
 
-        fig, a0, a1 = npl.manuel_plot(np.arange(66), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', '-', ':', ':', ':'], colors = colors, orizlines = [40, 50])
+        fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', '-', ':', ':', ':'], colors = colors, orizlines = [40, 50])
 
         figs.append(fig)
         a0s.append(a0)

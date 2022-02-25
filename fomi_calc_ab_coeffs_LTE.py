@@ -13,18 +13,18 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
-    cartsav = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/sav/'
-    cartatm = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/sent2/atm/'
-elif os.uname()[1] == 'hobbes':
-    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cartatm = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sent6_cm_v3/atm/cira_v3/'
-    cartsav = '/home/fabiano/Research/lavori/CO2_cooling/new_param/sent6_cm_v3/sav_v3/'
+#import newparam_lib as npl
+
+if os.uname()[1] == 'hobbes':
+    cart_base = '/home/fabiano/Research/'
+elif os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
+
+sys.path.insert(0, cart_base + 'git/SpectRobot/')
+sys.path.insert(0, cart_base + 'git/pythall/')
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
+cartatm = cart_base + 'lavori/CO2_cooling/new_param/sent7_cm_v4/atm/cira_v4.1/'
+cartsav = cart_base + 'lavori/CO2_cooling/new_param/sent7_cm_v4/sav_v4/'
 
 import spect_base_module as sbm
 import spect_classes as spcl
@@ -38,7 +38,7 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 
 filsav = 'data_cira_{}_co2_{}.sav'
 filvmr = 'vmr_cira_{}_co2_{}.prf'
-filatm = 'pt_cira_{}.prf'
+filatm = 'pt_cira_{}_ext4.prf'
 
 frini = 540.
 frfin = 800.
@@ -57,11 +57,12 @@ all_temps = np.arange(140, 321, 5)
 all_total_strengths = pickle.load(open(cart_out + 'line_strengths_CO2.p'))
 
 ##############################################################################
+n_co2prof = 8
 
 atm = 'mle'
 cco2 = 1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
-allco2 = np.arange(1,8)
+allco2 = np.arange(1, n_co2prof+1)
 
 all_coeffs = dict()
 atm_pt = dict()
@@ -262,8 +263,8 @@ for atm in allatms:
         all_coeffs[(atm, cco2, 'hr_ref')] = hr_sum
         all_coeffs[(atm, cco2, 'lspace')] = lspace
 
-pickle.dump(all_coeffs, open(cart_out + 'all_coeffs_LTE_v2.p', 'w'))
-pickle.dump(atm_pt, open(cart_out + 'atm_pt_v2.p', 'w'))
+pickle.dump(all_coeffs, open(cart_out + 'all_coeffs_LTE_v4.p', 'w'))
+pickle.dump(atm_pt, open(cart_out + 'atm_pt_v4.p', 'w'))
 
 # STEP 4 pagina 511: facciamo la media pesata tra le diverse atmosfere
 # new_file

@@ -37,10 +37,10 @@ cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 n_alts = 55
 
@@ -59,30 +59,33 @@ figs = []
 a0s = []
 a1s = []
 
-# tot_coeff_co2 = dict()
-#
-# for cco2 in allco2:
-#     xis_unif = best_unif[cco2]#/np.sum(best_unif[cco2])
-#     xis2_unif = best_unif_v2[cco2]#/np.sum(best_unif_v2[cco2])
-#     #print(cco2, xis)
-#
-#     acoeff, bcoeff = npl.ab_from_xi_unifit(xis2_unif, cco2)
-#     asurf, bsurf = npl.absurf_from_xi_unifit(xis2_unif, cco2)
-#
-#     tot_coeff_co2[('unifit', 'acoeff', cco2)] = acoeff
-#     tot_coeff_co2[('unifit', 'bcoeff', cco2)] = bcoeff
-#     tot_coeff_co2[('unifit', 'asurf', cco2)] = asurf
-#     tot_coeff_co2[('unifit', 'bsurf', cco2)] = bsurf
-#
-#     acoeff, bcoeff = npl.ab_from_xi_varfit(best_var, cco2)
-#     asurf, bsurf = npl.absurf_from_xi_varfit(best_var, cco2)
-#
-#     tot_coeff_co2[('varfit', 'acoeff', cco2)] = acoeff
-#     tot_coeff_co2[('varfit', 'bcoeff', cco2)] = bcoeff
-#     tot_coeff_co2[('varfit', 'asurf', cco2)] = asurf
-#     tot_coeff_co2[('varfit', 'bsurf', cco2)] = bsurf
-#
-# pickle.dump(tot_coeff_co2, open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'w'))
+tot_coeff_co2 = dict()
+
+for cco2 in allco2:
+    xis_unif = best_unif[cco2]#/np.sum(best_unif[cco2])
+    xis2_unif = best_unif_v2[cco2]#/np.sum(best_unif_v2[cco2])
+    #print(cco2, xis)
+
+    acoeff, bcoeff = npl.ab_from_xi_unifit(xis2_unif, cco2)
+    asurf, bsurf = npl.absurf_from_xi_unifit(xis2_unif, cco2)
+
+    tot_coeff_co2[('unifit', 'acoeff', cco2)] = acoeff
+    tot_coeff_co2[('unifit', 'bcoeff', cco2)] = bcoeff
+    tot_coeff_co2[('unifit', 'asurf', cco2)] = asurf
+    tot_coeff_co2[('unifit', 'bsurf', cco2)] = bsurf
+
+    acoeff, bcoeff = npl.ab_from_xi_varfit(best_var, cco2)
+    asurf, bsurf = npl.absurf_from_xi_varfit(best_var, cco2)
+
+    tot_coeff_co2[('varfit', 'acoeff', cco2)] = acoeff
+    tot_coeff_co2[('varfit', 'bcoeff', cco2)] = bcoeff
+    tot_coeff_co2[('varfit', 'asurf', cco2)] = asurf
+    tot_coeff_co2[('varfit', 'bsurf', cco2)] = bsurf
+
+pickle.dump(tot_coeff_co2, open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'w'))
+
+sys.exit()
+
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
 
 # STEP 5
@@ -91,10 +94,10 @@ tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v1_LTE.p', 'r'))
 interp_coeffs = dict()
 for tip in ['unifit', 'varfit']:
 
-    co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
+    co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)]
 
     for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-        coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,8)]
+        coeffs = [tot_coeff_co2[(tip, nam, cco2)] for cco2 in range(1,npl.n_co2prof+1)]
 
         int_fun, signc = npl.interp_coeff_logco2(coeffs, co2profs)
         interp_coeffs[(tip, nam, 'int_fun')] = int_fun
@@ -138,7 +141,7 @@ for tip in ['unifit', 'varfit']:
     a0s = []
     a1s = []
 
-    for cco2 in range(1,8):
+    for cco2 in range(1,npl.n_co2prof+1):
         co2pr = co2profs[cco2-1]
 
         # i coeffs universali:
@@ -217,7 +220,7 @@ for tip in ['unifit', 'varfit']:
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
 
-        hr_refs = [all_coeffs[(atm, cco2, 'hr_ref')][:n_alts] for cco2 in range(1,8)]
+        hr_refs = [all_coeffs[(atm, cco2, 'hr_ref')][:n_alts] for cco2 in range(1,npl.n_co2prof+1)]
 
         # labels = ['ref', 'step 4', 'step 5']
         #fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-2.5, 2.5))
@@ -249,9 +252,9 @@ figs2 = []
 a0s = []
 a1s = []
 
-co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
+co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)]
 
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     co2pr = co2profs[cco2-1]
 
     # i coeffs universali:
@@ -317,7 +320,7 @@ npl.plot_pdfpages(cart_out + 'check_newparam_LTE_final_univsvar_2.pdf', figs2)
 # plt.ion()
 #
 # fig = plt.figure()
-# for cco2 in range(1,8):
+# for cco2 in range(1,npl.n_co2prof+1):
 #     acoeff = tot_coeff_co2[('varfit', 'acoeff', cco2)]
 #
 #     plt.plot(abs(acoeff[:, 10][:n_alts]), alts, label = str(cco2))

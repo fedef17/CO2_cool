@@ -58,10 +58,10 @@ allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 #atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweights = np.ones(6)/6.
 atmweights = dict(zip(allatms, atmweights))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 
 all_alts = atm_pt[('mle', 'alts')]
@@ -457,7 +457,7 @@ fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 #
 # moddict = dict()
 #
-# popup = np.array([phifunz[ii]*cose_upper_atm[(atm, cco2, 'lamb')][alt2:n_top+1]/1.5988 for ii, atm in enumerate(allatms) for cco2 in range(1,8)])
+# popup = np.array([phifunz[ii]*cose_upper_atm[(atm, cco2, 'lamb')][alt2:n_top+1]/1.5988 for ii, atm in enumerate(allatms) for cco2 in range(1,npl.n_co2prof+1)])
 #
 # popup_mean = np.mean(popup, axis = 0)
 # popup_anom = popup-popup_mean
@@ -474,7 +474,7 @@ fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 # alpha_fit = dict()
 # alpha_fit_nl0 = dict()
 # alpha_fit2 = dict()
-# for cco2 in range(1,8):
+# for cco2 in range(1,npl.n_co2prof+1):
 #     alphaok = alpha_dic_atm[cco2]
 #     alpha_min = np.min(alphaok, axis = 0)
 #     alpha_max = np.max(alphaok, axis = 0)
@@ -578,7 +578,7 @@ fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 # alpha_fit['eof2'] = solver_pop.eofs(eofscaling=1)[2]
 # alpha_fit['eof3'] = solver_pop.eofs(eofscaling=1)[3]
 #
-# for cco2 in range(1, 8):
+# for cco2 in range(1, npl.n_co2prof+1):
 #     alpha_fit[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
 #     alpha_fit[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
 #
@@ -588,7 +588,7 @@ fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 # alpha_fit2['eof0'] = solver_pop.eofs(eofscaling=1)[0]
 # alpha_fit2['eof1'] = solver_pop.eofs(eofscaling=1)[1]
 #
-# for cco2 in range(1, 8):
+# for cco2 in range(1, npl.n_co2prof+1):
 #     alpha_fit2[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
 #     alpha_fit2[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
 # pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0.p', 'wb'))
@@ -600,7 +600,7 @@ fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 # figs = []
 # a0s = []
 # a1s = []
-# for cco2 in range(1, 8):
+# for cco2 in range(1, npl.n_co2prof+1):
 #     alpha_min = np.min(alpha_dic_atm[cco2], axis = 0)
 #     alpha_max = np.max(alpha_dic_atm[cco2], axis = 0)
 #
@@ -620,7 +620,7 @@ fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 #
 #         hr_calc = npl.hr_reparam_low(cco2, temp, surf_temp, regrcoef = regrcoef, nlte_corr = nlte_corr)
 #
-#         hra, hrb = npl.hr_from_ab_diagnondiag(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts = 66)
+#         hra, hrb = npl.hr_from_ab_diagnondiag(all_coeffs[(atm, cco2, 'acoeff')], all_coeffs[(atm, cco2, 'bcoeff')], all_coeffs[(atm, cco2, 'asurf')], all_coeffs[(atm, cco2, 'bsurf')], atm_pt[(atm, 'temp')], atm_pt[(atm, 'surf_temp')], max_alts = npl.n_alts_all)
 #         hra = hra[alt2:n_top+1]
 #         hrb = hrb[alt2:n_top+1]
 #
@@ -676,7 +676,7 @@ fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 #         hrs = [hr_ref, hr_calc6, hr_calc_nl, hr_calc_aunif, hr_calc_vf5]#, hr_fomi]
 #
 #         colors = npl.color_set(5)
-#         fig, a0, a1 = npl.manuel_plot(np.arange(66), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-10, 10), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', ':', ':', ':', ':'], colors = colors, orizlines = [40, alt2, n_top])
+#         fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-10, 10), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', ':', ':', ':', ':'], colors = colors, orizlines = [40, alt2, n_top])
 #
 #         figs.append(fig)
 #         a0s.append(a0)

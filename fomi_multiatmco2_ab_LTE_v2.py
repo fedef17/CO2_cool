@@ -32,10 +32,10 @@ cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 n_alts = 40
 
 from scipy.optimize import Bounds, minimize, least_squares
@@ -308,7 +308,7 @@ cco2 = 1
 # tutti_cycle = dict()
 # best = dict()
 #
-# for cco2 in range(1,8):
+# for cco2 in range(1,npl.n_co2prof+1):
 #     estval = 19
 #     estval2 = 1
 #     estval3 = 10
@@ -357,7 +357,7 @@ ialt_start = 50
 
 for cco2 in range(cco2_start, 7):
     #for ialt in range(n_alts):
-    for ialt in range(n_alts, 66):
+    for ialt in range(n_alts, npl.n_alts_all):
         if cco2 == cco2_start and ialt < ialt_start:
             continue
         estval = 20
@@ -399,9 +399,9 @@ for cco2 in range(cco2_start, 7):
             estval, estval2, estval3, estval4 = keok[[0,1,3,4]]
             best_atx0[(cco2, ialt)] = np.array(keok)
 
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     su = 0.
-    for ialt in range(n_alts, 66):
+    for ialt in range(n_alts, npl.n_alts_all):
         xis = best_atx0[(cco2, ialt)]
         su += np.mean(delta_xi_at_x0(xis, cco2, ialt, squared_residuals = True))
 

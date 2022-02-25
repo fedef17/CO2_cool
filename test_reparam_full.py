@@ -49,10 +49,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 alts = atm_pt[('mle', 'alts')]
 
@@ -107,7 +107,7 @@ alt1 = 40
 alt2 = 51
 n_top = 65
 
-co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)])
+co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)])
 
 #### LTE part
 coeffs_fin = dict() ## le matricione
@@ -118,7 +118,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
         kosi = ['c', 'm']
 
     for regco in kosi:
-        ko = np.stack([regrcoef[(cco2, nam, regco)] for cco2 in range(1, 8)])
+        ko = np.stack([regrcoef[(cco2, nam, regco)] for cco2 in range(1, npl.n_co2prof+1)])
         coeffs_fin[(nam, regco)] = ko
         # BERND. QUI SE DEVI SCRIVERLO COME FILE TXT o netcdf
 
@@ -136,7 +136,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
 #### NLTE correction (low trans)
 nam = 'nltecorr'
 for regco in ['c', 'm1', 'm2', 'm3', 'm4']:
-    ko = np.stack([nlte_corr[(cco2, regco)] for cco2 in range(1, 8)])
+    ko = np.stack([nlte_corr[(cco2, regco)] for cco2 in range(1, npl.n_co2prof+1)])
     coeffs_fin[(nam, regco)] = ko
     # BERND. QUI SE DEVI SCRIVERLO COME FILE TXT o netcdf
 
@@ -148,7 +148,7 @@ for regco in ['c', 'm1', 'm2', 'm3', 'm4']:
 
 #BERND. remember to add here: alpha_fit['popup_mean'], alpha_fit['eof0'], ... alpha_fit['eof3']
 
-alphas_all = np.stack([alpha_fit_nl0[cco2] for cco2 in range(1,8)])
+alphas_all = np.stack([alpha_fit_nl0[cco2] for cco2 in range(1,npl.n_co2prof+1)])
 coeffs_fin['alpha'] = alphas_all
 intfutu = []
 for go in range(alphas_all.shape[-1]):
@@ -157,18 +157,18 @@ for go in range(alphas_all.shape[-1]):
 interp_coeffs[('alpha', 'int_fun')] = intfutu
 #interp_coeffs[('alpha', 'signc')] = signc
 
-coeffs_fin['alpha_min'] = np.stack([alpha_fit_nl0[('min', i)] for i in range(1,8)])
+coeffs_fin['alpha_min'] = np.stack([alpha_fit_nl0[('min', i)] for i in range(1,npl.n_co2prof+1)])
 interp_coeffs[('alpha_min', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_min'], co2profs[:, alt2:n_top+1])
 
-coeffs_fin['alpha_max'] = np.stack([alpha_fit_nl0[('max', i)] for i in range(1,8)])
+coeffs_fin['alpha_max'] = np.stack([alpha_fit_nl0[('max', i)] for i in range(1,npl.n_co2prof+1)])
 interp_coeffs[('alpha_max', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_max'], co2profs[:, alt2:n_top+1])
 
-L_all = np.stack([np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0) for cco2 in range(1,8)])
+L_all = np.stack([np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0) for cco2 in range(1,npl.n_co2prof+1)])
 uco2 = all_coeffs_nlte[('mle', 1, 'uco2')] # same for all
 coeffs_fin['Lesc'] = L_all
 coeffs_fin['uco2'] = uco2
 
-# Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
+# Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,npl.n_co2prof+1)])
 # Lesc_all[np.isnan(Lesc_all)] = 0.
 # coeffs_fin['Lesc'] = Lesc_all
 int_fun = npl.interp_coeff_linco2(L_all, co2profs)
@@ -220,7 +220,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
 
 #lte
 acoeff, bcoeff, asurf, bsurf = npl.coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
-hr_lte = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 66)
+hr_lte = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = npl.n_alts_all)
 
 #### nltecorr
 hr_nlte_corr = npl.nltecorr_from_eofreg_single(temp, surf_temp, calc_coeffs, alt1 = alt1, alt2 = alt2)
@@ -286,7 +286,7 @@ figs = []
 a0s = []
 a1s = []
 
-for cco2 in range(1, 8):
+for cco2 in range(1, npl.n_co2prof+1):
     for atm in allatms:
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]

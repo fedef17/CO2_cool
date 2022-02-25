@@ -2,10 +2,10 @@
 
 Lista files vari:
 
-- all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
+- all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
 -- Contiene gli a e b coeffs originali (prima di interpolare roba) per tutte le atm e i co2. Da ricalcolare per il settimo co2 prof. Prodotto da fomi_calc_ab_coeffs_LTE.py.
 
-- atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+- atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 -- Contiene i profili P,T delle atmosfere e i profili di co2. Da ricalcolare per il settimo co2 prof. Prodotto da fomi_calc_ab_coeffs_LTE.py.
 
 - best_unif = pickle.load(open(cart_out+'best_uniform_allco2.p'))

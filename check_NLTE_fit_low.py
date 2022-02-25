@@ -39,10 +39,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 n_alts = 54
 
@@ -109,7 +109,7 @@ figs2 = []
 a0s = []
 a1s = []
 
-co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)]
+co2profs = [atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)]
 
 fit_score = dict()
 #alltips = ['varfit4', 'varfit5', 'varfit4_nlte', 'varfit5_nlte']
@@ -125,7 +125,7 @@ for sco in ['trans', 'lte+trans']:
 
 alt0 = 8
 
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     co2pr = co2profs[cco2-1]
 
     for atm in allatms:
@@ -263,7 +263,7 @@ for cos in ['std', 'max']:
         print(sco + ' region \n')
 
         iooo = 0
-        for cco2 in range(1, 8):
+        for cco2 in range(1, npl.n_co2prof+1):
             print('\n')
             for atm in allatms:
                 lui1 = fit_score[(alltips[0], sco, cos)][iooo]

@@ -43,12 +43,12 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
-n_alts = 66
+n_alts = npl.n_alts_all
 alts = atm_pt[('mle', 'alts')]
 
 pres = atm_pt[('mle', 'pres')]
@@ -81,12 +81,12 @@ n_top = n_alts_trhi+5
 
 # per ogni a,b,ecc coeff faccio una matrice con prima dimensione quella della co2
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb')) # qui ci sono sia i LTE che i NLTE
-co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,8)])
+co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)])
 
 coeffs_NLTE = dict()
 interp_coeffs = dict()
 for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-    ko = np.stack([tot_coeff_co2[('varfit5_nlte', nam, cco2)] for cco2 in range(1, 8)])
+    ko = np.stack([tot_coeff_co2[('varfit5_nlte', nam, cco2)] for cco2 in range(1, npl.n_co2prof+1)])
     coeffs_NLTE[nam] = ko
     # QUI SE DEVI SCRIVERLO COME FILE TXT o netcdf
 
@@ -94,13 +94,13 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     interp_coeffs[(nam, 'int_fun')] = int_fun
     interp_coeffs[(nam, 'signc')] = signc
 
-alphas_all = np.stack([alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)] for cco2 in range(1,8)])
+alphas_all = np.stack([alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)] for cco2 in range(1,npl.n_co2prof+1)])
 coeffs_NLTE['alpha'] = alphas_all
 int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
 interp_coeffs[('alpha', 'int_fun')] = int_fun
 interp_coeffs[('alpha', 'signc')] = signc
 
-Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,8)])
+Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,npl.n_co2prof+1)])
 coeffs_NLTE['Lesc'] = Lesc_all
 int_fun, signc = npl.interp_coeff_logco2(Lesc_all, co2profs)
 interp_coeffs[('Lesc', 'int_fun')] = int_fun
@@ -178,7 +178,7 @@ all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 figs = []
 a0s = []
 a1s = []
-for cco2 in range(1, 8):
+for cco2 in range(1, npl.n_co2prof+1):
     for atm in allatms:
         temp = atm_pt[(atm, 'temp')]
         surf_temp = atm_pt[(atm, 'surf_temp')]

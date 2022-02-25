@@ -39,10 +39,10 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
 atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
 atmweigths = dict(zip(allatms, atmweigths))
-allco2 = np.arange(1,8)
+allco2 = np.arange(1,npl.n_co2prof+1)
 
-all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v2.p'))
-atm_pt = pickle.load(open(cart_out + 'atm_pt_v2.p'))
+all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
+atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 
 n_alts = 54
 
@@ -67,7 +67,7 @@ tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 viatmw = ['iatm{}'.format(iatm) for iatm in range(6)]
 
-for cco2 in range(1, 8):
+for cco2 in range(1, npl.n_co2prof+1):
     figsall = []
     for vers in ['v4', 'v5', 'v6_noarctic', 'v7_arctic', 'v8_lim01'] + viatmw:
         varfit_xis = pickle.load(open(cart_out_2+'varfit_NLTE_{}.p'.format(vers), 'rb'))
@@ -114,7 +114,7 @@ for absval in [False, True]:
         figsall[(cnam, 'orig')] = []
         figsall[(cnam, 'lte')] = []
         figsall[(cnam, 'vfair')] = []
-        for cco2 in range(1, 8):
+        for cco2 in range(1, npl.n_co2prof+1):
             # fig = plt.figure()
             # coef = all_coeffs[('mls', cco2, cnam)]
             # plt.imshow(np.abs(coef), norm=LogNorm(vmin=0.01, vmax=20000))
@@ -309,7 +309,7 @@ fig.savefig(cart_out_2 + 'check_HRs_NLTE.pdf')
 
 
 ratiooo = dict()
-for cco2 in range(1,8):
+for cco2 in range(1,npl.n_co2prof+1):
     fig = plt.figure()
     fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True)
     axes = np.squeeze(np.reshape(axes, (1,6)))
