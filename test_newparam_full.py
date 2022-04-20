@@ -17,14 +17,22 @@ import pickle
 from scipy.interpolate import PchipInterpolator as spline
 from scipy.interpolate import interp1d
 
-sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
 
-cart_out_3 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_upper/'
+if os.uname()[1] == 'xaru':
+    sys.path.insert(0, '/home/fedef/Research/git/SpectRobot/')
+    sys.path.insert(0, '/home/fedef/Research/git/pythall/')
+    cart_base = '/home/fedef/Research/lavori/CO2_cooling/new_param/'
+else:
+    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
+    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
+    cart_base = '/home/fabiano/Research/lavori/CO2_cooling/new_param/'
 
-cart_out_4 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/newpar_allatm/'
+cart_out = cart_base + 'LTE/'
+cart_out_2 = cart_base + 'NLTE/'
+cart_out_rep = cart_base + 'NLTE_reparam/'
+cart_out_3 = cart_base + 'NLTE_upper/'
+
+cart_out_4 = cart_base + 'newpar_allatm/'
 if not os.path.exists(cart_out_4): os.mkdir(cart_out_4)
 
 import newparam_lib as npl
@@ -83,31 +91,38 @@ n_top = n_alts_trhi+5
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb')) # qui ci sono sia i LTE che i NLTE
 co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)])
 
+do_all = False
 coeffs_NLTE = dict()
 interp_coeffs = dict()
 for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
     ko = np.stack([tot_coeff_co2[('varfit5_nlte', nam, cco2)] for cco2 in range(1, npl.n_co2prof+1)])
     coeffs_NLTE[nam] = ko
     # QUI SE DEVI SCRIVERLO COME FILE TXT o netcdf
-
-    int_fun, signc = npl.interp_coeff_logco2(ko, co2profs)
-    interp_coeffs[(nam, 'int_fun')] = int_fun
-    interp_coeffs[(nam, 'signc')] = signc
+    print(nam)
+    if do_all:
+        int_fun, signc = npl.interp_coeff_logco2(ko, co2profs)
+        interp_coeffs[(nam, 'int_fun')] = int_fun
+        interp_coeffs[(nam, 'signc')] = signc
 
 alphas_all = np.stack([alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)] for cco2 in range(1,npl.n_co2prof+1)])
 coeffs_NLTE['alpha'] = alphas_all
-int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
-interp_coeffs[('alpha', 'int_fun')] = int_fun
-interp_coeffs[('alpha', 'signc')] = signc
+
+if do_all:
+    int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
+    interp_coeffs[('alpha', 'int_fun')] = int_fun
+    interp_coeffs[('alpha', 'signc')] = signc
 
 Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,npl.n_co2prof+1)])
 coeffs_NLTE['Lesc'] = Lesc_all
-int_fun, signc = npl.interp_coeff_logco2(Lesc_all, co2profs)
-interp_coeffs[('Lesc', 'int_fun')] = int_fun
-interp_coeffs[('Lesc', 'signc')] = signc
+if do_all:
+    int_fun, signc = npl.interp_coeff_logco2(Lesc_all, co2profs)
+    interp_coeffs[('Lesc', 'int_fun')] = int_fun
+    interp_coeffs[('Lesc', 'signc')] = signc
 
 coeffs_NLTE['co2profs'] = co2profs
 pickle.dump(coeffs_NLTE, open(cart_out_4 + 'coeffs_finale.p', 'wb'))
+
+sys.exit()
 
 ####################################################################################
 # Check per un atm

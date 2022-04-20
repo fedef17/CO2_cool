@@ -106,27 +106,50 @@ alpha_unif = []
 alpha_dic_atm = dict()
 start = np.ones(n_trans)
 name_escape_fun = 'L_esc_all'
+
+figs = []
 for cco2 in range(1, npl.n_co2prof+1):
-    result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)
-    alpha_unif.append(result.x)
+    #result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)
+    #alpha_unif.append(result.x)
+
+    fig = plt.figure()
 
     alphas = []
     for atm in allatms:
         print(atm, cco2)
-        cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-        result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-        #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-        print('least_squares', result)
-        alphas.append(result.x)
+
+        hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
+        L_esc = cose_upper_atm[(atm, cco2, name_escape_fun)]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')]
+        co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
+        MM = cose_upper_atm[(atm, cco2, 'MM')]
+
+        temp = atm_pt[(atm, 'temp')]
+
+        alpha = npl.recformula_invert(hr_ref, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+
+        alphas.append(alpha[alt2:n_top+1])
+        plt.plot(alpha, np.arange(len(alpha)), label = atm)
+        plt.axhline(alt2, color = 'red', ls = '--')
+        plt.axhline(n_top, color = 'blue', ls = '--')
+        plt.grid()
+        plt.legend()
+        plt.ylim(alt2-5, n_top+5)
 
     alpha_dic_atm[cco2] = np.stack(alphas)
+    plt.title(str(cco2))
 
-alpha_unif = np.stack(alpha_unif)
+    figs.append(fig)
 
-pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v2.p', 'wb'))
+npl.plot_pdfpages(cart_out_rep + 'check_alpha_v9_inverse.pdf', figs)
+
+alpha_unif, _ = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2.p', 'rb'))
+pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v3_inverse.p', 'wb'))
 
 
-alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2.p', 'rb'))
+#####################################################################
+
+alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm_v3_inverse.p', 'rb'))
 
 #### OK, and now.... regression model! with pc0, pc1 e tempgrad
 tempgrad = np.stack([np.gradient(atm_pt[(atm, 'temp')])[alt2:n_top+1] for atm in allatms])
@@ -250,7 +273,7 @@ for cco2 in range(1,npl.n_co2prof+1):
     figs3.append(fig3)
 
 
-npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v8.pdf', figs3)
+npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v9_inverse.pdf', figs3)
 
 #sys.exit()
 #####################################################################
@@ -267,7 +290,7 @@ for cco2 in range(1, npl.n_co2prof+1):
     alpha_fit[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
     alpha_fit[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
 
-pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e.p', 'wb'))
+pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e_9i.p', 'wb'))
 
 alpha_fit2['popup_mean'] = popup_mean
 alpha_fit2['eof0'] = solver_pop.eofs(eofscaling=1)[0]
@@ -276,7 +299,7 @@ alpha_fit2['eof1'] = solver_pop.eofs(eofscaling=1)[1]
 for cco2 in range(1, npl.n_co2prof+1):
     alpha_fit2[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
     alpha_fit2[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
-pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0.p', 'wb'))
+pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0_9i.p', 'wb'))
 
 
 ############################################################
@@ -370,4 +393,4 @@ for cco2 in range(1, npl.n_co2prof+1):
         npl.adjust_ax_scale(a0s)
         npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v8.pdf', figs)
+npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v9_inverse.pdf', figs)

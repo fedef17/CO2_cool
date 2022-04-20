@@ -15,18 +15,19 @@ from scipy import io
 import scipy.constants as const
 import pickle
 from scipy.interpolate import PchipInterpolator as spline
-
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
-else:
-    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
-
 import newparam_lib as npl
+
+if os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
+elif os.uname()[1] == 'hobbes':
+    cart_base = '/home/fabiano/Research/'
+else:
+    raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
+
+# sys.path.insert(0, cart_base + 'git/SpectRobot/')
+# sys.path.insert(0, cart_base + 'git/pythall/')
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
+cart_out_2 = cart_base + 'lavori/CO2_cooling/new_param/NLTE/'
 
 ##############################################################
 kbc = const.k/(const.h*100*const.c) # 0.69503
@@ -156,7 +157,7 @@ for cco2 in range(1,npl.n_co2prof+1):
 
         pres = atm_pt[(atm, 'pres')]
         print(np.median(co2pr))
-        alt_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2pr)
+        alt_fomi, x_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2pr, cart_run_fomi = cart_base + 'lavori/CO2_cooling/cart_run_fomi/')
         oldco = spline(alt_fomi, hr_fomi)
         hr_fomi = oldco(alts)
 

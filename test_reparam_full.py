@@ -90,7 +90,7 @@ print('high trans at {}, {:7.2f} km {:7.2f}'.format(n_alts_trhi, alts[n_alts_trh
 # il cool-to-space è fuori dalle 66 alts
 # n_alts_cs = np.sum(x < 16.5)
 # print('cool-to-space at {}, {:7.2f} km'.format(n_alts_cs, alts[n_alts_cs]))
-sys.exit()
+
 n_alts_lte = 40
 
 #############################################################
@@ -105,7 +105,7 @@ n_alts_lte = 40
 #####################################################
 alt1 = 40
 alt2 = 51
-n_top = 65
+n_top = 60
 
 co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)])
 
@@ -178,6 +178,8 @@ interp_coeffs[('Lesc', 'int_fun')] = int_fun
 coeffs_fin['alts'] = alts
 coeffs_fin['co2profs'] = co2profs
 pickle.dump(coeffs_fin, open(cart_out_4 + 'coeffs_finale.p', 'wb'))
+
+sys.exit()
 
 #############################################################
 

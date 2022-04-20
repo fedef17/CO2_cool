@@ -60,17 +60,17 @@ atm_pt = pickle.load(open(cart_out + 'atm_pt_v4.p'))
 n_alts = 40
 
 regrcoefpath = cart_out + '../NLTE_reparam/regrcoef_v3.p'
-#regrcoef = pickle.load(open(regrcoefpath, 'rb'))
-regrcoef = None
-alpha_cose = None
-nlte_corr = None
+regrcoef = pickle.load(open(regrcoefpath, 'rb'))
+# regrcoef = None
+# alpha_cose = None
+# nlte_corr = None
 
 # UNCOMMENT HERE!!
-# alpha_cose = pickle.load(open(cart_out + '../NLTE_reparam/alpha_fit_4e.p', 'rb'))
-# alpha_cose['min'] = np.min(np.stack([alpha_cose[('min', i)] for i in range(1,n_co2prof+1)]), axis = 0)
-# alpha_cose['max'] = np.max(np.stack([alpha_cose[('max', i)] for i in range(1,n_co2prof+1)]), axis = 0)
-#
-# nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb'))
+alpha_cose = pickle.load(open(cart_out + '../NLTE_reparam/alpha_fit_4e.p', 'rb'))
+alpha_cose['min'] = np.min(np.stack([alpha_cose[('min', i)] for i in range(1,n_co2prof+1)]), axis = 0)
+alpha_cose['max'] = np.max(np.stack([alpha_cose[('max', i)] for i in range(1,n_co2prof+1)]), axis = 0)
+
+nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb'))
 
 from scipy.optimize import Bounds, minimize, least_squares
 
@@ -130,13 +130,10 @@ def precalc_interp_old(coeffs = None, coeff_file = cart_out + '../newpar_allatm/
 
     return interp_coeffs
 
-def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p'):
+def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', alt1 = 40, alt2 = 51, n_top = 65):
     """
     Calculates the interpolating functions. (this makes new_param_full much faster)
     """
-    alt1 = 40
-    alt2 = 51
-    n_top = 65
 
     if coeffs is None:
         coeffs = pickle.load(open(coeff_file, 'rb'))
@@ -170,6 +167,7 @@ def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coe
         interp_coeffs[(nam, regco, 'int_fun')] = int_fun
 
     alphas_all = coeffs['alpha']
+    print(alphas_all.shape)
     intfutu = []
     for go in range(alphas_all.shape[-1]):
         int_fun = interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2:n_top+1])
@@ -249,7 +247,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
         return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, factor_from_code = True, debug = False):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, n_alts_cs = 65, factor_from_code = True, debug = False):
     """
     New param with new strategy (1/10/21).
     """
@@ -261,7 +259,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
-        interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file)
+        interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file, alt1 = alt1, alt2 = alt2, n_top = n_top)
 
     alts = interp_coeffs['alts']
 
@@ -334,7 +332,8 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     #### upper atm
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
-    alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'])
+
+    alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top)
 
     if debug:
         debug_cose['alpha'] = alpha
@@ -345,7 +344,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         alpha = debug_alpha
         print('new: ',alpha)
 
-    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_top, ovmr = ovmr, factor_from_code = factor_from_code)
+    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_alts_cs, ovmr = ovmr, factor_from_code = factor_from_code)
 
     ##### HERE the cool-to-space part
     # now for the cs region:
@@ -400,39 +399,47 @@ def old_param(alts, temp, pres, CO2prof, Oprof = None, O2prof = None, N2prof = N
     fil_VMR = cart_run_fomi + 'gases_120.dat'
     alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(fil_VMR, version = 2)
 
-    splCO2 = spline(alts, CO2prof)
-    CO2con = splCO2(alt_manuel)
-    print('piooo CO2', np.median(CO2con))
-    mol_vmrs['CO2'] = CO2con*fact
+    # splCO2 = spline(alts, CO2prof)
+    # CO2con = splCO2(alt_manuel)
+    # print('piooo CO2', np.median(CO2con))
+    mol_vmrs = dict()
+    mol_vmrs['CO2'] = CO2prof*fact
+    mol_vmrs['O2'] = O2prof*fact
+    mol_vmrs['N2'] = N2prof*fact
+    mol_vmrs['O'] = Oprof*fact
+
+    molist_ok = [mo for mo in molist if mo in mol_vmrs]
+    molnums_ok = [mo for mo in molnums if molist[molnums.index(mo)] in mol_vmrs]
+
     # Also update O2, O, N2
-    if Oprof is not None:
-        splO = spline(alts, Oprof)
-        Ocon = splO(alt_manuel)
-        print('piooo O', np.median(Ocon))
-        mol_vmrs['O'] = Ocon*fact
-    if O2prof is not None:
-        splO2 = spline(alts, O2prof)
-        O2con = splO2(alt_manuel)
-        print('piooo O2', np.median(O2con))
-        mol_vmrs['O2'] = O2con*fact
-    if N2prof is not None:
-        splN2 = spline(alts, N2prof)
-        N2con = splN2(alt_manuel)
-        print('piooo N2', np.median(N2con))
-        mol_vmrs['N2'] = N2con*fact
+    # if Oprof is not None:
+    #     splO = spline(alts, Oprof)
+    #     Ocon = splO(alt_manuel)
+    #     print('piooo O', np.median(Ocon))
+    #     mol_vmrs['O'] = Ocon*fact
+    # if O2prof is not None:
+    #     splO2 = spline(alts, O2prof)
+    #     O2con = splO2(alt_manuel)
+    #     print('piooo O2', np.median(O2con))
+    #     mol_vmrs['O2'] = O2con*fact
+    # if N2prof is not None:
+    #     splN2 = spline(alts, N2prof)
+    #     N2con = splN2(alt_manuel)
+    #     print('piooo N2', np.median(N2con))
+    #     mol_vmrs['N2'] = N2con*fact
 
-    splT = spline(alts, temp)
-    temp = splT(alt_manuel)
-
-    splP = spline(alts,np.log(pres))
-    pres = splP(alt_manuel)
-    pres = np.exp(pres)
+    # splT = spline(alts, temp)
+    # temp = splT(alt_manuel)
+    #
+    # splP = spline(alts,np.log(pres))
+    # pres = splP(alt_manuel)
+    # pres = np.exp(pres)
 
     filename = cart_run_fomi + 'atm_manuel.dat'
-    sbm.scriviinputmanuel(alt_manuel, temp, pres, filename)
+    sbm.scriviinputmanuel(alts, temp, pres, filename)
 
     filename = cart_run_fomi + 'vmr_atm_manuel.dat'
-    sbm.write_input_vmr_man(filename, alt_manuel, mol_vmrs, hit_gas_list = molist, hit_gas_num = molnums, version = 2)
+    sbm.write_input_vmr_man(filename, alts, mol_vmrs, hit_gas_list = molist_ok, hit_gas_num = molnums_ok, version = 2)
 
     wd = os.getcwd()
     os.chdir(cart_run_fomi)
@@ -1845,7 +1852,7 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
     return fu
 
 
-def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc'):
+def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc', eps125 = None):
     """
     As rec2, but for a single atmosphere.
     """
@@ -1859,7 +1866,9 @@ def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_a
     co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo-1:n_alts_trhi]
     MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo-1:n_alts_trhi]
     temp = atm_pt[(atm, 'temp')][n_alts_trlo-1:n_alts_trhi]
-    eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
+
+    if eps125 is None:
+        eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
 
     hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo+1)
 
@@ -2197,6 +2206,61 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     #     print(j, hr_new[j])
 
     return hr_new
+
+
+def recformula_invert(hr_new, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65, ovmr = None, debug = False, factor_from_code = True):
+    """
+    Inverts recurrence formula to get alpha, assuming the reference heating rate. Starts from the top of the transition region, where alpha is 1.
+
+    In the lower end, hr_new might be relaxed to the hr fitted from below, to avoid sharp transitions.
+    """
+
+    n_alts = len(temp)
+
+    phi_fun = np.exp(-E_fun/(kbc*temp))
+
+    if ovmr is not None:
+        cp = calc_cp(MM, ovmr)
+    else:
+        cp = np.ones(n_alts)*cp_0
+
+    if debug: print('cp', cp)
+
+    if factor_from_code:
+        numfac = 2.55520997e11
+    else:
+        numfac = 2.63187e11
+
+    fac = (numfac * co2vmr * (1-lamb))/MM
+
+    eps_gn = hr_new * cp / (24*60*60) / fac
+    alpha = np.ones_like(eps_gn)
+
+    zuk = lamb*eps_gn + phi_fun
+
+    for j in range(n_alts_trhi+1, n_alts_trlo - 5, -1): # Start from above!
+        f1 = (1-lamb[j-1])*eps_gn[j-1] - (1-lamb[j])*eps_gn[j]
+        f2 = zuk[j-1] - 3 * zuk[j]
+        f3 = zuk[j] - 3 * zuk[j-1]
+        #print(j, f1, f2, f3)
+
+        alpha[j-1] = (4*f1 + alpha[j]*L_esc[j]*f2)/(L_esc[j-1]*f3)
+
+        ## CHECK
+        dj = alpha * L_esc
+
+        Djj = 0.25*(dj[j-1] + 3*dj[j])
+        Djjm1 = 0.25*(dj[j] + 3*dj[j-1])
+
+        Fj = (1 - lamb[j]*(1-Djj))
+        Fjm1 = (1 - lamb[j-1]*(1-Djjm1))
+
+        #print(j, Djj, Djjm1, Fj, Fjm1)
+        coso = (Fjm1*eps_gn[j-1] + Djjm1*phi_fun[j-1] - Djj*phi_fun[j])/Fj
+
+        print(j, eps_gn[j], coso, (coso-eps_gn[j-1])/(eps_gn[j]-eps_gn[j-1]))
+
+    return alpha
 
 
 ###########################################################

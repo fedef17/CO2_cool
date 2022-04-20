@@ -93,48 +93,49 @@ surfanom = surftemps-np.mean(surftemps)
 
 # SIMPLER. Linear (or nonlinear?) regression of coeff with first pc of temp profile
 regrcoef = dict()
-for cco2 in range(1,npl.n_co2prof+1):
-    for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-        acos = np.stack([all_coeffs[(atm, cco2, conam)] for atm in allatms]) ### LTE COEFFS!
-        if acos.ndim == 3:
-            x0 = solver_anom.pcs(pcscaling = 1)[:, 0] # questi sono uguali ai dotprods sotto
-            x1 = solver_anom.pcs(pcscaling = 1)[:, 1] # questi sono uguali ai dotprods sotto
-            #acos = acos[:, :n_alts, ...][..., :n_alts]
-
-            Y = acos.reshape(6, acos.shape[1]*acos.shape[2])
-            X = np.stack([x0, x1]).T
-            model1 = LinearRegression().fit(X, Y)
-            print(model1.score(X, Y))
-
-            #regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
-            regrcoef[(cco2, conam, 'c1')] = np.reshape(model1.intercept_, acos[0].shape)
-            regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coef_[:, 0], acos[0].shape)
-            regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coef_[:, 1], acos[0].shape)
-
-            corrco = np.empty_like(acos[0])
-            for i in range(acos[0].shape[0]):
-                for j in range(acos[0].shape[1]):
-                    corrco[i,j] = np.corrcoef(x0, acos[:, i, j])[1,0]
-        else:
-            x0 = surfanom # per i cosi surface uso la anomaly di surface temperature
-            #acos = acos[:, :n_alts]
-
-            corrco = np.empty_like(acos[0])
-            for i in range(acos[0].shape[0]):
-                corrco[i] = np.corrcoef(x0, acos[:, i])[1,0]
-
-        cico, regrco, _, _ = npl.linearregre_coeff(x0, acos)
-
-        regrcoef[(cco2, conam, 'R')] = corrco
-        regrcoef[(cco2, conam, 'c')] = cico
-        regrcoef[(cco2, conam, 'm')] = regrco
-
-regrcoef['surfmean'] = np.mean(surftemps)
-regrcoef['amean'] = atm_anom_mean
-regrcoef['eof0'] = solver_anom.eofs(eofscaling=1)[0]
-regrcoef['eof1'] = solver_anom.eofs(eofscaling=1)[1]
-
-pickle.dump(regrcoef, open(cart_out_rep + 'regrcoef_v3.p', 'wb'))
+# for cco2 in range(1,npl.n_co2prof+1):
+#     for conam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
+#         acos = np.stack([all_coeffs[(atm, cco2, conam)] for atm in allatms]) ### LTE COEFFS!
+#         if acos.ndim == 3:
+#             x0 = solver_anom.pcs(pcscaling = 1)[:, 0] # questi sono uguali ai dotprods sotto
+#             x1 = solver_anom.pcs(pcscaling = 1)[:, 1] # questi sono uguali ai dotprods sotto
+#             #acos = acos[:, :n_alts, ...][..., :n_alts]
+#
+#             Y = acos.reshape(6, acos.shape[1]*acos.shape[2])
+#             X = np.stack([x0, x1]).T
+#             model1 = LinearRegression().fit(X, Y)
+#             print(model1.score(X, Y))
+#
+#             #regrcoef[(cco2, conam, 'mean')] = np.mean(acos, axis = 0)
+#             regrcoef[(cco2, conam, 'c1')] = np.reshape(model1.intercept_, acos[0].shape)
+#             regrcoef[(cco2, conam, 'm1')] = np.reshape(model1.coef_[:, 0], acos[0].shape)
+#             regrcoef[(cco2, conam, 'm2')] = np.reshape(model1.coef_[:, 1], acos[0].shape)
+#
+#             corrco = np.empty_like(acos[0])
+#             for i in range(acos[0].shape[0]):
+#                 for j in range(acos[0].shape[1]):
+#                     corrco[i,j] = np.corrcoef(x0, acos[:, i, j])[1,0]
+#         else:
+#             x0 = surfanom # per i cosi surface uso la anomaly di surface temperature
+#             #acos = acos[:, :n_alts]
+#
+#             corrco = np.empty_like(acos[0])
+#             for i in range(acos[0].shape[0]):
+#                 corrco[i] = np.corrcoef(x0, acos[:, i])[1,0]
+#
+#         cico, regrco, _, _ = npl.linearregre_coeff(x0, acos)
+#
+#         regrcoef[(cco2, conam, 'R')] = corrco
+#         regrcoef[(cco2, conam, 'c')] = cico
+#         regrcoef[(cco2, conam, 'm')] = regrco
+#
+# regrcoef['surfmean'] = np.mean(surftemps)
+# regrcoef['amean'] = atm_anom_mean
+# regrcoef['eof0'] = solver_anom.eofs(eofscaling=1)[0]
+# regrcoef['eof1'] = solver_anom.eofs(eofscaling=1)[1]
+#
+# pickle.dump(regrcoef, open(cart_out_rep + 'regrcoef_v3.p', 'wb'))
+regrcoef = pickle.load(open(cart_out_rep + 'regrcoef_v3.p', 'rb'))
 
 # for conam in ['acoeff', 'bcoeff']:
 #     fig = plt.figure()
@@ -174,7 +175,9 @@ dotprods1 = np.array([np.dot(te-atm_anom_mean, solver_anom.eofs(eofscaling=1)[1]
 
 # ### OK! now I use the dotprods and the regrcoef to reconstruct the a and b coeffs, and compute the hr and check wrt the reference and the varfit5.
 
-tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
+tot_coeffs_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
+
+tot_coeffs_co2_NLTE = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 
 colors = npl.color_set(5)
 colors = colors[:3] + [colors[4]]
@@ -198,11 +201,11 @@ for cco2 in range(1,npl.n_co2prof+1):
         hr_new = npl.hr_from_ab(coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = npl.n_alts_all)
         hr_new_v2 = npl.hr_from_ab(coeffs[('acoeff', 'v2')], coeffs[('bcoeff', 'v2')], coeffs['asurf'], coeffs['bsurf'], temp, surf_temp, max_alts = npl.n_alts_all)
 
-        tip = 'varfit5'
-        acoeff = tot_coeff_co2[(tip, 'acoeff', cco2)]
-        bcoeff = tot_coeff_co2[(tip, 'bcoeff', cco2)]
-        asurf = tot_coeff_co2[(tip, 'asurf', cco2)]
-        bsurf = tot_coeff_co2[(tip, 'bsurf', cco2)]
+        tip = 'varfit5_nlte'
+        acoeff = tot_coeffs_co2_NLTE[(tip, 'acoeff', cco2)]
+        bcoeff = tot_coeffs_co2_NLTE[(tip, 'bcoeff', cco2)]
+        asurf = tot_coeffs_co2_NLTE[(tip, 'asurf', cco2)]
+        bsurf = tot_coeffs_co2_NLTE[(tip, 'bsurf', cco2)]
 
         hr_vf5 = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51)
         #hr_vf5 = np.concatenate([hr_vf5, np.nan*np.ones(15)])

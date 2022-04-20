@@ -17,12 +17,20 @@ import pickle
 from scipy.interpolate import PchipInterpolator as spline
 from scipy.interpolate import interp1d
 
-sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
 
-cart_out_3 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE_upper/'
+if os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
+elif os.uname()[1] == 'hobbes':
+    cart_base = '/home/fabiano/Research/'
+else:
+    raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
+
+sys.path.insert(0, cart_base + 'git/SpectRobot/')
+sys.path.insert(0, cart_base + 'git/pythall/')
+
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
+cart_out_2 = cart_base + 'lavori/CO2_cooling/new_param/NLTE/'
+cart_out_3 = cart_base + 'lavori/CO2_cooling/new_param/NLTE_upper/'
 if not os.path.exists(cart_out_3): os.mkdir(cart_out_3)
 
 import newparam_lib as npl
@@ -45,8 +53,8 @@ cp = 1.005e7 # specific enthalpy dry air - erg g-1 K-1
 #############################################################
 
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
-atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
-atmweigths = dict(zip(allatms, atmweigths))
+atmweights = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
+atmweights = dict(zip(allatms, atmweights))
 allco2 = np.arange(1,npl.n_co2prof+1)
 
 all_coeffs = pickle.load(open(cart_out + 'all_coeffs_LTE_v4.p'))
@@ -84,144 +92,147 @@ cco2 = 3
 
 
 cose_upper_atm = dict()
+#
+# for cco2 in range(1,npl.n_co2prof+1):
+#     L_all = np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0)
+#     uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
+#     Lspl_all = spline(uco2, L_all, extrapolate = False)
+#
+#     L_fom = all_coeffs_nlte[('mle', cco2, 'l_esc_fom')]
+#     Lspl_fom = spline(uco2, L_fom, extrapolate = False)
+#
+#     for atm in allatms:
+#         L_esc = all_coeffs_nlte[(atm, cco2, 'l_esc')]
+#         uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
+#         Lspl = spline(uco2, L_esc, extrapolate = False)
+#
+#         pres = atm_pt[(atm, 'pres')]
+#         temp = atm_pt[(atm, 'temp')]
+#         surf_temp = atm_pt[(atm, 'surf_temp')]
+#         n_dens = sbm.num_density(pres, temp)
+#         co2vmr = atm_pt[(atm, cco2, 'co2')]
+#         n_co2 = n_dens * co2vmr
+#
+#         phi_fun = np.exp(-E_fun/(kbc*temp))
+#
+#         ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+#         o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+#         n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+#         # o2vmr = np.ones(len(alts))*0.20-ovmr
+#         # n2vmr = np.ones(len(alts))*0.79
+#
+#         ###################### Rate coefficients ######################
+#         t13 = temp**(-1./3)
+#
+#         # Collisional rate between CO2 and O:
+#         zo = 3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
+#         #ZCO2O = KO Fomichev value
+#
+#         # Collisional rates between CO2 and N2/O2:
+#         zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
+#         zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
+#         # use Fomichev values
+#         # zn2=5.5e-17*sqrt(temp)+6.7e-10*exp(-83.8*t13)
+#         # zo2=1.e-15*exp(23.37-230.9*t13+564.*t13*t13)
+#
+#         ###############################################################
+#
+#         uok = []
+#         uok2 = []
+#
+#         nco2spl = interp1d(alts, np.log(n_co2), fill_value = 'extrapolate')
+#         morealts = np.linspace(alts[0], 200., 1000)
+#         morenco2 = np.exp(nco2spl(morealts))
+#         for ial in range(len(alts)):
+#             uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
+#             alok = morealts >= alts[ial]
+#             uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
+#
+#         #utop = uok[-2] # Setting upper column equal to last step
+#         print('utop = {:7.2e}'.format(uok2[-1]))
+#
+#         uok = np.array(uok)
+#         uok2 = np.array(uok2)
+#         Lok = Lspl(uok)
+#         Lok_all = Lspl_all(uok)
+#         Lok_wutop = Lspl(uok2)# + utop)
+#         Lok_all_wutop = Lspl_all(uok2)
+#         Lok_fom = Lspl_fom(uok2)
+#
+#         Lok_int2 = Lspl(uok2)
+#
+#         for co in [Lok, Lok_all, Lok_wutop, Lok_all_wutop]:
+#             co[:20][np.isnan(co[:20])] = 0.0 # for extrapolated regions
+#             co[-5:][np.isnan(co[-5:])] = 1.0 # for extrapolated regions
+#
+#         alpha = np.ones(len(Lok)) # depends on cco2
+#         eps_gn = np.zeros(len(Lok))
+#
+#         dj = alpha*Lok
+#         lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
+#
+#         MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass
+#
+#         ## Boundary condition
+#         #eps125 = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][n_alts_trlo]
+#         tip = 'varfit5_nlte'
+#         acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
+#         bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
+#         asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
+#         bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
+#
+#         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
+#         eps125 = hr_calc[n_alts_trlo-1]
+#
+#         cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
+#         #cose_upper_atm[(atm, cco2, 'L_esc_int2')] = Lok_int2 # finest integration grid
+#         cose_upper_atm[(atm, cco2, 'L_esc_wutop')] = Lok_wutop # adding a utop equal to the last uok
+#         cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] = Lok_all_wutop # adding a utop equal to the last uok
+#         cose_upper_atm[(atm, cco2, 'L_esc_all')] = Lok_all # using the mean of the escape functions for all atmospheres
+#
+#         cose_upper_atm[(atm, cco2, 'L_esc_fom')] = Lok_fom # using Fomichev L_esc
+#
+#         print(cco2, atm)
+#         for nam in ['L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop']:
+#             print(nam, np.max(np.abs(cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:] - cose_upper_atm[(atm, cco2, nam)][n_alts_trlo:])))
+#
+#         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
+#         #cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
+#         cose_upper_atm[(atm, cco2, 'eps125')] = eps125
+#         cose_upper_atm[(atm, cco2, 'co2vmr')] = co2vmr
+#         cose_upper_atm[(atm, cco2, 'MM')] = MM
+#
+# pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
+cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 
-for cco2 in range(1,npl.n_co2prof+1):
-    L_all = np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0)
-    uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
-    Lspl_all = spline(uco2, L_all, extrapolate = False)
+#
+# # alpha FIT!
+# alpha_dic = dict()
+# for n_top in [n_alts_trhi, n_alts_trhi + 5]:
+#     n_trans = n_top-n_alts_trlo+1
+#     atmweights = np.ones(6)
+#     bounds = (np.ones(n_trans), 5*np.ones(n_trans))
+#     bounds2 = tuple(n_trans*[(1.,5.)])
+#
+#     #start = np.linspace(2.0, 1.0, n_trans)
+#     start = np.ones(n_trans)
+#     for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop', 'L_esc_fom']:
+#         for cco2 in range(1, npl.n_co2prof+1):
+#             print(cco2)
+#             result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+#             #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+#             print('least_squares', result)
+#             alpha_dic[(n_top, name_escape_fun, 'least_squares', cco2)] = result.x
+#
+#             result = minimize(npl.delta_alpha_rec3, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
+#             print('minimize', result)
+#             alpha_dic[(n_top, name_escape_fun, 'minimize', cco2)] = result.x
+#
+#
+# pickle.dump(alpha_dic, open(cart_out_3 + 'alpha_upper.p', 'wb'))
+alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
 
-    L_fom = all_coeffs_nlte[('mle', cco2, 'l_esc_fom')]
-    Lspl_fom = spline(uco2, L_fom, extrapolate = False)
-
-    for atm in allatms:
-        L_esc = all_coeffs_nlte[(atm, cco2, 'l_esc')]
-        uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
-        Lspl = spline(uco2, L_esc, extrapolate = False)
-
-        pres = atm_pt[(atm, 'pres')]
-        temp = atm_pt[(atm, 'temp')]
-        surf_temp = atm_pt[(atm, 'surf_temp')]
-        n_dens = sbm.num_density(pres, temp)
-        co2vmr = atm_pt[(atm, cco2, 'co2')]
-        n_co2 = n_dens * co2vmr
-
-        phi_fun = np.exp(-E_fun/(kbc*temp))
-
-        ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
-        o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
-        n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
-        # o2vmr = np.ones(len(alts))*0.20-ovmr
-        # n2vmr = np.ones(len(alts))*0.79
-
-        ###################### Rate coefficients ######################
-        t13 = temp**(-1./3)
-
-        # Collisional rate between CO2 and O:
-        zo = 3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
-        #ZCO2O = KO Fomichev value
-
-        # Collisional rates between CO2 and N2/O2:
-        zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
-        zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
-        # use Fomichev values
-        # zn2=5.5e-17*sqrt(temp)+6.7e-10*exp(-83.8*t13)
-        # zo2=1.e-15*exp(23.37-230.9*t13+564.*t13*t13)
-
-        ###############################################################
-
-        uok = []
-        uok2 = []
-
-        nco2spl = interp1d(alts, np.log(n_co2), fill_value = 'extrapolate')
-        morealts = np.linspace(alts[0], 200., 1000)
-        morenco2 = np.exp(nco2spl(morealts))
-        for ial in range(len(alts)):
-            uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
-            alok = morealts >= alts[ial]
-            uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
-
-        #utop = uok[-2] # Setting upper column equal to last step
-        print('utop = {:7.2e}'.format(uok2[-1]))
-
-        uok = np.array(uok)
-        uok2 = np.array(uok2)
-        Lok = Lspl(uok)
-        Lok_all = Lspl_all(uok)
-        Lok_wutop = Lspl(uok2)# + utop)
-        Lok_all_wutop = Lspl_all(uok2)
-        Lok_fom = Lspl_fom(uok2)
-
-        Lok_int2 = Lspl(uok2)
-
-        for co in [Lok, Lok_all, Lok_wutop, Lok_all_wutop]:
-            co[:20][np.isnan(co[:20])] = 0.0 # for extrapolated regions
-            co[-5:][np.isnan(co[-5:])] = 1.0 # for extrapolated regions
-
-        alpha = np.ones(len(Lok)) # depends on cco2
-        eps_gn = np.zeros(len(Lok))
-
-        dj = alpha*Lok
-        lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
-
-        MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass
-
-        ## Boundary condition
-        #eps125 = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][n_alts_trlo]
-        tip = 'varfit5_nlte'
-        acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
-        bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
-        asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
-        bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
-
-        hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
-        eps125 = hr_calc[n_alts_trlo-1]
-
-        cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
-        #cose_upper_atm[(atm, cco2, 'L_esc_int2')] = Lok_int2 # finest integration grid
-        cose_upper_atm[(atm, cco2, 'L_esc_wutop')] = Lok_wutop # adding a utop equal to the last uok
-        cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] = Lok_all_wutop # adding a utop equal to the last uok
-        cose_upper_atm[(atm, cco2, 'L_esc_all')] = Lok_all # using the mean of the escape functions for all atmospheres
-
-        cose_upper_atm[(atm, cco2, 'L_esc_fom')] = Lok_fom # using Fomichev L_esc
-
-        print(cco2, atm)
-        for nam in ['L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop']:
-            print(nam, np.max(np.abs(cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:] - cose_upper_atm[(atm, cco2, nam)][n_alts_trlo:])))
-
-        cose_upper_atm[(atm, cco2, 'lamb')] = lamb
-        #cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
-        cose_upper_atm[(atm, cco2, 'eps125')] = eps125
-        cose_upper_atm[(atm, cco2, 'co2vmr')] = co2vmr
-        cose_upper_atm[(atm, cco2, 'MM')] = MM
-
-pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
-
-
-# alpha FIT!
-alpha_dic = dict()
-for n_top in [n_alts_trhi, n_alts_trhi + 5]:
-    n_trans = n_top-n_alts_trlo+1
-    atmweights = np.ones(6)
-    bounds = (np.ones(n_trans), 5*np.ones(n_trans))
-    bounds2 = tuple(n_trans*[(1.,5.)])
-
-    #start = np.linspace(2.0, 1.0, n_trans)
-    start = np.ones(n_trans)
-    for name_escape_fun in ['L_esc', 'L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop', 'L_esc_fom']:
-        for cco2 in range(1, npl.n_co2prof+1):
-            print(cco2)
-            result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-            #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-            print('least_squares', result)
-            alpha_dic[(n_top, name_escape_fun, 'least_squares', cco2)] = result.x
-
-            result = minimize(npl.delta_alpha_rec3, start, args=(cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), method = 'TNC', bounds = bounds2)#, gtol = gtol, xtol = xtol)
-            print('minimize', result)
-            alpha_dic[(n_top, name_escape_fun, 'minimize', cco2)] = result.x
-
-
-pickle.dump(alpha_dic, open(cart_out_3 + 'alpha_upper.p', 'wb'))
-
+atmweights = np.ones(6)
 
 alpha_dic_atm = dict()
 n_top = n_alts_trhi + 5
@@ -232,14 +243,17 @@ bounds2 = tuple(n_trans*[(1.,20.)])
 
 #start = np.linspace(2.0, 1.0, n_trans)
 start = np.ones(n_trans)
-name_escape_fun = 'L_esc_wutop'
-for cco2 in range(1, npl.n_co2prof+1):
-    for atm in allatms:
-        print(atm, cco2)
-        result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-        #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-        print('least_squares', result)
-        alpha_dic_atm[(name_escape_fun, atm, cco2)] = result.x
+# name_escape_fun = 'L_esc_wutop'
+# for cco2 in range(1, npl.n_co2prof+1):
+#     for atm in allatms:
+#         print(atm, cco2)
+#         result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, n_alts_trlo, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+#         #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+#         print('least_squares', result)
+#         alpha_dic_atm[(name_escape_fun, atm, cco2)] = result.x
+#
+# pickle.dump(alpha_dic_atm, open(cart_out_3 + 'alpha_single_atm.p', 'wb'))
+alpha_dic_atm = pickle.load(open(cart_out_3 + 'alpha_single_atm.p', 'rb'))
 
 ###### IMPORTANT!! UNCOMMENT FOR COOL-TO-SPACE region
 # now for the cs region:
@@ -289,7 +303,8 @@ for cco2 in range(1, npl.n_co2prof+1):
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
-        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+        #alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr)
+        alt_fomi, x_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, cart_run_fomi = cart_base + 'lavori/CO2_cooling/cart_run_fomi/')
         oldco = spline(alt_fomi, hr_fomi)
         hr_fomi = oldco(alts)
 

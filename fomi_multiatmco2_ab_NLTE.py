@@ -12,20 +12,23 @@ from scipy import io
 import scipy.constants as const
 import pickle
 
-if os.uname()[1] == 'ff-clevo':
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/SpectRobot/')
-    sys.path.insert(0, '/home/fedefab/Scrivania/Research/Post-doc/git/pythall/')
-    cart_out = '/home/fedefab/Scrivania/Research/Post-doc/CO2_cooling/new_param/LTE/'
+
+if os.uname()[1] == 'xaru':
+    cart_base = '/home/fedef/Research/'
 elif os.uname()[1] == 'hobbes':
-    sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
-    sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
-    cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/LTE/'
-    cart_out_2 = '/home/fabiano/Research/lavori/CO2_cooling/new_param/NLTE/'
+    cart_base = '/home/fabiano/Research/'
 else:
     raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
 
+sys.path.insert(0, cart_base + 'git/SpectRobot/')
+sys.path.insert(0, cart_base + 'git/pythall/')
+cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
+cart_out_2 = cart_base + 'lavori/CO2_cooling/new_param/NLTE/'
+
 import spect_base_module as sbm
 import spect_classes as spcl
+from scipy.optimize import Bounds, minimize, least_squares
+import newparam_lib as npl
 
 kbc = const.k/(const.h*100*const.c) # 0.69503
 kboltz = 1.38064853e-23 # J/K
@@ -49,15 +52,15 @@ n_alts = 40
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
-from scipy.optimize import Bounds, minimize, least_squares
-import newparam_lib as npl
-#############################################################
+for atm in allatms:
+    for cco2 in allco2:
+        hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+        hr_ref[:n_alts] = all_coeffs[(atm, cco2, 'hr_ref')][:n_alts]
+        all_coeffs_nlte[(atm, cco2, 'hr_ref')] = hr_ref
 
-tutti3 = pickle.load(open(cart_out+'tutti3_vals.p'))
-tuttil3 = np.array([cu[1] for cu in tutti3])
-ind = tuttil3.argmin()
-print(tutti3[ind])
-start = tutti3[ind][0]
+pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
+
+#############################################################
 
 bounds = (0.1*np.ones(6), 10.*np.ones(6))
 
@@ -187,177 +190,177 @@ print('######################################################')
 pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5.p', 'wb'))
 # pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'wb'))
 
-atmweigths3 = [0.25, 0.25, 0.25, 0.25, 0., 0.]
-atmweigths3 = dict(zip(allatms, atmweigths3))
-varfit_xis_3 = dict()
-
-all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
-
-for cco2 in range(1,npl.n_co2prof+1):
-    for ialt in range(npl.n_alts_all):
-        doloop = True
-        jloop = 1
-        xis_b = None
-        # Equal atm weights
-        while doloop and jloop < nloops: # loop on a and b fit
-            if jloop == 1:
-                xis_start = xis_a_start
-            else:
-                xis_start = xis_a
-
-            cnam = 'afit'
-            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths3, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_a = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_3[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_a - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_3[(cco2, ialt, cnam)] = xis_a
-            # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
-            # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
-            # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
-            # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
-
-            if jloop == 1:
-                xis_start = xis_b_start
-            else:
-                xis_start = xis_b
-            cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths3, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_b = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_3[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_b - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_3[(cco2, ialt, cnam)] = xis_b
-            # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
-            # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
-            # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
-            # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
-
-            jloop += 1
-
-print('######################################################')
-pickle.dump(varfit_xis_3, open(cart_out_2+'varfit_NLTE_v6_noarctic.p', 'wb'))
-
-atmweigths4 = [0., 0., 0., 0., 0.5, 0.5]
-atmweigths4 = dict(zip(allatms, atmweigths4))
-varfit_xis_4 = dict()
-
-for cco2 in range(1,npl.n_co2prof+1):
-    for ialt in range(npl.n_alts_all):
-        doloop = True
-        jloop = 1
-        xis_b = None
-        # Equal atm weights
-        while doloop and jloop < nloops: # loop on a and b fit
-            if jloop == 1:
-                xis_start = xis_a_start
-            else:
-                xis_start = xis_a
-
-            cnam = 'afit'
-            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths4, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_a = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_4[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_a - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_4[(cco2, ialt, cnam)] = xis_a
-            # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
-            # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
-            # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
-            # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
-
-            if jloop == 1:
-                xis_start = xis_b_start
-            else:
-                xis_start = xis_b
-            cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths4, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_b = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_4[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_b - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_4[(cco2, ialt, cnam)] = xis_b
-            # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
-            # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
-            # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
-            # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
-
-            jloop += 1
-
-print('######################################################')
-pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v7_arctic.p', 'wb'))
-
-bounds = (0.1*np.ones(6), np.ones(6))
-varfit_xis_4 = dict()
-
-for cco2 in range(1,npl.n_co2prof+1):
-    for ialt in range(npl.n_alts_all):
-        doloop = True
-        jloop = 1
-        xis_b = None
-        # Equal atm weights
-        while doloop and jloop < nloops: # loop on a and b fit
-            if jloop == 1:
-                xis_start = xis_a_start
-            else:
-                xis_start = xis_a
-
-            cnam = 'afit'
-            result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_a = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_4[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_a - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_4[(cco2, ialt, cnam)] = xis_a
-            # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
-            # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
-            # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
-            # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
-
-            if jloop == 1:
-                xis_start = xis_b_start
-            else:
-                xis_start = xis_b
-            cnam = 'bfit'
-            result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
-            print(cco2, ialt, cnam, jloop, result.x)
-            xis_b = result.x
-
-            if jloop > 1:
-                xis_old = varfit_xis_4[(cco2, ialt, cnam)]
-                if np.mean(np.abs(xis_b - xis_old)) < thresloop:
-                    doloop = False
-
-            varfit_xis_4[(cco2, ialt, cnam)] = xis_b
-            # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
-            # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
-            # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
-            # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
-
-            jloop += 1
-
-print('######################################################')
-pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v8_lim01.p', 'wb'))
+# atmweigths3 = [0.25, 0.25, 0.25, 0.25, 0., 0.]
+# atmweigths3 = dict(zip(allatms, atmweigths3))
+# varfit_xis_3 = dict()
+#
+# all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
+#
+# for cco2 in range(1,npl.n_co2prof+1):
+#     for ialt in range(npl.n_alts_all):
+#         doloop = True
+#         jloop = 1
+#         xis_b = None
+#         # Equal atm weights
+#         while doloop and jloop < nloops: # loop on a and b fit
+#             if jloop == 1:
+#                 xis_start = xis_a_start
+#             else:
+#                 xis_start = xis_a
+#
+#             cnam = 'afit'
+#             result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths3, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_a = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_3[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_a - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_3[(cco2, ialt, cnam)] = xis_a
+#             # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
+#             # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
+#             # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
+#             # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
+#
+#             if jloop == 1:
+#                 xis_start = xis_b_start
+#             else:
+#                 xis_start = xis_b
+#             cnam = 'bfit'
+#             result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths3, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_b = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_3[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_b - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_3[(cco2, ialt, cnam)] = xis_b
+#             # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
+#             # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
+#             # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
+#             # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
+#
+#             jloop += 1
+#
+# print('######################################################')
+# pickle.dump(varfit_xis_3, open(cart_out_2+'varfit_NLTE_v6_noarctic.p', 'wb'))
+#
+# atmweigths4 = [0., 0., 0., 0., 0.5, 0.5]
+# atmweigths4 = dict(zip(allatms, atmweigths4))
+# varfit_xis_4 = dict()
+#
+# for cco2 in range(1,npl.n_co2prof+1):
+#     for ialt in range(npl.n_alts_all):
+#         doloop = True
+#         jloop = 1
+#         xis_b = None
+#         # Equal atm weights
+#         while doloop and jloop < nloops: # loop on a and b fit
+#             if jloop == 1:
+#                 xis_start = xis_a_start
+#             else:
+#                 xis_start = xis_a
+#
+#             cnam = 'afit'
+#             result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths4, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_a = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_4[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_a - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_4[(cco2, ialt, cnam)] = xis_a
+#             # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
+#             # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
+#             # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
+#             # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
+#
+#             if jloop == 1:
+#                 xis_start = xis_b_start
+#             else:
+#                 xis_start = xis_b
+#             cnam = 'bfit'
+#             result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths4, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_b = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_4[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_b - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_4[(cco2, ialt, cnam)] = xis_b
+#             # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
+#             # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
+#             # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
+#             # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
+#
+#             jloop += 1
+#
+# print('######################################################')
+# pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v7_arctic.p', 'wb'))
+#
+# bounds = (0.1*np.ones(6), np.ones(6))
+# varfit_xis_4 = dict()
+#
+# for cco2 in range(1,npl.n_co2prof+1):
+#     for ialt in range(npl.n_alts_all):
+#         doloop = True
+#         jloop = 1
+#         xis_b = None
+#         # Equal atm weights
+#         while doloop and jloop < nloops: # loop on a and b fit
+#             if jloop == 1:
+#                 xis_start = xis_a_start
+#             else:
+#                 xis_start = xis_a
+#
+#             cnam = 'afit'
+#             result = least_squares(npl.delta_xi_at_x0_afit, xis_start, jac=npl.jacdelta_xi_at_x0_afit, args=(cco2, ialt, xis_b, atmweigths, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_a = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_4[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_a - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_4[(cco2, ialt, cnam)] = xis_a
+#             # agn = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'acoeff', all_coeffs = all_coeffs_nlte)
+#             # agn_surf = npl.coeff_from_xi_at_x0(xis_a, cco2, ialt, cnam = 'asurf', all_coeffs = all_coeffs_nlte)
+#             # all_coeffs_nlte[(atm, cco2, 'acoeff')][..., ialt] = agn
+#             # all_coeffs_nlte[(atm, cco2, 'asurf')][ialt] = agn_surf
+#
+#             if jloop == 1:
+#                 xis_start = xis_b_start
+#             else:
+#                 xis_start = xis_b
+#             cnam = 'bfit'
+#             result = least_squares(npl.delta_xi_at_x0_bfit, xis_start, jac=npl.jacdelta_xi_at_x0_bfit, args=(cco2, ialt, xis_a, atmweigths, all_coeffs_nlte, 'hr_ref', ), verbose=1, method = 'trf', bounds = bounds, gtol = gtol, xtol = xtol)
+#             print(cco2, ialt, cnam, jloop, result.x)
+#             xis_b = result.x
+#
+#             if jloop > 1:
+#                 xis_old = varfit_xis_4[(cco2, ialt, cnam)]
+#                 if np.mean(np.abs(xis_b - xis_old)) < thresloop:
+#                     doloop = False
+#
+#             varfit_xis_4[(cco2, ialt, cnam)] = xis_b
+#             # bgn = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bcoeff', all_coeffs = all_coeffs_nlte)
+#             # bgn_surf = npl.coeff_from_xi_at_x0(xis_b, cco2, ialt, cnam = 'bsurf', all_coeffs = all_coeffs_nlte)
+#             # all_coeffs_nlte[(atm, cco2, 'bcoeff')][..., ialt] = bgn
+#             # all_coeffs_nlte[(atm, cco2, 'bsurf')][ialt] = bgn_surf
+#
+#             jloop += 1
+#
+# print('######################################################')
+# pickle.dump(varfit_xis_4, open(cart_out_2+'varfit_NLTE_v8_lim01.p', 'wb'))
 
 # THE LM METHOD MAKES THE xis_b EXPLODE. why?
 # for cco2 in range(1,npl.n_co2prof+1):
