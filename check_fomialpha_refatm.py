@@ -225,4 +225,4 @@ for cco2 in range(1, npl.n_co2prof+1):
     npl.adjust_ax_scale(a0s)
     npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out_F + 'check_fomialpha_refatm_v2.pdf', figs)
+npl.plot_pdfpages(cart_out_F + 'check_fomialpha_refatm_v3.pdf'.format(n_top), figs)

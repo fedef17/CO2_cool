@@ -128,13 +128,13 @@ for cco2 in range(1, npl.n_co2prof+1):
 
         alpha = npl.recformula_invert(hr_ref, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
 
-        alphas.append(alpha[alt2:n_top+1])
+        alphas.append(alpha)
         plt.plot(alpha, np.arange(len(alpha)), label = atm)
-        plt.axhline(alt2, color = 'red', ls = '--')
-        plt.axhline(n_top, color = 'blue', ls = '--')
+        # plt.axhline(alt2, color = 'red', ls = '--')
+        # plt.axhline(n_top, color = 'blue', ls = '--')
         plt.grid()
         plt.legend()
-        plt.ylim(alt2-5, n_top+5)
+        # plt.ylim(alt2-5, n_top+5)
 
     alpha_dic_atm[cco2] = np.stack(alphas)
     plt.title(str(cco2))
@@ -143,9 +143,9 @@ for cco2 in range(1, npl.n_co2prof+1):
 
 npl.plot_pdfpages(cart_out_rep + 'check_alpha_v9_inverse.pdf', figs)
 
+
 alpha_unif, _ = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2.p', 'rb'))
 pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v3_inverse.p', 'wb'))
-
 
 #####################################################################
 
@@ -176,7 +176,7 @@ fig = plt.figure()
 for i in range(4):
     plt.plot(solver_pop.eofs()[i], np.arange(alt2, n_top+1), label = str(i))
 plt.title('popup eofs')
-fig.savefig(cart_out_F + 'popup_eofs_allco2.pdf')
+fig.savefig(cart_out_F + 'popup_eofs_allco2_top{}.pdf'.format(n_top))
 
 figs3 = []
 alpha_fit = dict()
@@ -273,7 +273,7 @@ for cco2 in range(1,npl.n_co2prof+1):
     figs3.append(fig3)
 
 
-npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v9_inverse.pdf', figs3)
+npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v9_inverse_top{}.pdf'.format(n_top), figs3)
 
 #sys.exit()
 #####################################################################
@@ -290,7 +290,7 @@ for cco2 in range(1, npl.n_co2prof+1):
     alpha_fit[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
     alpha_fit[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
 
-pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e_9i.p', 'wb'))
+pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e_9i_top{}.p'.format(n_top), 'wb'))
 
 alpha_fit2['popup_mean'] = popup_mean
 alpha_fit2['eof0'] = solver_pop.eofs(eofscaling=1)[0]
@@ -299,7 +299,7 @@ alpha_fit2['eof1'] = solver_pop.eofs(eofscaling=1)[1]
 for cco2 in range(1, npl.n_co2prof+1):
     alpha_fit2[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
     alpha_fit2[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
-pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0_9i.p', 'wb'))
+pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0_9i_top{}.p'.format(n_top), 'wb'))
 
 
 ############################################################
@@ -393,4 +393,4 @@ for cco2 in range(1, npl.n_co2prof+1):
         npl.adjust_ax_scale(a0s)
         npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v9_inverse.pdf', figs)
+npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v9_inverse_top{}.pdf'.format(n_top), figs)

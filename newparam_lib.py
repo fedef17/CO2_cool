@@ -2246,6 +2246,8 @@ def recformula_invert(hr_new, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = 50, n
 
         alpha[j-1] = (4*f1 + alpha[j]*L_esc[j]*f2)/(L_esc[j-1]*f3)
 
+        if alpha[j-1] < 0.5: alpha[j-1] = 0.5
+
         ## CHECK
         dj = alpha * L_esc
 
@@ -2260,7 +2262,7 @@ def recformula_invert(hr_new, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = 50, n
 
         print(j, eps_gn[j], coso, (coso-eps_gn[j-1])/(eps_gn[j]-eps_gn[j-1]))
 
-    return alpha
+    return alpha[n_alts_trlo-1:n_alts_trhi]
 
 
 ###########################################################
