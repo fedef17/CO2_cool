@@ -80,7 +80,7 @@ cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 crun = '/home/fedef/Research/lavori/CO2_cooling/cart_run_fomi/'
 ################################################################################
 
-n_top = 60 #!!!! IMPORTANT!
+n_top = 65 #!!!! IMPORTANT!
 
 alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep +  'alpha_singleatm_v2.p', 'rb'))
 _, alpha_dic_atm_v3i = pickle.load(open(cart_out_rep + 'alpha_singleatm_v3_inverse.p', 'rb'))

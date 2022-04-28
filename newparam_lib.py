@@ -1063,7 +1063,10 @@ def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, al
     popup = lambdivA*phifunz
 
     popup_mean = alpha_cose['popup_mean']
-    eofs_all = [alpha_cose['eof{}'.format(i)] for i in range(4)]
+    if method == '4e':
+        eofs_all = [alpha_cose['eof{}'.format(i)] for i in range(4)]
+    else:
+        eofs_all = [alpha_cose['eof{}'.format(i)] for i in range(2)]
 
     dotprods = np.array([np.dot(popup-popup_mean, eoff) for eoff in eofs_all])
     dotprods2 = np.array([dotprods[0], dotprods[0]**2] + [dotprods[1], dotprods[1]**2])
@@ -1852,7 +1855,7 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
     return fu
 
 
-def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc', eps125 = None):
+def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc', ovmr = None, eps125 = None):
     """
     As rec2, but for a single atmosphere.
     """
@@ -1870,7 +1873,7 @@ def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_a
     if eps125 is None:
         eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
 
-    hr_calc = transrecformula(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo+1)
+    hr_calc = transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo+1, ovmr = ovmr)
 
     # atmweights will be squared by the loss function inside least_quares
     fu = hr_calc - hr_ref
@@ -2114,6 +2117,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     if ovmr is not None:
         cp = calc_cp(MM, ovmr)
     else:
+        print('WARNING!! using dummy cp in upper atmosphere!')
         cp = np.ones(n_alts)*cp_0
 
     if debug: print('cp', cp)
@@ -2208,7 +2212,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
     return hr_new
 
 
-def recformula_invert(hr_new, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65, ovmr = None, debug = False, factor_from_code = True):
+def recformula_invert(hr_new, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65, ovmr = None, debug = False, factor_from_code = True, force_min_alpha = 0.5):
     """
     Inverts recurrence formula to get alpha, assuming the reference heating rate. Starts from the top of the transition region, where alpha is 1.
 
@@ -2243,10 +2247,11 @@ def recformula_invert(hr_new, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = 50, n
         f2 = zuk[j-1] - 3 * zuk[j]
         f3 = zuk[j] - 3 * zuk[j-1]
         #print(j, f1, f2, f3)
-
         alpha[j-1] = (4*f1 + alpha[j]*L_esc[j]*f2)/(L_esc[j-1]*f3)
 
-        if alpha[j-1] < 0.5: alpha[j-1] = 0.5
+        if force_min_alpha is not None:
+            if alpha[j-1] < force_min_alpha: alpha[j-1] = force_min_alpha
+        print(j, alpha[j], alpha[j-1])
 
         ## CHECK
         dj = alpha * L_esc
@@ -2301,7 +2306,7 @@ def plot_coeff(coeff, n_alts = 51, ax = None):
     return
 
 
-def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None, linestyles = None, xlim = (None, None), ylim = (None, None), orizlines = [70., 85.]):
+def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimdiff = None, colors = None, linestyles = None, xlim = (None, None), ylim = (None, None), orizlines = [70., 85.], linewidth = 1.):
     """
     Plots plt.plot(x, y, lab) for each x in xs. Plots the differences of all xs wrt xs[0] in a side plot.
     """
@@ -2310,7 +2315,7 @@ def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimd
     if linestyles is None: linestyles = len(xs)*['-']
     i = 0
     for x, lab, col, lst in zip(xs, labels, colors, linestyles):
-        a0.plot(x, y, label = lab, color = col, linestyle = lst)
+        a0.plot(x, y, label = lab, color = col, linestyle = lst, linewidth = linewidth)
         if i == 0:
             i+=1
             continue
@@ -2320,7 +2325,7 @@ def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimd
             a1.axvline(-0.5, color = 'grey', alpha = 0.4, linestyle = ':', linewidth = 0.8)
             a1.axvline(1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
             a1.axvline(-1.0, color = 'grey', alpha = 0.4, linestyle = '--', linewidth = 0.8)
-        a1.plot(x - xs[0], y, color = col, linestyle = lst)
+        a1.plot(x - xs[0], y, color = col, linestyle = lst, linewidth = linewidth)
         i+=1
 
     for orizli, col in zip(orizlines, ['red', 'orange', 'green', 'blue']):

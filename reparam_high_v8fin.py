@@ -79,7 +79,9 @@ nlte_corr = pickle.load(open(cart_out_rep + 'nlte_corr_low.p', 'rb'))
 
 alt2 = 51
 #n_top = alt2 + 10
-n_top = 60
+n_top = 70
+n_alts_cs = 80
+
 #### NB!!!! questi sono diversi da quelli per la atm bassa!!!!
 temps_anom = np.stack([atm_pt[(atm, 'temp')][alt2:]-np.mean(atm_pt[(atm, 'temp')][alt2:]) for atm in allatms])
 atm_anom_mean = np.mean(temps_anom, axis = 0)
@@ -114,7 +116,8 @@ for cco2 in range(1, npl.n_co2prof+1):
     for atm in allatms:
         print(atm, cco2)
         cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-        result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+        ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
+        result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
         #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
         print('least_squares', result)
         alphas.append(result.x)
@@ -123,10 +126,9 @@ for cco2 in range(1, npl.n_co2prof+1):
 
 alpha_unif = np.stack(alpha_unif)
 
-pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v2.p', 'wb'))
+pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v2_top{}.p'.format(n_top), 'wb'))
 
-
-alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2.p', 'rb'))
+alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2_top{}.p'.format(n_top), 'rb'))
 
 #### OK, and now.... regression model! with pc0, pc1 e tempgrad
 tempgrad = np.stack([np.gradient(atm_pt[(atm, 'temp')])[alt2:n_top+1] for atm in allatms])
@@ -153,7 +155,7 @@ fig = plt.figure()
 for i in range(4):
     plt.plot(solver_pop.eofs()[i], np.arange(alt2, n_top+1), label = str(i))
 plt.title('popup eofs')
-fig.savefig(cart_out_F + 'popup_eofs_allco2.pdf')
+fig.savefig(cart_out_F + 'popup_eofs_allco2_top{}.pdf'.format(n_top))
 
 figs3 = []
 alpha_fit = dict()
@@ -250,7 +252,7 @@ for cco2 in range(1,npl.n_co2prof+1):
     figs3.append(fig3)
 
 
-npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v8.pdf', figs3)
+npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v8_top{}.pdf'.format(n_top), figs3)
 
 #sys.exit()
 #####################################################################
@@ -267,7 +269,7 @@ for cco2 in range(1, npl.n_co2prof+1):
     alpha_fit[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
     alpha_fit[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
 
-pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e.p', 'wb'))
+pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e_v8_top{}.p'.format(n_top), 'wb'))
 
 alpha_fit2['popup_mean'] = popup_mean
 alpha_fit2['eof0'] = solver_pop.eofs(eofscaling=1)[0]
@@ -276,7 +278,7 @@ alpha_fit2['eof1'] = solver_pop.eofs(eofscaling=1)[1]
 for cco2 in range(1, npl.n_co2prof+1):
     alpha_fit2[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
     alpha_fit2[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
-pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0.p', 'wb'))
+pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0_v8_top{}.p'.format(n_top), 'wb'))
 
 
 ############################################################
@@ -339,11 +341,11 @@ for cco2 in range(1, npl.n_co2prof+1):
         # alpha_nl = np.array([np.polyval(alpha_fit_nl0[cco2][izz, :], dotprods[0]) for izz in range(len(alpha_fit_nl0[cco2]))]) + alpha_fit2[cco2][:, 0] +  np.sum(alpha_fit2[cco2][:, 1:] * dotprods[np.newaxis, 1:-1], axis = 1)
 
         #n_top = alt2 + 10
-        hr_calc6 = npl.recformula(alpha6, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
-        hr_calc_nl = npl.recformula(alpha_nl, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+        hr_calc6 = npl.recformula(alpha6, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr, n_alts_cs = n_alts_cs)
+        hr_calc_nl = npl.recformula(alpha_nl, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr, n_alts_cs = n_alts_cs)
 
         # hr_calc_aok = npl.recformula(alphaok, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
-        hr_calc_aunif = npl.recformula(alpha_unif[cco2-1, :], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+        hr_calc_aunif = npl.recformula(alpha_unif[cco2-1, :], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr, n_alts_cs = n_alts_cs)
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
         #hr_calc_vf5 = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
@@ -361,7 +363,7 @@ for cco2 in range(1, npl.n_co2prof+1):
         hrs = [hr_ref, hr_calc6, hr_calc_nl, hr_calc_aunif]#, hr_calc_vf5]#, hr_fomi]
 
         colors = npl.color_set(5)
-        fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-10, 10), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', ':', ':', ':', ':'], colors = colors, orizlines = [40, alt2, n_top])
+        fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-25, 25), xlim = (-1000, 10), ylim = (40, 80), linestyles = ['-', '--', ':', ':', ':', ':', ':'], colors = colors, orizlines = [40, alt2, n_top], linewidth = 2.)
 
         figs.append(fig)
         a0s.append(a0)
@@ -370,4 +372,4 @@ for cco2 in range(1, npl.n_co2prof+1):
         npl.adjust_ax_scale(a0s)
         npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v8.pdf', figs)
+npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v8_top{}.pdf'.format(n_top), figs)

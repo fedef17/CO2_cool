@@ -79,7 +79,7 @@ nlte_corr = pickle.load(open(cart_out_rep + 'nlte_corr_low.p', 'rb'))
 
 alt2 = 51
 #n_top = alt2 + 10
-n_top = 60
+n_top = 65
 #### NB!!!! questi sono diversi da quelli per la atm bassa!!!!
 temps_anom = np.stack([atm_pt[(atm, 'temp')][alt2:]-np.mean(atm_pt[(atm, 'temp')][alt2:]) for atm in allatms])
 atm_anom_mean = np.mean(temps_anom, axis = 0)
@@ -125,8 +125,13 @@ for cco2 in range(1, npl.n_co2prof+1):
         MM = cose_upper_atm[(atm, cco2, 'MM')]
 
         temp = atm_pt[(atm, 'temp')]
+        ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+        o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+        n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
 
-        alpha = npl.recformula_invert(hr_ref, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+        MM = npl.calc_MM(ovmr, o2vmr, n2vmr)
+
+        alpha = npl.recformula_invert(hr_ref, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr, force_min_alpha = 1.)
 
         alphas.append(alpha)
         plt.plot(alpha, np.arange(len(alpha)), label = atm)
@@ -144,12 +149,12 @@ for cco2 in range(1, npl.n_co2prof+1):
 npl.plot_pdfpages(cart_out_rep + 'check_alpha_v9_inverse.pdf', figs)
 
 
-alpha_unif, _ = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2.p', 'rb'))
-pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v3_inverse.p', 'wb'))
+alpha_unif, _ = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2_top{}.p'.format(n_top), 'rb'))
+pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v3i_top{}.p'.format(n_top), 'wb'))
 
 #####################################################################
 
-alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm_v3_inverse.p', 'rb'))
+alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm_v3i_top{}.p'.format(n_top), 'rb'))
 
 #### OK, and now.... regression model! with pc0, pc1 e tempgrad
 tempgrad = np.stack([np.gradient(atm_pt[(atm, 'temp')])[alt2:n_top+1] for atm in allatms])
@@ -324,7 +329,8 @@ for cco2 in range(1, npl.n_co2prof+1):
 
         L_esc = cose_upper_atm[(atm, cco2, 'L_esc_all')]
         lamb = cose_upper_atm[(atm, cco2, 'lamb')]
-        MM = cose_upper_atm[(atm, cco2, 'MM')]
+        #MM = cose_upper_atm[(atm, cco2, 'MM')]
+        MM = npl.calc_MM(ovmr, o2vmr, n2vmr)
 
         hr_calc = npl.hr_reparam_low(cco2, temp, surf_temp, regrcoef = regrcoef, nlte_corr = nlte_corr)
 
@@ -362,11 +368,12 @@ for cco2 in range(1, npl.n_co2prof+1):
         # alpha_nl = np.array([np.polyval(alpha_fit_nl0[cco2][izz, :], dotprods[0]) for izz in range(len(alpha_fit_nl0[cco2]))]) + alpha_fit2[cco2][:, 0] +  np.sum(alpha_fit2[cco2][:, 1:] * dotprods[np.newaxis, 1:-1], axis = 1)
 
         #n_top = alt2 + 10
-        hr_calc6 = npl.recformula(alpha6, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
-        hr_calc_nl = npl.recformula(alpha_nl, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+        hr_calc6 = npl.recformula(alpha6, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr)
+        hr_calc_nl = npl.recformula(alpha_nl, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr)
 
-        # hr_calc_aok = npl.recformula(alphaok, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
-        hr_calc_aunif = npl.recformula(alpha_unif[cco2-1, :], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+        hr_calc_aok = npl.recformula(alphaok, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr)
+
+        hr_calc_aunif = npl.recformula(alpha_unif[cco2-1, :], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr)
 
         hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
         #hr_calc_vf5 = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_NLTE)
@@ -380,11 +387,12 @@ for cco2 in range(1, npl.n_co2prof+1):
         ylab = 'index'
         # labels = ['nlte_ref'] + [modnams[4]] + [modnams[5]] + ['alphaok', 'vf5', 'auni']
         # hrs = [hr_ref, hr_calc5, hr_calc6, hr_calc_aok, hr_calc_vf5, hr_calc_aunif]
-        labels = ['nlte_ref', 'pop_4e_wt', 'pop_nl0_wt', 'aunif']#, 'vf5']#, 'fomi']
-        hrs = [hr_ref, hr_calc6, hr_calc_nl, hr_calc_aunif]#, hr_calc_vf5]#, hr_fomi]
+        labels = ['nlte_ref', 'pop_4e_wt', 'pop_nl0_wt', 'aunif', 'alpha_ok_3i']#, 'vf5']#, 'fomi']
+        hrs = [hr_ref, hr_calc6, hr_calc_nl, hr_calc_aunif, hr_calc_aok]#, hr_calc_vf5]#, hr_fomi]
 
         colors = npl.color_set(5)
-        fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-10, 10), xlim = (-70, 10), ylim = (40, 67), linestyles = ['-', '--', ':', ':', ':', ':', ':'], colors = colors, orizlines = [40, alt2, n_top])
+        #colors = npl.color_set(5)[:3] + npl.color_set(5)[4:]
+        fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-25, 25), xlim = (-1000, 10), ylim = (40, 80), linestyles = ['-', '--', ':', ':', ':', ':', ':'], colors = colors, orizlines = [40, alt2, n_top], linewidth = 2.)
 
         figs.append(fig)
         a0s.append(a0)
