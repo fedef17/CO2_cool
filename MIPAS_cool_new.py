@@ -81,7 +81,7 @@ coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_fin
 
 interp_coeffs = npl.precalc_interp(coeff_file = coeff_file)
 
-interp_coeffs_old = npl.precalc_interp(n_top = 65, coeff_file = cart_base + 'reparam_allatm/coeffs_finale_oldv10.p')
+interp_coeffs_old = npl.precalc_interp(n_top = 65, coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_finale_oldv10.p')
 
 coeffs = pickle.load(open(coeff_file, 'rb'))
 
