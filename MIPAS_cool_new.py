@@ -279,7 +279,7 @@ for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2], [
         crok = spl(x_ref)
         crall_rg[na].append(crok)
 
-    crall_rg[na] = np.stack(crall_rg)
+    crall_rg[na] = np.stack(crall_rg[na])
 
 
 d_stats = dict()
