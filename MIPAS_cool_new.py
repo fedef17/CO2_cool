@@ -271,16 +271,24 @@ new_param_fixco2 = np.stack(new_param_fixco2)
 # d_new = np.stack(d_new)
 # d_new_fa = np.stack(d_new_fa)
 
-d_fom = old_param + obs
-d_new = new_param + obs
-d_new_fa = new_param_fa + obs
-d_new_fixco2 = new_param_fixco2 + obs
+crall_rg = dict()
+for co, na, col in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2']):
+    crall_rg[na] = []
+    for x, cr in zip(mipx, co):
+        spl = spline(x, cr, extrapolate = False)
+        crok = spl(x_ref)
+        crall_rg[na].append(crok)
+
+    crall_rg[na] = np.stack(crall_rg)
+
 
 d_stats = dict()
 ### Figure shading
 fig, ax = plt.subplots()
 
-for co, na, col in zip([d_fom, d_new, d_new_fa, d_new_fixco2], ['fomi', 'new', 'new_fa', 'new_fixco2'], ['blue', 'red', 'orange', 'forestgreen']):
+for na, col in zip(['fomi', 'new', 'new_fa', 'new_fixco2'], ['blue', 'red', 'orange', 'forestgreen']):
+    co = crall_rg[na] + crall_rg['obs']
+
     d_stats[(na, 'median')] = np.median(co, axis = 0)
     d_stats[(na, '1st')] = np.percentile(co, 25, axis = 0)
     d_stats[(na, '3rd')] = np.percentile(co, 75, axis = 0)
