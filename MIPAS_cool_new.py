@@ -272,7 +272,7 @@ new_param_fixco2 = np.stack(new_param_fixco2)
 # d_new_fa = np.stack(d_new_fa)
 
 crall_rg = dict()
-for co, na, col in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2']):
+for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2']):
     crall_rg[na] = []
     for x, cr in zip(mipx, co):
         spl = spline(x, cr, extrapolate = False)
