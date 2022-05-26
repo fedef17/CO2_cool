@@ -229,7 +229,7 @@ def calc_coeffs_for_co2(interp_coeffs, co2vmr, alt2 = 51, n_top = 65):
     return calc_coeffs
 
 
-def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None):
+def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None, debug_allgr = False, extrap_co2col = True):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
@@ -244,44 +244,54 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     ## reference x grid
     x_ref_max = 20.625
     if np.max(x) > x_ref_max:
-        x_ref = np.arange(0.125, np.max(x), 0.25)
+        x_ref = np.arange(0.125, np.max(x) + 0.001, 0.25)
     else:
         x_ref = np.arange(0.125, x_ref_max + 0.001, 0.25)
 
     ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
-    spl = spline(x, temp, extrapolate = False)
+    spl = spline(x, temp, extrapolate = True)
     temp_rg = spl(x_ref)
+    temp_rg[x_ref > np.max(x)] = np.nan
 
-    spl = spline(x, np.log(pres), extrapolate = False)
+    spl = spline(x, np.log(pres), extrapolate = True)
     pres_rg = spl(x_ref)
     pres_rg = np.exp(pres_rg)
+    pres_rg[x_ref > np.max(x)] = np.nan
 
-    spl = spline(x, ovmr, extrapolate = False)
+    spl = spline(x, ovmr, extrapolate = True)
     ovmr_rg = spl(x_ref)
+    ovmr_rg[x_ref > np.max(x)] = np.nan
 
-    spl = spline(x, o2vmr, extrapolate = False)
+    spl = spline(x, o2vmr, extrapolate = True)
     o2vmr_rg = spl(x_ref)
+    o2vmr_rg[x_ref > np.max(x)] = np.nan
 
-    spl = spline(x, co2vmr, extrapolate = False)
+    spl = spline(x, co2vmr, extrapolate = True)
     co2vmr_rg = spl(x_ref)
+    co2vmr_rg[x_ref > np.max(x)] = np.nan
 
-    spl = spline(x, n2vmr, extrapolate = False)
+    spl = spline(x, n2vmr, extrapolate = True)
     n2vmr_rg = spl(x_ref)
+    n2vmr_rg[x_ref > np.max(x)] = np.nan
+
 
     ########## Call new param
+    #print(temp_rg, surf_temp, pres_rg)
 
     if debug:
-        hr_calc_fin, cose = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug, debug_co2interp = debug_co2interp)
+        hr_calc_fin, cose = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col)
     else:
-        hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug_co2interp = debug_co2interp)
+        hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col)
 
     ##### INTERPOLATE OUTPUT TO ORIGINAL GRID ####
 
-    spl = spline(x_ref, hr_calc_fin)
+    spl = spline(x_ref, hr_calc_fin, extrapolate = True)
     hr_calc = spl(x)
 
     if debug:
         return hr_calc, cose
+    elif debug_allgr:
+        return hr_calc, [x, x_ref, temp_rg, pres_rg, ovmr_rg, co2vmr_rg]
     else:
         return hr_calc
 
@@ -290,6 +300,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     """
     New param with new strategy (1/10/21).
     """
+    print('extrap. co2 col', extrap_co2col)
 
     alt1 = 40 # start non-LTE correction
     alt2 = 51 # end of lower correction

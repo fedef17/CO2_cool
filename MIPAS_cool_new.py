@@ -32,7 +32,7 @@ import newparam_lib as npl
 
 if not os.path.exists(cart_out): os.mkdir(cart_out)
 
-cart = '/home/fabiano/Research/lavori/CO2_cooling/MIPAS_2009/'
+cart = cart_base + 'lavori/CO2_cooling/MIPAS_2009/'
 
 savT = io.readsav(cart+'CR20090215_v561/L2_20090215_T_561.0', verbose=True)
 #savCR = io.readsav(cart+'CR20090215/L2_20090215_CR-CO2-IR_521.6', verbose=True)
@@ -81,6 +81,8 @@ coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_fin
 
 interp_coeffs = npl.precalc_interp(coeff_file = coeff_file)
 
+interp_coeffs_old = npl.precalc_interp(n_top = 65, coeff_file = cart_base + 'reparam_allatm/coeffs_finale_oldv10.p')
+
 coeffs = pickle.load(open(coeff_file, 'rb'))
 
 # Prova 1: atmosfera polare media durante un SSW
@@ -92,6 +94,7 @@ old_param = []
 new_param = []
 new_param_fa = []
 new_param_fixco2 = []
+new_param_noextP = []
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
@@ -105,7 +108,7 @@ co2column_debug = []
 
 debug_alphafit = []
 
-do_calc = False
+do_calc = True
 if do_calc:
     inputs = dict()
     for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas', 'x']:
@@ -191,6 +194,8 @@ if do_calc:
 
         cr_new_fa = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_alpha = fomialpha)
 
+        cr_new_noextP = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old, debug = False, extrap_co2col = False)
+
         co2vmr_ref = coeffs['co2profs'][2]
         cr_new_fixco2 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_co2interp = co2vmr_ref)
 
@@ -198,6 +203,7 @@ if do_calc:
         new_param.append(cr_new)
         new_param_fa.append(cr_new_fa)
         new_param_fixco2.append(cr_new_fixco2)
+        new_param_noextP.append(cr_new_noextP)
 
         res.date[0] = CR.date[il]
         res.latitude[0] = CR.latitude[il]
@@ -245,6 +251,7 @@ obs = np.stack(obs)
 new_param = np.stack(new_param)
 new_param_fa = np.stack(new_param_fa)
 new_param_fixco2 = np.stack(new_param_fixco2)
+new_param_noextP = np.stack(new_param_noextP)
 
 # # produco atmosfera di input in formato manuel ->
 # # lancio fomi
@@ -272,7 +279,7 @@ new_param_fixco2 = np.stack(new_param_fixco2)
 # d_new_fa = np.stack(d_new_fa)
 
 crall_rg = dict()
-for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2']):
+for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2', 'new_noextP']):
     crall_rg[na] = []
     for x, cr in zip(inputs['x'], co):
         spl = spline(x, cr, extrapolate = False)
@@ -282,12 +289,14 @@ for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2], [
     crall_rg[na] = np.stack(crall_rg[na])
 
 
+d_all = dict()
 d_stats = dict()
 ### Figure shading
 fig, ax = plt.subplots()
 
-for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa'], ['blue', 'red', 'forestgreen', 'orange']):
+for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP'], ['blue', 'red', 'forestgreen', 'orange', 'violet']):
     co = crall_rg[na] + crall_rg['obs']
+    d_all[na] = co
 
     d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
     d_stats[(na, '1st')] = np.nanpercentile(co, 25, axis = 0)

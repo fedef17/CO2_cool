@@ -207,6 +207,8 @@ def calc_all_plot(cco2, atm, tip, strat, compare = None, debug = True):
 
     hr_calc_noextP = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old, extrap_co2col = False)
 
+    hr_calc_allgr = npl.new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs)
+
     print('done')
 
     tit = 'co2: {} - atm: {}'.format(cco2, atm)
@@ -216,25 +218,26 @@ def calc_all_plot(cco2, atm, tip, strat, compare = None, debug = True):
     # labels = ['nlte_ref', 'old'] + labs_new
     # hrs = [hr_ref, crok] + hrs_new
     # colors = ['violet', 'blue', 'red', 'orange', 'forestgreen', 'brown', 'grey']
-    labels = ['nlte_ref', 'fomi', 'aunif'] + labs_new + ['new', 'noextP']
-    hrs = [hr_ref, crok, cr_alphaunif] + hrs_new + [hr_calc_full, hr_calc_noextP]
-    colors = ['violet', 'blue', 'grey'] + npl.color_set(6, cmap = 'autumn')[:5] + ['black', 'grey']
+    labels = ['nlte_ref', 'fomi', 'aunif'] + labs_new + ['new', 'noextP', 'allgr']
+    hrs = [hr_ref, crok, cr_alphaunif] + hrs_new + [hr_calc_full, hr_calc_noextP, hr_calc_allgr]
+    colors = ['violet', 'blue', 'grey'] + npl.color_set(6, cmap = 'autumn')[:5] + ['black', 'grey', 'brown']
 
     xlim = (-1200., 50.)
     xlimdiff = (-40, 40)
 
-    fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = xlimdiff, xlim = xlim, ylim = (40, 83), linestyles = ['-', '--', '--', ':', ':', ':', ':', ':', (0, (3, 5, 1, 5)), (0, (3, 5, 1, 5))], colors = colors, orizlines = [40, 50, 65])
+    fig, a0, a1 = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = xlimdiff, xlim = xlim, ylim = (40, 83), linestyles = ['-', '--', '--', ':', ':', ':', ':', ':', (0, (3, 5, 1, 5)), (0, (3, 5, 1, 5)), (0, (3, 5, 1, 5))], colors = colors, orizlines = [40, 50, 65])
 
     xlim = (-200., 20.)
     xlimdiff = (-5, 5)
 
-    figzoom, _, _ = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = xlimdiff, xlim = xlim, ylim = (40, 83), linestyles = ['-', '--', '--', ':', ':', ':', ':', ':', (0, (3, 5, 1, 5)), (0, (3, 5, 1, 5))], colors = colors, orizlines = [40, 50, 65])
+    figzoom, _, _ = npl.manuel_plot(np.arange(npl.n_alts_all), hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = xlimdiff, xlim = xlim, ylim = (40, 83), linestyles = ['-', '--', '--', ':', ':', ':', ':', ':', (0, (3, 5, 1, 5)), (0, (3, 5, 1, 5)), (0, (3, 5, 1, 5))], colors = colors, orizlines = [40, 50, 65])
 
     if debug:
-        return hr_ref, hr_calc_full, hrs_new[2], debug_full, debug_recpar
+        return hr_ref, hr_calc_full, hr_calc_noextP, hr_calc_allgr #, debug_full, debug_recpar
     else:
         return fig, a0, a1, figzoom, sq_diff
 
+sys.exit()
 
 # usa calc_all_plot per capire le differenze fra la strategia selezionata e quella di new_param_full
 # la funz di new_param_full dovrebbe essere identica a v10 nl0 65, ma non è
