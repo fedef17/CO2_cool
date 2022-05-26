@@ -109,25 +109,25 @@ for n_top in [60, 63, 65, 67, 70]:
     alpha_dic_atm = dict()
     start = np.ones(n_trans)
     name_escape_fun = 'L_esc_all_extP'
-    for cco2 in range(1, npl.n_co2prof+1):
-        result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
-        alpha_unif.append(result.x)
-
-        alphas = []
-        for atm in allatms:
-            print(atm, cco2)
-            cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-            ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
-            result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
-            #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-            print('least_squares', result)
-            alphas.append(result.x)
-
-        alpha_dic_atm[cco2] = np.stack(alphas)
-
-    alpha_unif = np.stack(alpha_unif)
-
-    pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v2_top{}.p'.format(n_top), 'wb'))
+    # for cco2 in range(1, npl.n_co2prof+1):
+    #     result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
+    #     alpha_unif.append(result.x)
+    #
+    #     alphas = []
+    #     for atm in allatms:
+    #         print(atm, cco2)
+    #         cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
+    #         ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
+    #         result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
+    #         #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+    #         print('least_squares', result)
+    #         alphas.append(result.x)
+    #
+    #     alpha_dic_atm[cco2] = np.stack(alphas)
+    #
+    # alpha_unif = np.stack(alpha_unif)
+    #
+    # pickle.dump([alpha_unif, alpha_dic_atm], open(cart_out_rep + 'alpha_singleatm_v2_top{}.p'.format(n_top), 'wb'))
 
     alpha_unif, alpha_dic_atm = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2_top{}.p'.format(n_top), 'rb'))
 
@@ -178,7 +178,7 @@ for n_top in [60, 63, 65, 67, 70]:
         X = np.stack(Xprods).T
         #X = np.stack([pop_x0, pop_x1, pop_x2, pop_x3]).T
 
-        weights = np.array([1, 1, 1, 1, 1, 1])
+        weights = np.array([1, 1, 1, 1, 0.2, 0.2])
 
         ### model 1: multi-linear regression of first 4 popup pcs
         scores = []
@@ -253,7 +253,7 @@ for n_top in [60, 63, 65, 67, 70]:
         figs3.append(fig3)
 
 
-    npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v8_top{}.pdf'.format(n_top), figs3)
+    npl.plot_pdfpages(cart_out_rep + 'check_alpha_popup_relerr_v10_top{}.pdf'.format(n_top), figs3)
 
     #sys.exit()
     #####################################################################
@@ -270,7 +270,7 @@ for n_top in [60, 63, 65, 67, 70]:
         alpha_fit[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
         alpha_fit[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
 
-    pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e_v8_top{}.p'.format(n_top), 'wb'))
+    pickle.dump(alpha_fit, open(cart_out_rep + 'alpha_fit_4e_v10_top{}.p'.format(n_top), 'wb'))
 
     alpha_fit2['popup_mean'] = popup_mean
     alpha_fit2['eof0'] = solver_pop.eofs(eofscaling=1)[0]
@@ -279,7 +279,7 @@ for n_top in [60, 63, 65, 67, 70]:
     for cco2 in range(1, npl.n_co2prof+1):
         alpha_fit2[('min', cco2)] = np.min(alpha_dic_atm[cco2], axis = 0)
         alpha_fit2[('max', cco2)] = np.max(alpha_dic_atm[cco2], axis = 0)
-    pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0_v8_top{}.p'.format(n_top), 'wb'))
+    pickle.dump(alpha_fit2, open(cart_out_rep + 'alpha_fit_nl0_v10_top{}.p'.format(n_top), 'wb'))
 
 
     ############################################################
@@ -373,4 +373,4 @@ for n_top in [60, 63, 65, 67, 70]:
             npl.adjust_ax_scale(a0s)
             npl.adjust_ax_scale(a1s)
 
-    npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v8_top{}.pdf'.format(n_top), figs)
+    npl.plot_pdfpages(cart_out_F + 'check_reparam_high_v10_top{}.pdf'.format(n_top), figs)

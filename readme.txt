@@ -69,3 +69,13 @@ high trans:
 full atm:
 
 4 - test_reparam_full.py
+
+
+########
+
+Se cambi L_esc, devi rilanciare:
+
+- fomi_recurformula_allatm (produce cose_upper_atm)
+- reparam_high_v8fin, reparam_high_v9_inverse, reparam_high_v10 (cambia L_esc)
+- check_fomialpha_refatm_v8_vs_v9: -> choose best param (cambia L_esc)
+- test_reparam_full -> new set of coeffs_finale.p!

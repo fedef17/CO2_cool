@@ -74,15 +74,18 @@ n_top = 65
 
 cart_out = cart_base + 'lavori/CO2_cooling/new_param/mipas_check/'
 
-version = '_xinterp_v3'
+#version = '_xinterp_v3'
+version = '_v10-nl0-65'
 
-fil = 'ssw2009_v3_okTOCO2_1e13_newparam{}.p'.format(version)
+#fil = 'ssw2009_v3_okTOCO2_1e13_newparam{}.p'.format(version)
+fil = 'ssw2009{}.p'.format(version)
 
 gigi = pickle.load(open(cart_out+fil, 'rb'))
 cose = gigi.dtype.names
 
 
-obs, old_param, new_param, new_param_fa  = pickle.load(open(cart_out+'out_ssw2009{}.p'.format(version),'rb'))
+#obs, old_param, new_param, new_param_fa  = pickle.load(open(cart_out+'out_ssw2009{}.p'.format(version),'rb'))
+obs, old_param, new_param = pickle.load(open(cart_out+'out_ssw2009{}.p'.format(version),'rb'))
 
 
 alts = gigi.altitude[0]
@@ -90,26 +93,25 @@ alts = gigi.altitude[0]
 mippres = np.stack(gigi.pressure)
 mipx = np.log(1000./mippres)
 
-alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart_in + 'gases_120.dat', version = 2)
-o2vmr = mol_vmrs['O2']*1.e-6
-n2vmr = mol_vmrs['N2']*1.e-6
-spl = spline(alt_manuel, o2vmr)
-o2vmr = spl(alts)
-spl = spline(alt_manuel, n2vmr)
-n2vmr = spl(alts)
-
-# zup = np.loadtxt('coso')
-# alt_fomi = zup[:, 0]
-
-crun = '/home/fabiano/Research/lavori/CO2_cooling/cart_run_fomi/'
-alt_fomi, x_fomi, cr_fomi = npl.old_param(gigi.altitude[0], gigi.temperature[0], gigi.pressure[0], 1.e-6*CO2.target[0], Oprof = 1.e-6*O.target[0], O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = crun)
-
 ######################
-
-test_recfor = True
-nmax = 867
+test_recfor = False
+nmax = len(gigi.temperature)
 
 if test_recfor:
+    alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart_in + 'gases_120.dat', version = 2)
+    o2vmr = mol_vmrs['O2']*1.e-6
+    n2vmr = mol_vmrs['N2']*1.e-6
+    spl = spline(alt_manuel, o2vmr)
+    o2vmr = spl(alts)
+    spl = spline(alt_manuel, n2vmr)
+    n2vmr = spl(alts)
+
+    # zup = np.loadtxt('coso')
+    # alt_fomi = zup[:, 0]
+
+    crun = cart_base + 'lavori/CO2_cooling/cart_run_fomi/'
+    alt_fomi, x_fomi, cr_fomi = npl.old_param(gigi.altitude[0], gigi.temperature[0], gigi.pressure[0], 1.e-6*CO2.target[0], Oprof = 1.e-6*O.target[0], O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = crun)
+
     crfom_ok = []
     for crfom in gigi.cr_fomi[:nmax]:
         spl = spline(alt_fomi, crfom)
@@ -411,32 +413,40 @@ if check_single_2:
 #################################################################
 
 check_cr = True
-x_ref = np.arange(0.125, 18.01, 0.25)
+x_ref = np.arange(0.125, 20.625+0.01, 0.25)
+x_fomi = np.arange(2., 25, 0.25)
+alt_manuel = np.linspace(0,120,121)
 
 if check_cr:
     crfom_ok = []
+    crnew_ok = []
     for x, crmi, crnew, crfom in zip(mipx, gigi.cr_mipas, gigi.cr_new, gigi.cr_fomi):
-        # spl = spline(alt_fomi, crfom)
-        # crfo2 = spl(alts)
-        spl = spline(x_fomi, crfom)
+        spl = spline(x_fomi[:len(crfom)], crfom)
         crfo2 = spl(x)
         crfom_ok.append(crfo2)
+
+        if len(crnew) != len(x):
+            spl = spline(alt_manuel, crnew)
+            crnw2 = spl(alts)
+            crnew_ok.append(crnw2)
+
     crfom_ok = np.stack(crfom_ok)
+    crnew_ok = np.stack(crnew_ok)
 
     # spaghetti plot
     fig, axs = plt.subplots(1, 2, figsize = (12,8))
     ax1 = axs[0]
     ax2 = axs[1]
 
-    #for crmi, crnew, crfom in zip(gigi.cr_mipas, gigi.cr_new, crfom_ok):
-    for x, crmi, crnew, crnew_fa, crfom in zip(mipx, gigi.cr_mipas, new_param, new_param_fa, crfom_ok):
+    #for x, crmi, crnew, crnew_fa, crfom in zip(mipx, gigi.cr_mipas, new_param, new_param_fa, crfom_ok):
+    for x, crmi, crnew, crfom in zip(mipx, gigi.cr_mipas, crnew_ok, crfom_ok):
         ax1.plot(-crmi, x, color = 'black', linewidth = 0.1)
         ax1.plot(crfom, x, color = 'blue', linewidth = 0.1, linestyle = '--')
         ax1.plot(crnew, x, color = 'red', linewidth = 0.1, linestyle = '--')
-        ax1.plot(crnew_fa, x, color = 'orange', linewidth = 0.1, linestyle = '--')
+        #ax1.plot(crnew_fa, x, color = 'orange', linewidth = 0.1, linestyle = '--')
         ax2.plot(crfom+crmi, x, color = 'blue', linewidth = 0.1, linestyle = '--')
         ax2.plot(crnew+crmi, x, color = 'red', linewidth = 0.1, linestyle = '--')
-        ax2.plot(crnew_fa+crmi, x, color = 'orange', linewidth = 0.1, linestyle = '--')
+        #ax2.plot(crnew_fa+crmi, x, color = 'orange', linewidth = 0.1, linestyle = '--')
 
     ax1.set_xlim((-30, 30))
     #ax1.set_ylim((65, 110))
@@ -451,23 +461,24 @@ if check_cr:
     d_fom = []
     d_new = []
     d_new_fa = []
-    for x, crmi, crnew, crnew_fa, crfom in zip(mipx, gigi.cr_mipas, new_param, new_param_fa, crfom_ok):
+    #for x, crmi, crnew, crnew_fa, crfom in zip(mipx, gigi.cr_mipas, new_param, new_param_fa, crfom_ok):
+    for x, crmi, crnew, crfom in zip(mipx, gigi.cr_mipas, crnew_ok, crfom_ok):
         spl = spline(x, crmi)
         crmi2 = spl(x_ref)
         spl = spline(x, crnew)
         crnew2 = spl(x_ref)
-        spl = spline(x, crnew_fa)
-        crnew_fa2 = spl(x_ref)
+        # spl = spline(x, crnew_fa)
+        # crnew_fa2 = spl(x_ref)
         spl = spline(x, crfom)
         crfom2 = spl(x_ref)
 
         d_fom.append(crmi2 + crfom2)
         d_new.append(crnew2 + crmi2)
-        d_new_fa.append(crnew_fa2 + crmi2)
+        # d_new_fa.append(crnew_fa2 + crmi2)
 
     d_fom = np.stack(d_fom)
     d_new = np.stack(d_new)
-    d_new_fa = np.stack(d_new_fa)
+    # d_new_fa = np.stack(d_new_fa)
     # d_fom = crfom_ok + np.stack(gigi.cr_mipas)
     # d_new = np.stack(new_param) + np.stack(gigi.cr_mipas)
     # d_new_fa = np.stack(new_param_fa) + np.stack(gigi.cr_mipas)
@@ -485,10 +496,10 @@ if check_cr:
     dnw_3rd = np.percentile(d_new, 75, axis = 0)
     dnw_std = np.std(d_new, axis = 0)
 
-    dnw_median_fa = np.median(d_new_fa, axis = 0)
-    dnw_1st_fa = np.percentile(d_new_fa, 25, axis = 0)
-    dnw_3rd_fa = np.percentile(d_new_fa, 75, axis = 0)
-    dnw_std_fa = np.std(d_new_fa, axis = 0)
+    # dnw_median_fa = np.median(d_new_fa, axis = 0)
+    # dnw_1st_fa = np.percentile(d_new_fa, 25, axis = 0)
+    # dnw_3rd_fa = np.percentile(d_new_fa, 75, axis = 0)
+    # dnw_std_fa = np.std(d_new_fa, axis = 0)
 
     # ax.fill_betweenx(x_ref, dfo_mean-dfo_std, dfo_mean+dfo_std, color = 'blue', alpha = 0.4)
     # ax.fill_betweenx(x_ref, dnw_mean-dnw_std, dnw_mean+dnw_std, color = 'red', alpha = 0.4)
@@ -499,8 +510,8 @@ if check_cr:
     ax.fill_betweenx(x_ref, dnw_1st, dnw_3rd, color = 'red', alpha = 0.4)
     ax.plot(dfo_median, x_ref, color = 'blue', lw = 2)
     ax.plot(dnw_median, x_ref, color = 'red', lw = 2)
-    ax.fill_betweenx(x_ref, dnw_1st_fa, dnw_3rd_fa, color = 'orange', alpha = 0.4)
-    ax.plot(dnw_median_fa, x_ref, color = 'orange', lw = 2)
+    # ax.fill_betweenx(x_ref, dnw_1st_fa, dnw_3rd_fa, color = 'orange', alpha = 0.4)
+    # ax.plot(dnw_median_fa, x_ref, color = 'orange', lw = 2)
 
     ax.grid()
     ax.set_xlim(-10., 15.)
@@ -519,7 +530,7 @@ if check_cr:
 
         dfok = d_fom[cond]
         dnok = d_new[cond]
-        dnok_fa = d_new_fa[cond]
+        # dnok_fa = d_new_fa[cond]
 
         dfo_median = np.median(dfok, axis = 0)
         dfo_1st = np.percentile(dfok, 25, axis = 0)
@@ -530,18 +541,18 @@ if check_cr:
         dnw_1st = np.percentile(dnok, 25, axis = 0)
         dnw_3rd = np.percentile(dnok, 75, axis = 0)
         dnw_std = np.std(dnok, axis = 0)
-
-        dnw_median_fa = np.median(dnok_fa, axis = 0)
-        dnw_1st_fa = np.percentile(dnok_fa, 25, axis = 0)
-        dnw_3rd_fa = np.percentile(dnok_fa, 75, axis = 0)
-        dnw_std_fa = np.std(dnok_fa, axis = 0)
+        #
+        # dnw_median_fa = np.median(dnok_fa, axis = 0)
+        # dnw_1st_fa = np.percentile(dnok_fa, 25, axis = 0)
+        # dnw_3rd_fa = np.percentile(dnok_fa, 75, axis = 0)
+        # dnw_std_fa = np.std(dnok_fa, axis = 0)
 
         ax.fill_betweenx(x_ref, dfo_1st, dfo_3rd, color = 'blue', alpha = 0.4)
         ax.fill_betweenx(x_ref, dnw_1st, dnw_3rd, color = 'red', alpha = 0.4)
         ax.plot(dfo_median, x_ref, color = 'blue', lw = 2)
         ax.plot(dnw_median, x_ref, color = 'red', lw = 2)
-        ax.fill_betweenx(x_ref, dnw_1st_fa, dnw_3rd_fa, color = 'orange', alpha = 0.4)
-        ax.plot(dnw_median_fa, x_ref, color = 'orange', lw = 2)
+        # ax.fill_betweenx(x_ref, dnw_1st_fa, dnw_3rd_fa, color = 'orange', alpha = 0.4)
+        # ax.plot(dnw_median_fa, x_ref, color = 'orange', lw = 2)
 
         ax.grid()
         ax.set_xlim(-10., 10.)
@@ -555,8 +566,6 @@ if check_cr:
 
     fig.savefig(cart_out + 'global_check_shading_latbands{}.pdf'.format(version))
 
-
-sys.exit()
 
 ############################
 
@@ -585,10 +594,52 @@ plt.title('popup eofs')
 plt.legend()
 fig.savefig(cart_out + 'eofs_popup_ref.pdf')
 
+
+figpop, axpop = plt.subplots()
+axpop.plot(popup_mean, x_ref[alt2:n_top+1], colo = 'black')
+
 ## mipas eof
+cart = '/home/fabiano/Research/lavori/CO2_cooling/MIPAS_2009/'
+
+savT = io.readsav(cart+'CR20090215_v561/L2_20090215_T_561.0', verbose=True)
+#savCR = io.readsav(cart+'CR20090215/L2_20090215_CR-CO2-IR_521.6', verbose=True)
+savCR = io.readsav(cart+'CR20090215_v561/L2_20090215_CR-CO2-IR@TLOS_561.0', verbose=True)
+savO = io.readsav(cart+'CR20090215_v561/L2_20090215_O_561.0', verbose=True)
+savCO2 = io.readsav(cart+'CR20090215_v561/L2_20090215_CO2_561.0', verbose=True)
+
+T = savT.result
+CR = savCR.result
+O = savO.result
+CO2 = savCO2.result
+
 ### THIS IS WRONG!!
 ### the altitude grid is different
 ### need an interpolation here before
+tempmip = []
+presmip = []
+co2conmip = []
+oconmip = []
+
+inputs_rg = dict()
+for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
+    inputs_rg[nam] = []
+
+for i in range(len(inputs['temp'])):
+    x = inputs['x'][i]
+    for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
+        if nam == 'pres':
+            spl = spline(x, np.log(inputs[nam][i]), extrapolate = False)
+            v2 = np.exp(spl(x_ref))
+        else:
+            spl = spline(x, inputs[nam][i], extrapolate = False)
+            v2 = spl(x_ref)
+        inputs_rg[nam].append(v2)
+
+
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+qui volevi fare un check della media del popup in mipas, e delle eofs
+
+
 
 miptemp = np.stack(gigi.temperature)[:, alt2:n_top+1]
 mippres = np.stack(gigi.pressure)[:, alt2:n_top+1]
@@ -609,6 +660,9 @@ lambs = np.stack(npl.calc_lamb(pr, te, opr, o2vmr_or, n2vmr_or) for te, pr, opr 
 popup_mip = phifunz*lambs/1.5988
 #popup_mean = np.mean(popup, axis = 0) USE ORIGINAL MEAN
 popup_anom_mip = popup_mip - popup_mean
+
+axpop.fill_betweenx(np.percentile(popup_mip, 25, axis = 0), np.percentile(popup_mip, 75, axis = 0), x_ref[alt2:n_top+1], color = 'orange')
+axpop.plot(np.mean(popup_mip, axis = 0), x_ref[alt2:n_top+1], colo = 'orange')
 
 solver_pop_mip = Eof(popup_anom_mip)
 

@@ -73,9 +73,7 @@ regrcoef = pickle.load(open(cart_out_rep + 'regrcoef_v3.p', 'rb')) #### for LTE 
 
 nlte_corr = pickle.load(open(cart_out_rep + 'nlte_corr_low.p', 'rb')) #### NLTE correction for low trans region
 
-#### Fit of alpha in upper transition region
-alpha_fit_4e = pickle.load(open(cart_out_rep + 'alpha_fit_4e.p', 'rb'))
-alpha_fit_nl0 = pickle.load(open(cart_out_rep + 'alpha_fit_nl0.p', 'rb'))
+
 
 ################################################################################
 
@@ -105,7 +103,10 @@ n_alts_lte = 40
 #####################################################
 alt1 = 40
 alt2 = 51
-n_top = 60
+n_alts_cs = 80
+
+##############################################
+
 
 co2profs = np.stack([atm_pt[('mle', cco2, 'co2')] for cco2 in range(1,npl.n_co2prof+1)])
 
@@ -146,23 +147,6 @@ for regco in ['c', 'm1', 'm2', 'm3', 'm4']:
 
 ##########################################################
 
-#BERND. remember to add here: alpha_fit['popup_mean'], alpha_fit['eof0'], ... alpha_fit['eof3']
-
-alphas_all = np.stack([alpha_fit_nl0[cco2] for cco2 in range(1,npl.n_co2prof+1)])
-coeffs_fin['alpha'] = alphas_all
-intfutu = []
-for go in range(alphas_all.shape[-1]):
-    int_fun = npl.interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2:n_top+1])
-    intfutu.append(int_fun)
-interp_coeffs[('alpha', 'int_fun')] = intfutu
-#interp_coeffs[('alpha', 'signc')] = signc
-
-coeffs_fin['alpha_min'] = np.stack([alpha_fit_nl0[('min', i)] for i in range(1,npl.n_co2prof+1)])
-interp_coeffs[('alpha_min', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_min'], co2profs[:, alt2:n_top+1])
-
-coeffs_fin['alpha_max'] = np.stack([alpha_fit_nl0[('max', i)] for i in range(1,npl.n_co2prof+1)])
-interp_coeffs[('alpha_max', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_max'], co2profs[:, alt2:n_top+1])
-
 L_all = np.stack([np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0) for cco2 in range(1,npl.n_co2prof+1)])
 uco2 = all_coeffs_nlte[('mle', 1, 'uco2')] # same for all
 coeffs_fin['Lesc'] = L_all
@@ -177,7 +161,37 @@ interp_coeffs[('Lesc', 'int_fun')] = int_fun
 
 coeffs_fin['alts'] = alts
 coeffs_fin['co2profs'] = co2profs
-pickle.dump(coeffs_fin, open(cart_out_4 + 'coeffs_finale.p', 'wb'))
+
+
+#####
+
+#### Fit of alpha in upper transition region
+#### CHOICE OF FINAL SET
+for tip in ['v8', '9i', 'v10']:
+    for strat in ['4e', 'nl0']:
+        for n_top in [60, 63, 65, 67, 70]:
+            tag = '{}-{}-{}'.format(tip, strat, n_top)
+
+            alpha_fit = pickle.load(open(cart_out_rep + 'alpha_fit_{}_{}_top{}.p'.format(strat, tip, n_top), 'rb'))
+
+            alphas_all = np.stack([alpha_fit[cco2] for cco2 in range(1,npl.n_co2prof+1)])
+            coeffs_fin['alpha'] = alphas_all
+            intfutu = []
+            for go in range(alphas_all.shape[-1]):
+                int_fun = npl.interp_coeff_linco2(alphas_all[..., go], co2profs[:, alt2:n_top+1])
+                intfutu.append(int_fun)
+            interp_coeffs[('alpha', 'int_fun')] = intfutu
+            #interp_coeffs[('alpha', 'signc')] = signc
+
+            coeffs_fin['alpha_min'] = np.stack([alpha_fit[('min', i)] for i in range(1,npl.n_co2prof+1)])
+            interp_coeffs[('alpha_min', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_min'], co2profs[:, alt2:n_top+1])
+
+            coeffs_fin['alpha_max'] = np.stack([alpha_fit[('max', i)] for i in range(1,npl.n_co2prof+1)])
+            interp_coeffs[('alpha_max', 'int_fun')] = npl.interp_coeff_linco2(coeffs_fin['alpha_max'], co2profs[:, alt2:n_top+1])
+
+            #BERND. remember to add here: alpha_fit['popup_mean'], alpha_fit['eof0'], ... alpha_fit['eof3']
+
+            pickle.dump(coeffs_fin, open(cart_out_4 + 'coeffs_finale_{}.p'.format(tag), 'wb'))
 
 sys.exit()
 
@@ -185,102 +199,102 @@ sys.exit()
 
 ####################################################################################
 # Check per un atm
-atm = 'mls'
-cco2 = 6
-
-pres = atm_pt[(atm, 'pres')]
-temp = atm_pt[(atm, 'temp')]
-surf_temp = atm_pt[(atm, 'surf_temp')]
-
-L_esc = cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')]
-
-lamb = cose_upper_atm[(atm, cco2, 'lamb')] # Qui c'è la info degli altri gas e dei coefficienti
-co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
-MM = cose_upper_atm[(atm, cco2, 'MM')]
-
-# alpha = alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)]
-
-print('Sample check -> coeffs from interpolation')
-calc_coeffs = dict()
-for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
-    for regco in ['c', 'm', 'c1', 'm1', 'm2', 'm3', 'm4']:
-        if (nam, regco, 'int_fun') not in interp_coeffs:
-            continue
-        int_fun = interp_coeffs[(nam, regco, 'int_fun')]
-
-        if regco in ['c', 'c1'] and nam != 'nltecorr':
-            sc = interp_coeffs[(nam, regco, 'signc')]
-            coeff = npl.coeff_from_interp_log(int_fun, sc, co2vmr)
-        else:
-            coeff = npl.coeff_from_interp_lin(int_fun, co2vmr)
-
-        calc_coeffs[(nam, regco)] = coeff
-
-        if np.max(np.abs((coeff - coeffs_fin[(nam, regco)][cco2-1, ...])/coeff)) > 1.e-10:
-            print('AAAAAAAAAAAAAAAAAAAAAAARGH', nam)
-            print(coeff, coeffs_fin[(nam, regco)][cco2-1, ...])
-
-#lte
-acoeff, bcoeff, asurf, bsurf = npl.coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
-hr_lte = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = npl.n_alts_all)
-
-#### nltecorr
-hr_nlte_corr = npl.nltecorr_from_eofreg_single(temp, surf_temp, calc_coeffs, alt1 = alt1, alt2 = alt2)
-
-hr_calc = hr_lte.copy()
-hr_calc[alt1:alt2] += hr_nlte_corr
-
-#### upper atm
-intfutu = interp_coeffs[('alpha', 'int_fun')]
-#sc = interp_coeffs[('alpha', 'signc')]
-allco = []
-for intfu in intfutu:
-    allco.append(npl.coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
-calc_coeffs['alpha_fit'] = np.stack(allco).T
-
-calc_coeffs['alpha_min'] = npl.coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
-calc_coeffs['alpha_max'] = npl.coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
-
-if np.max(np.abs((calc_coeffs['alpha_fit'] - coeffs_fin['alpha'][cco2-1, ...])/calc_coeffs['alpha_fit'])) > 1.e-10:
-    print('AAAAAAAAAAAAAAAAAAAAAAARGH', 'alpha')
-    print(calc_coeffs['alpha_fit'], coeffs_fin['alpha'][cco2-1, ...])
-
-alpha = npl.alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_min = calc_coeffs['alpha_min'], alpha_max = calc_coeffs['alpha_max'])
-
-hr_calc_fin = npl.recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
-
-###################################################
-
-hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
-hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
-
-ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
-o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
-n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
-#alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)
-#oldco = spline(alt_fomi, hr_fomi)
-#hr_fomi = oldco(alts)
-
-### FIGURE
-tit = 'co2: {} - atm: {}'.format(cco2, atm)
-xlab = 'CR (K/day)'
-ylab = 'Alt (km)'
-# labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
-# hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
-labels = ['nlte_ref', 'lte', 'nlte1', 'nlte2']
-hrs = [hr_ref, hr_lte, hr_calc, hr_calc_fin]#, hr_fomi]
-
-colors = np.array(npl.color_set(4))
-fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '--', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_top]])
-
-fig.savefig(cart_out_4 + 'test_calchr_{}_{}.pdf'.format(atm, cco2))
+# atm = 'mls'
+# cco2 = 6
+#
+# pres = atm_pt[(atm, 'pres')]
+# temp = atm_pt[(atm, 'temp')]
+# surf_temp = atm_pt[(atm, 'surf_temp')]
+#
+# L_esc = cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')]
+#
+# lamb = cose_upper_atm[(atm, cco2, 'lamb')] # Qui c'è la info degli altri gas e dei coefficienti
+# co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')]
+# MM = cose_upper_atm[(atm, cco2, 'MM')]
+#
+# # alpha = alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)]
+#
+# print('Sample check -> coeffs from interpolation')
+# calc_coeffs = dict()
+# for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
+#     for regco in ['c', 'm', 'c1', 'm1', 'm2', 'm3', 'm4']:
+#         if (nam, regco, 'int_fun') not in interp_coeffs:
+#             continue
+#         int_fun = interp_coeffs[(nam, regco, 'int_fun')]
+#
+#         if regco in ['c', 'c1'] and nam != 'nltecorr':
+#             sc = interp_coeffs[(nam, regco, 'signc')]
+#             coeff = npl.coeff_from_interp_log(int_fun, sc, co2vmr)
+#         else:
+#             coeff = npl.coeff_from_interp_lin(int_fun, co2vmr)
+#
+#         calc_coeffs[(nam, regco)] = coeff
+#
+#         if np.max(np.abs((coeff - coeffs_fin[(nam, regco)][cco2-1, ...])/coeff)) > 1.e-10:
+#             print('AAAAAAAAAAAAAAAAAAAAAAARGH', nam)
+#             print(coeff, coeffs_fin[(nam, regco)][cco2-1, ...])
+#
+# #lte
+# acoeff, bcoeff, asurf, bsurf = npl.coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
+# hr_lte = npl.hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = npl.n_alts_all)
+#
+# #### nltecorr
+# hr_nlte_corr = npl.nltecorr_from_eofreg_single(temp, surf_temp, calc_coeffs, alt1 = alt1, alt2 = alt2)
+#
+# hr_calc = hr_lte.copy()
+# hr_calc[alt1:alt2] += hr_nlte_corr
+#
+# #### upper atm
+# intfutu = interp_coeffs[('alpha', 'int_fun')]
+# #sc = interp_coeffs[('alpha', 'signc')]
+# allco = []
+# for intfu in intfutu:
+#     allco.append(npl.coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
+# calc_coeffs['alpha_fit'] = np.stack(allco).T
+#
+# calc_coeffs['alpha_min'] = npl.coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
+# calc_coeffs['alpha_max'] = npl.coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
+#
+# if np.max(np.abs((calc_coeffs['alpha_fit'] - coeffs_fin['alpha'][cco2-1, ...])/calc_coeffs['alpha_fit'])) > 1.e-10:
+#     print('AAAAAAAAAAAAAAAAAAAAAAARGH', 'alpha')
+#     print(calc_coeffs['alpha_fit'], coeffs_fin['alpha'][cco2-1, ...])
+#
+# alpha = npl.alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_min = calc_coeffs['alpha_min'], alpha_max = calc_coeffs['alpha_max'])
+#
+# hr_calc_fin = npl.recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
+#
+# ###################################################
+#
+# hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
+# hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
+#
+# ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+# o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+# n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+# #alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)
+# #oldco = spline(alt_fomi, hr_fomi)
+# #hr_fomi = oldco(alts)
+#
+# ### FIGURE
+# tit = 'co2: {} - atm: {}'.format(cco2, atm)
+# xlab = 'CR (K/day)'
+# ylab = 'Alt (km)'
+# # labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
+# # hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
+# labels = ['nlte_ref', 'lte', 'nlte1', 'nlte2']
+# hrs = [hr_ref, hr_lte, hr_calc, hr_calc_fin]#, hr_fomi]
+#
+# colors = np.array(npl.color_set(4))
+# fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '--', ':'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_top]])
+#
+# fig.savefig(cart_out_4 + 'test_calchr_{}_{}.pdf'.format(atm, cco2))
 
 #################################################################
 
 #ok.
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
-interp_coeffs_old = npl.precalc_interp_old()
+#interp_coeffs_old = npl.precalc_interp_old()
 interp_coeffs = npl.precalc_interp()
 
 # Check per ogni atm
@@ -294,6 +308,8 @@ for cco2 in range(1, npl.n_co2prof+1):
         surf_temp = atm_pt[(atm, 'surf_temp')]
         pres = atm_pt[(atm, 'pres')]
 
+        x_ref = np.log(1000./pres)
+
         co2vmr = atm_pt[(atm, cco2, 'co2')]
         ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
         o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
@@ -303,22 +319,21 @@ for cco2 in range(1, npl.n_co2prof+1):
         hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
 
         hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs)#, coeffs = coeffs_fin)
-        hr_calc_old = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old)
+        # hr_calc_old = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old)
 
-        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)
-        oldco = spline(alt_fomi, hr_fomi)
-        hr_fomi = oldco(alts)
+        alt_fomi, x_fomi, cr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False)
+        spl = spline(x_fomi, cr_fomi)
+        hr_fomi = spl(x_ref)
 
         tit = 'co2: {} - atm: {}'.format(cco2, atm)
         xlab = 'CR (K/day)'
         ylab = 'Alt (km)'
-        # labels = ['nlte_ref', 'new_param', 'np_wutop', 'np_all_wutop', 'np_aw_extended', 'np_noalpha', 'old param']
-        # hrs = [hr_ref, hr_calc, hr_calc_wutop, hr_calc_all, hr_calc_extended, hr_calc_alpha1, hr_fomi]
-        labels = ['nlte_ref', 'new param', 'param vf5', 'fomi']
-        hrs = [hr_ref, hr_calc, hr_calc_old, hr_fomi]
+
+        labels = ['nlte_ref', 'new param', 'fomi']
+        hrs = [hr_ref, hr_calc, hr_fomi]
 
         #colors = np.array(npl.color_set(3))
-        colors = ['violet', 'forestgreen', 'indianred', 'steelblue']
+        colors = ['violet', 'indianred', 'steelblue']
         fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), ylim = (40, None), linestyles = ['-', '--', '--', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
 
         figs.append(fig)
@@ -328,7 +343,7 @@ for cco2 in range(1, npl.n_co2prof+1):
         npl.adjust_ax_scale(a0s)
         npl.adjust_ax_scale(a1s)
 
-npl.plot_pdfpages(cart_out_4 + 'check_allrefs_newparam.pdf', figs)
+npl.plot_pdfpages(cart_out_4 + 'check_allrefs_newparam_{}.pdf'.format(tag), figs)
 
 
 # Check con atm nuova?
@@ -345,24 +360,40 @@ for atm in allatms:
 
     new_cr = []
     old_cr = []
-    mults = np.arange(0.25, 8.1, 0.25)
+    mults = np.arange(0.25, 12.1, 0.25)
     for co2mult in mults:
         co2vmr = co2mult*atm_pt[(atm, 2, 'co2')]
-        hr_calc = npl.new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr)#, coeffs = coeffs_fin)
+        hr_calc = npl.new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs)#, coeffs = coeffs_fin)
         new_cr.append(hr_calc)
 
-        alt_fomi, hr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr)
-        oldco = spline(alt_fomi, hr_fomi)
-        hr_fomi = oldco(alts)
+        alt_fomi, x_fomi, cr_fomi = npl.old_param(alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False)
+        spl = spline(x_fomi, cr_fomi)
+        hr_fomi = spl(x_ref)
         old_cr.append(hr_fomi)
 
     fig, ax = plt.subplots(figsize = (16, 12))
     colors = npl.color_set(len(mults))
     for nup, olp, col in zip(new_cr, old_cr, colors):
         ax.plot(nup, alts, color = col)
+        #ax.plot(olp, alts, color = col, linestyle = '--', linewidth = 0.5)
+
+    ax.set_title('New. co2: 0.25-12.0 - atm: {}'.format(atm))
+    ax.set_xlabel('CR (K/day)')
+    ax.set_ylabel('Alt (km)')
+    for orizli, col in zip([70., alts[n_alts_trlo], alts[n_alts_trhi]], ['red', 'orange', 'green']):
+        ax.axhline(orizli, color = col, alpha = 0.6, linestyle = '--')
+    ax.grid()
+
+    figs.append(fig)
+    a0s.append(ax)
+
+    fig, ax = plt.subplots(figsize = (16, 12))
+    colors = npl.color_set(len(mults))
+    for nup, olp, col in zip(new_cr, old_cr, colors):
+        #ax.plot(nup, alts, color = col)
         ax.plot(olp, alts, color = col, linestyle = '--', linewidth = 0.5)
 
-    ax.set_title('co2: 0.25-8.0 - atm: {}'.format(atm))
+    ax.set_title('Fomi. co2: 0.25-12.0 - atm: {}'.format(atm))
     ax.set_xlabel('CR (K/day)')
     ax.set_ylabel('Alt (km)')
     for orizli, col in zip([70., alts[n_alts_trlo], alts[n_alts_trhi]], ['red', 'orange', 'green']):
@@ -374,10 +405,10 @@ for atm in allatms:
 
 npl.adjust_ax_scale(a0s)
 
-npl.plot_pdfpages(cart_out_4 + 'rangeco2_newvsold.pdf', figs)
+npl.plot_pdfpages(cart_out_4 + 'rangeco2_newvsold_{}.pdf'.format(tag), figs)
 
 for ax in a0s:
     ax.set_ylim(40., 100.)
     ax.set_xlim(-20., 10.)
 
-npl.plot_pdfpages(cart_out_4 + 'rangeco2_newvsold_zoom.pdf', figs)
+npl.plot_pdfpages(cart_out_4 + 'rangeco2_newvsold_{}_zoom.pdf'.format(tag), figs)

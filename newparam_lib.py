@@ -66,11 +66,9 @@ regrcoef = pickle.load(open(regrcoefpath, 'rb'))
 # nlte_corr = None
 
 # UNCOMMENT HERE!!
-alpha_cose = pickle.load(open(cart_out + '../NLTE_reparam/alpha_fit_4e.p', 'rb'))
-alpha_cose['min'] = np.min(np.stack([alpha_cose[('min', i)] for i in range(1,n_co2prof+1)]), axis = 0)
-alpha_cose['max'] = np.max(np.stack([alpha_cose[('max', i)] for i in range(1,n_co2prof+1)]), axis = 0)
+alpha_cose = pickle.load(open(cart_out + '../NLTE_reparam/alpha_fit_4e_v10_top65.p', 'rb')) # popup_mean, eofs
 
-nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb'))
+nlte_corr = pickle.load(open(cart_out + '../NLTE_reparam/nlte_corr_low.p', 'rb')) # temp_mean, eofs
 
 from scipy.optimize import Bounds, minimize, least_squares
 
@@ -130,12 +128,17 @@ def precalc_interp_old(coeffs = None, coeff_file = cart_out + '../newpar_allatm/
 
     return interp_coeffs
 
-def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', alt1 = 40, alt2 = 51, n_top = 65):
+def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', coeff_tag = None, alt1 = 40, alt2 = 51, n_top = 65):
     """
     Calculates the interpolating functions. (this makes new_param_full much faster)
     """
 
     if coeffs is None:
+        if coeff_tag is not None:
+            coeff_file = cart_out + '../reparam_allatm/coeffs_finale_{}.p'.format(coeff_tag)
+            print('Using coeff file: {}'.format(coeff_file))
+            n_top = int(coeff_tag.split('-')[-1])
+
         coeffs = pickle.load(open(coeff_file, 'rb'))
 
     ########################################################
@@ -203,30 +206,30 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     x = np.log(1000./pres)
 
     ## reference x grid
-    x_ref_max = 16.735
+    x_ref_max = 20.625
     if np.max(x) > x_ref_max:
         x_ref = np.arange(0.125, np.max(x), 0.25)
     else:
         x_ref = np.arange(0.125, x_ref_max + 0.001, 0.25)
 
     ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
-    spl = spline(x, temp)
+    spl = spline(x, temp, extrapolate = False)
     temp_rg = spl(x_ref)
 
-    spl = spline(x, np.log(pres))
+    spl = spline(x, np.log(pres), extrapolate = False)
     pres_rg = spl(x_ref)
     pres_rg = np.exp(pres_rg)
 
-    spl = spline(x, ovmr)
+    spl = spline(x, ovmr, extrapolate = False)
     ovmr_rg = spl(x_ref)
 
-    spl = spline(x, o2vmr)
+    spl = spline(x, o2vmr, extrapolate = False)
     o2vmr_rg = spl(x_ref)
 
-    spl = spline(x, co2vmr)
+    spl = spline(x, co2vmr, extrapolate = False)
     co2vmr_rg = spl(x_ref)
 
-    spl = spline(x, n2vmr)
+    spl = spline(x, n2vmr, extrapolate = False)
     n2vmr_rg = spl(x_ref)
 
     ########## Call new param
@@ -247,7 +250,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
         return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, n_alts_cs = 65, factor_from_code = True, debug = False):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, n_alts_cs = 80, factor_from_code = True, debug = False, extrap_co2col = True):
     """
     New param with new strategy (1/10/21).
     """
@@ -268,6 +271,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     calc_coeffs = dict()
     for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
         for regco in ['c', 'm', 'c1', 'm1', 'm2', 'm3', 'm4']:
+            #print(nam, regco)
             if (nam, regco, 'int_fun') not in interp_coeffs:
                 continue
             int_fun = interp_coeffs[(nam, regco, 'int_fun')]
@@ -294,11 +298,16 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     uco2 = interp_coeffs['uco2']
 
     Lspl_all = spline(uco2, L_all, extrapolate = False)
-    #uok2 = calc_co2column(alts, pres, temp, co2vmr)
     MM = calc_MM(ovmr, o2vmr, n2vmr)
-    uok2 = calc_co2column_P(pres, co2vmr, MM)
+    uok2 = calc_co2column_P(pres, co2vmr, MM, extrapolate = extrap_co2col)
+
     L_esc = Lspl_all(uok2)
-    L_esc[np.isnan(L_esc)] = 0.
+    L_esc[:30][np.isnan(L_esc[:30])] = 0.0 # for extrapolated regions
+    L_esc[-20:][np.isnan(L_esc[-20:])] = 1.0 # for extrapolated regions
+    if np.any(np.isnan(L_esc)):
+        print(uok2)
+        print(L_esc)
+        raise ValueError('{} nans in L_esc!'.format(np.sum(np.isnan(L_esc))))
 
     # print('! TO be changed, L_esc to be calc from L function and integrated CO2 prof above')
     # L_esc = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
@@ -307,6 +316,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         debug_cose = dict()
         debug_cose['L_esc'] = L_esc
         debug_cose['co2_column'] = uok2
+        debug_cose['MM'] = MM
 
     if debug_Lesc is not None:
         print('Getting L_esc externally for DEBUG!!!')
@@ -320,12 +330,23 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     ###############################################
     #### CALCULATION
 
+    #### if atmosphere is shorter than reference atmosphere, define last useful level
+    fnan = None
+    if np.any(np.isnan(temp)):
+        fnan = np.where(np.isnan(temp))[0][0] # end of atmosphere
+        max_alts_ok = fnan
+    else:
+        max_alts_ok = n_alts_all
+
     #lte
     acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, calc_coeffs)
-    hr_lte = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = n_alts_all)
+
+    hr_lte = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = max_alts_ok)
+    if debug: print('hr lte:', hr_lte)
 
     #### nltecorr
-    hr_nlte_corr = nltecorr_from_eofreg_single(temp, surf_temp, calc_coeffs, alt1 = alt1, alt2 = alt2)
+    hr_nlte_corr = nltecorr_from_eofreg_single(temp, surf_temp, calc_coeffs, alt1 = alt1, alt2 = alt2, max_alts = max_alts_ok)
+    if debug: print('nltecorr low:', hr_nlte_corr)
 
     hr_calc = hr_lte.copy()
     hr_calc[alt1:alt2] += hr_nlte_corr
@@ -333,10 +354,14 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     #### upper atm
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
 
-    alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top)
+    if debug:
+        alpha, debug_cose['alpha_fit'] = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top, debug = debug)
+    else:
+        alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top)
 
     if debug:
         debug_cose['alpha'] = alpha
+        print('alpha:', alpha)
 
     if debug_alpha is not None:
         print('Getting alpha externally for DEBUG!!!')
@@ -345,6 +370,14 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         print('new: ',alpha)
 
     hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_alts_cs, ovmr = ovmr, factor_from_code = factor_from_code)
+    if debug: print('hr fin:', hr_calc_fin)
+
+
+    ## CHECK FROM check_fomialpha_refatm:
+    # alpha_ok = npl.alpha_from_fit(temp, surf_temp, lamb, alpha_fit[cco2], alpha_max = alpha_fit[('max', cco2)], alpha_min = alpha_fit[('min', cco2)], alpha_cose = alpha_fit, alt2 = alt2, n_top = n_top, method = strat)
+    #
+    # # hr_calc = npl.hr_reparam_low(cco2, temp, surf_temp, regrcoef = regrcoef, nlte_corr = nlte_corr)
+    # cr_new = npl.recformula(alpha_ok, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr, n_alts_cs = n_alts_cs)
 
     ##### HERE the cool-to-space part
     # now for the cs region:
@@ -515,7 +548,7 @@ def hr_atm_calc(atm, cco2):
 
     return hr
 
-def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = 51):
+def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = n_alts_all):# max_alts was 51, but n_alts_all in new_param_full
     """
     This is the LTE cooling rate given a certain set of a and b coefficients.
     """
@@ -1007,7 +1040,7 @@ def coeffs_from_eofreg(cco2, temp, surf_temp, method = '2eof', regrcoef = regrco
 
 def coeffs_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef):
     """
-    Reconstructs the a and b coeffs for the required atmosphere.
+    Reconstructs the a and b coeffs for the required atmosphere. Method: 2eof
     """
 
     surfanom = surf_temp - regrcoef['surfmean']
@@ -1029,7 +1062,7 @@ def coeffs_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef):
     return coeffs['acoeff'], coeffs['bcoeff'], coeffs['asurf'], coeffs['bsurf']
 
 
-def nltecorr_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef, alt1 = 40, alt2 = 51):
+def nltecorr_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef, alt1 = 40, alt2 = 51, max_alts = n_alts_all):
     """
     Reconstructs the a and b coeffs for the required atmosphere.
     """
@@ -1040,19 +1073,21 @@ def nltecorr_from_eofreg_single(temp, surf_temp, singlecoef, regrcoef = regrcoef
     eof1 = regrcoef['eof1']
     n_alts = len(eof0)
 
-    pc0 = np.dot(temp[:n_alts]-atm_anom_mean, eof0)
-    pc1 = np.dot(temp[:n_alts]-atm_anom_mean, eof1)
+    ### remove upper atm nan values (where atm is not defined)
+    n_alts_ok = np.min([n_alts, max_alts])
+    pc0 = np.dot(temp[:n_alts_ok]-atm_anom_mean[:n_alts_ok], eof0[:n_alts_ok])
+    pc1 = np.dot(temp[:n_alts_ok]-atm_anom_mean[:n_alts_ok], eof1[:n_alts_ok])
 
     acoeff, bcoeff, asurf, bsurf = coeffs_from_eofreg_single(temp, surf_temp, singlecoef)
 
-    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=n_alts_all)
+    hra, hrb = hr_from_ab_diagnondiag(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts=max_alts)
 
     hr_nlte_corr = singlecoef[('nltecorr', 'c')] + singlecoef[('nltecorr', 'm1')] * hra[alt1:alt2] + singlecoef[('nltecorr', 'm2')] * hrb[alt1:alt2] + singlecoef[('nltecorr', 'm3')] * pc0 + singlecoef[('nltecorr', 'm4')] * pc1
 
     return hr_nlte_corr
 
 
-def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, alpha_min = None, alpha_max = None, method = 'nl0', alt2 = 51, n_top = 65):
+def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, alpha_min = None, alpha_max = None, method = 'nl0', alt2 = 51, n_top = 65, debug = False):
     """
     Reconstructs alpha. Method: 4e, nl0
     """
@@ -1085,7 +1120,10 @@ def alpha_from_fit(temp, surf_temp, lamb, alpha_fit, alpha_cose = alpha_cose, al
     higher = alpha > alpha_max
     alpha[higher] = alpha_max[higher]
 
-    return alpha
+    if debug:
+        return alpha, [popup, dotprods, dotprods2]
+    else:
+        return alpha
 
 
 def linear_regre_witherr(x, y):
@@ -2048,17 +2086,25 @@ def calc_co2column_P(pres, co2vmr, MM, extrapolate = True, minlogP = -14):
 
     kost = -100*1000*Nav/g_grav # pres to Pa, MM to kg
 
+    fnan = None
+    if np.any(np.isnan(pres)):
+        fnan = np.where(np.isnan(pres))[0][0] # end of atmosphere
+
     if extrapolate:
-        prlog = np.log(pres)
-        p2 = np.append(prlog, np.arange(prlog[-1], minlogP, prlog[-1]-prlog[-2]))
+        prlog = np.log(pres[:fnan])
+        p2 = np.append(prlog, np.arange(prlog[-1], minlogP, prlog[-1]-prlog[-2])[1:]) ### the increments in the reference log pressure are constant, this is equal to pres_rg up to end of reference grid
         p2ex = np.exp(p2)
 
-        nco2spl = interp1d(prlog, co2vmr, fill_value = 'extrapolate')
+        # Linear extrapolation of co2vmr in log pressure
+        nco2spl = interp1d(prlog, co2vmr[:fnan], fill_value = 'extrapolate')
         morenco2 = nco2spl(p2)
         morenco2[morenco2 < 0] = 0.
 
-        nmmspl = interp1d(prlog, MM, fill_value = 'extrapolate')
+        # Linear extrapolation of MM in log pressure
+        nmmspl = interp1d(prlog, MM[:fnan], fill_value = 'extrapolate')
         moremm = nmmspl(p2)
+        moremm[moremm < 20] = 20.
+
 
         uok = []
         for ial in range(len(pres)):
@@ -2067,7 +2113,7 @@ def calc_co2column_P(pres, co2vmr, MM, extrapolate = True, minlogP = -14):
     else:
         uok = []
         for ial in range(len(pres)):
-            uok.append(kost*np.trapz(co2vmr[ial:]/MM[ial:], pres[ial:])) # faccio tutto in SI
+            uok.append(kost*np.trapz(co2vmr[ial:fnan]/MM[ial:fnan], pres[ial:fnan])) # faccio tutto in SI
 
     uok = np.array(uok) * 1e-4 # to cm-2
     #if extrapolate:

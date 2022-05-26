@@ -92,118 +92,134 @@ cco2 = 3
 
 
 cose_upper_atm = dict()
-#
-# for cco2 in range(1,npl.n_co2prof+1):
-#     L_all = np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0)
-#     uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
-#     Lspl_all = spline(uco2, L_all, extrapolate = False)
-#
-#     L_fom = all_coeffs_nlte[('mle', cco2, 'l_esc_fom')]
-#     Lspl_fom = spline(uco2, L_fom, extrapolate = False)
-#
-#     for atm in allatms:
-#         L_esc = all_coeffs_nlte[(atm, cco2, 'l_esc')]
-#         uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
-#         Lspl = spline(uco2, L_esc, extrapolate = False)
-#
-#         pres = atm_pt[(atm, 'pres')]
-#         temp = atm_pt[(atm, 'temp')]
-#         surf_temp = atm_pt[(atm, 'surf_temp')]
-#         n_dens = sbm.num_density(pres, temp)
-#         co2vmr = atm_pt[(atm, cco2, 'co2')]
-#         n_co2 = n_dens * co2vmr
-#
-#         phi_fun = np.exp(-E_fun/(kbc*temp))
-#
-#         ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
-#         o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
-#         n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
-#         # o2vmr = np.ones(len(alts))*0.20-ovmr
-#         # n2vmr = np.ones(len(alts))*0.79
-#
-#         ###################### Rate coefficients ######################
-#         t13 = temp**(-1./3)
-#
-#         # Collisional rate between CO2 and O:
-#         zo = 3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
-#         #ZCO2O = KO Fomichev value
-#
-#         # Collisional rates between CO2 and N2/O2:
-#         zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
-#         zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
-#         # use Fomichev values
-#         # zn2=5.5e-17*sqrt(temp)+6.7e-10*exp(-83.8*t13)
-#         # zo2=1.e-15*exp(23.37-230.9*t13+564.*t13*t13)
-#
-#         ###############################################################
-#
-#         uok = []
-#         uok2 = []
-#
-#         nco2spl = interp1d(alts, np.log(n_co2), fill_value = 'extrapolate')
-#         morealts = np.linspace(alts[0], 200., 1000)
-#         morenco2 = np.exp(nco2spl(morealts))
-#         for ial in range(len(alts)):
-#             uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
-#             alok = morealts >= alts[ial]
-#             uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
-#
-#         #utop = uok[-2] # Setting upper column equal to last step
-#         print('utop = {:7.2e}'.format(uok2[-1]))
-#
-#         uok = np.array(uok)
-#         uok2 = np.array(uok2)
-#         Lok = Lspl(uok)
-#         Lok_all = Lspl_all(uok)
-#         Lok_wutop = Lspl(uok2)# + utop)
-#         Lok_all_wutop = Lspl_all(uok2)
-#         Lok_fom = Lspl_fom(uok2)
-#
-#         Lok_int2 = Lspl(uok2)
-#
-#         for co in [Lok, Lok_all, Lok_wutop, Lok_all_wutop]:
-#             co[:20][np.isnan(co[:20])] = 0.0 # for extrapolated regions
-#             co[-5:][np.isnan(co[-5:])] = 1.0 # for extrapolated regions
-#
-#         alpha = np.ones(len(Lok)) # depends on cco2
-#         eps_gn = np.zeros(len(Lok))
-#
-#         dj = alpha*Lok
-#         lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
-#
-#         MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass
-#
-#         ## Boundary condition
-#         #eps125 = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][n_alts_trlo]
-#         tip = 'varfit5_nlte'
-#         acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
-#         bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
-#         asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
-#         bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
-#
-#         hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
-#         eps125 = hr_calc[n_alts_trlo-1]
-#
-#         cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
-#         #cose_upper_atm[(atm, cco2, 'L_esc_int2')] = Lok_int2 # finest integration grid
-#         cose_upper_atm[(atm, cco2, 'L_esc_wutop')] = Lok_wutop # adding a utop equal to the last uok
-#         cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] = Lok_all_wutop # adding a utop equal to the last uok
-#         cose_upper_atm[(atm, cco2, 'L_esc_all')] = Lok_all # using the mean of the escape functions for all atmospheres
-#
-#         cose_upper_atm[(atm, cco2, 'L_esc_fom')] = Lok_fom # using Fomichev L_esc
-#
-#         print(cco2, atm)
-#         for nam in ['L_esc_all', 'L_esc_wutop', 'L_esc_all_wutop']:
-#             print(nam, np.max(np.abs(cose_upper_atm[(atm, cco2, 'L_esc')][n_alts_trlo:] - cose_upper_atm[(atm, cco2, nam)][n_alts_trlo:])))
-#
-#         cose_upper_atm[(atm, cco2, 'lamb')] = lamb
-#         #cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
-#         cose_upper_atm[(atm, cco2, 'eps125')] = eps125
-#         cose_upper_atm[(atm, cco2, 'co2vmr')] = co2vmr
-#         cose_upper_atm[(atm, cco2, 'MM')] = MM
-#
-# pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
-cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
+
+for cco2 in range(1,npl.n_co2prof+1):
+    L_all = np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0)
+    uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
+    Lspl_all = spline(uco2, L_all, extrapolate = False)
+
+    L_fom = all_coeffs_nlte[('mle', cco2, 'l_esc_fom')]
+    Lspl_fom = spline(uco2, L_fom, extrapolate = False)
+
+    for atm in allatms:
+        L_esc = all_coeffs_nlte[(atm, cco2, 'l_esc')]
+        uco2 = all_coeffs_nlte[(atm, cco2, 'uco2')]
+        Lspl = spline(uco2, L_esc, extrapolate = False)
+
+        pres = atm_pt[(atm, 'pres')]
+        temp = atm_pt[(atm, 'temp')]
+        surf_temp = atm_pt[(atm, 'surf_temp')]
+        n_dens = sbm.num_density(pres, temp)
+        co2vmr = atm_pt[(atm, cco2, 'co2')]
+        n_co2 = n_dens * co2vmr
+
+        phi_fun = np.exp(-E_fun/(kbc*temp))
+
+        ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+        o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+        n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+        # o2vmr = np.ones(len(alts))*0.20-ovmr
+        # n2vmr = np.ones(len(alts))*0.79
+
+        ###################### Rate coefficients ######################
+        t13 = temp**(-1./3)
+
+        # Collisional rate between CO2 and O:
+        zo = 3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
+        #ZCO2O = KO Fomichev value
+
+        # Collisional rates between CO2 and N2/O2:
+        zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
+        zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
+        # use Fomichev values
+        # zn2=5.5e-17*sqrt(temp)+6.7e-10*exp(-83.8*t13)
+        # zo2=1.e-15*exp(23.37-230.9*t13+564.*t13*t13)
+
+        ###############################################################
+
+        uok = []
+        uok2 = []
+
+        nco2spl = interp1d(alts, np.log(n_co2), fill_value = 'extrapolate')
+        morealts = np.linspace(alts[0], 200., 1000)
+        morenco2 = np.exp(nco2spl(morealts))
+        for ial in range(len(alts)):
+            uok.append(np.trapz(n_co2[ial:], 1.e5*alts[ial:])) # integro in cm, voglio la colonna in cm-2
+            alok = morealts >= alts[ial]
+            uok2.append(np.trapz(morenco2[alok], 1.e5*morealts[alok])) # integro in cm, voglio la colonna in cm-2
+
+        #utop = uok[-2] # Setting upper column equal to last step
+        print('utop = {:7.2e}'.format(uok2[-1]))
+
+        #MM = (n2vmr*28+o2vmr*32+ovmr*16)/(n2vmr+o2vmr+ovmr) # Molecular mass
+        MM = npl.calc_MM(ovmr=ovmr, o2vmr=o2vmr, n2vmr=n2vmr)
+        uok_P = npl.calc_co2column_P(pres, co2vmr, MM)
+
+        uok = np.array(uok)
+        uok2 = np.array(uok2)
+
+        Lok = Lspl(uok)
+        Lok_all = Lspl_all(uok)
+        Lok_wutop = Lspl(uok2)# + utop)
+        Lok_all_wutop = Lspl_all(uok2)
+        Lok_fom = Lspl_fom(uok2)
+
+        Lok_all_ext_P = Lspl_all(uok_P)
+        Lok_ext_P = Lspl(uok_P)
+
+        Lok_int2 = Lspl(uok2)
+
+        for ii, co in enumerate([Lok, Lok_all, Lok_wutop, Lok_all_wutop, Lok_ext_P, Lok_all_ext_P]):
+            #print(ii, np.any(np.isnan(co)))
+            co[:30][np.isnan(co[:30])] = 0.0 # for extrapolated regions
+            co[-10:][np.isnan(co[-10:])] = 1.0 # for extrapolated regions
+            print(ii, np.any(np.isnan(co)))
+            if np.any(np.isnan(co)):
+                raise ValueError('nan in L_esc!')
+
+        alpha = np.ones(len(Lok)) # depends on cco2
+        eps_gn = np.zeros(len(Lok))
+
+        dj = alpha*Lok
+        lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
+
+
+        ## Boundary condition
+        #eps125 = all_coeffs_nlte[(atm, cco2, 'hr_nlte')][n_alts_trlo]
+        tip = 'varfit5_nlte'
+        acoeff_cco2 = tot_coeff_co2[(tip, 'acoeff', cco2)]
+        bcoeff_cco2 = tot_coeff_co2[(tip, 'bcoeff', cco2)]
+        asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
+        bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
+
+        hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)
+        eps125 = hr_calc[n_alts_trlo-1]
+
+        cose_upper_atm[(atm, cco2, 'L_esc')] = Lok
+        #cose_upper_atm[(atm, cco2, 'L_esc_int2')] = Lok_int2 # finest integration grid
+        cose_upper_atm[(atm, cco2, 'L_esc_wutop')] = Lok_wutop # adding a utop equal to the last uok
+        cose_upper_atm[(atm, cco2, 'L_esc_all_wutop')] = Lok_all_wutop # adding a utop equal to the last uok
+        cose_upper_atm[(atm, cco2, 'L_esc_all')] = Lok_all # using the mean of the escape functions for all atmospheres
+
+        cose_upper_atm[(atm, cco2, 'L_esc_fom')] = Lok_fom # using Fomichev L_esc
+
+        cose_upper_atm[(atm, cco2, 'L_esc_extP')] = Lok_ext_P #
+        cose_upper_atm[(atm, cco2, 'L_esc_all_extP')] = Lok_all_ext_P # using the mean of the escape functions for all atmospheres, co2 from calc_co2column_P
+
+        print(cco2, atm)
+        for nam in ['L_esc_all', 'L_esc_all_extP', 'L_esc_all_wutop']:
+            print(nam, np.max(np.abs(cose_upper_atm[(atm, cco2, 'L_esc_extP')][n_alts_trlo:] - cose_upper_atm[(atm, cco2, nam)][n_alts_trlo:])))
+
+        cose_upper_atm[(atm, cco2, 'lamb')] = lamb
+        #cose_upper_atm[(atm, cco2, 'phi_fun')] = phi_fun
+        cose_upper_atm[(atm, cco2, 'eps125')] = eps125
+        cose_upper_atm[(atm, cco2, 'co2vmr')] = co2vmr
+        cose_upper_atm[(atm, cco2, 'MM')] = MM
+
+pickle.dump(cose_upper_atm, open(cart_out_3 + 'cose_upper_atm.p', 'wb'))
+sys.exit()
+
+#cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 
 #
 # # alpha FIT!
