@@ -289,11 +289,11 @@ fig, ax = plt.subplots()
 for na, col in zip(['fomi', 'new', 'new_fa', 'new_fixco2'], ['blue', 'red', 'orange', 'forestgreen']):
     co = crall_rg[na] + crall_rg['obs']
 
-    d_stats[(na, 'median')] = np.median(co, axis = 0)
-    d_stats[(na, '1st')] = np.percentile(co, 25, axis = 0)
-    d_stats[(na, '3rd')] = np.percentile(co, 75, axis = 0)
-    d_stats[(na, 'std')] = np.std(co, axis = 0)
-    d_stats[(na, 'mean')] = np.mean(co, axis = 0)
+    d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
+    d_stats[(na, '1st')] = np.nanpercentile(co, 25, axis = 0)
+    d_stats[(na, '3rd')] = np.nanpercentile(co, 75, axis = 0)
+    d_stats[(na, 'std')] = np.nanstd(co, axis = 0)
+    d_stats[(na, 'mean')] = np.nanmean(co, axis = 0)
 
     ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.4)
     ax.plot(d_stats[(na, 'median')], x_ref, color = col, lw = 2)
