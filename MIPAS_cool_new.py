@@ -286,7 +286,7 @@ d_stats = dict()
 ### Figure shading
 fig, ax = plt.subplots()
 
-for na, col in zip(['fomi', 'new', 'new_fa', 'new_fixco2'], ['blue', 'red', 'orange', 'forestgreen']):
+for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa'], ['blue', 'red', 'forestgreen', 'orange']):
     co = crall_rg[na] + crall_rg['obs']
 
     d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
@@ -301,6 +301,6 @@ for na, col in zip(['fomi', 'new', 'new_fa', 'new_fixco2'], ['blue', 'red', 'ora
 ax.grid()
 ax.set_xlim(-10., 15.)
 #ax.set_ylim(40., 110.)
-ax.set_ylim(10., 18.)
+ax.set_ylim(10., 20.)
 
 fig.savefig(cart_out + 'global_check_shading_{}.pdf'.format(ctag))
