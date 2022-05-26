@@ -229,7 +229,7 @@ def calc_coeffs_for_co2(interp_coeffs, co2vmr, alt2 = 51, n_top = 65):
     return calc_coeffs
 
 
-def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None, debug_allgr = False, extrap_co2col = True):
+def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None, debug_allgr = False, extrap_co2col = True, debug_starthigh = None, alt2up = 51, n_top = 65):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
@@ -279,9 +279,9 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     #print(temp_rg, surf_temp, pres_rg)
 
     if debug:
-        hr_calc_fin, cose = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col)
+        hr_calc_fin, cose = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col, debug_starthigh = debug_starthigh, alt2up = alt2up, n_top = n_top)
     else:
-        hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col)
+        hr_calc_fin = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col, debug_starthigh = debug_starthigh, alt2up = alt2up, n_top = n_top)
 
     ##### INTERPOLATE OUTPUT TO ORIGINAL GRID ####
 
@@ -296,7 +296,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
         return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80, factor_from_code = True, debug = False, extrap_co2col = True, debug_co2interp = None):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, n_alts_cs = 80, factor_from_code = True, debug = False, extrap_co2col = True, debug_co2interp = None, debug_starthigh = False):
     """
     New param with new strategy (1/10/21).
     """
@@ -393,7 +393,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         alpha = debug_alpha
         print('new: ',alpha)
 
-    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, n_alts_cs = n_alts_cs, ovmr = ovmr, factor_from_code = factor_from_code)
+    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_alts_cs, ovmr = ovmr, factor_from_code = factor_from_code, debug_starthigh = debug_starthigh)
     if debug: print('hr fin:', hr_calc_fin)
 
 
@@ -2162,8 +2162,9 @@ def calc_cp(MM, ovmr):
     cp = 8.31441e7/MM*(7./2.*(1.-ovmr)+5./2.*ovmr)
     return cp
 
-def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alts_trhi = 56, n_alts_cs = 65, ovmr = None, debug = False, factor_from_code = True):
+def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 51, n_alts_trhi = 65, n_alts_cs = 80, ovmr = None, debug = False, factor_from_code = True, debug_starthigh = None):
     """
+    n_alts_trlo, n_alts_trhi, n_alts_cs were: 50, 56, 65
     Recurrence formula in the upper transition region (with alpha).
 
     With full vectors.
@@ -2192,7 +2193,10 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 50, n_alt
 
     if debug: print('cp', cp)
 
-    eps125 = hr[n_alts_trlo-1] * cp[n_alts_trlo-1] / (24*60*60)
+    if debug_starthigh is not None:
+        eps125 = debug_starthigh * cp[n_alts_trlo-1] / (24*60*60)
+    else:
+        eps125 = hr[n_alts_trlo-1] * cp[n_alts_trlo-1] / (24*60*60)
 
     alpha_ok = np.ones(n_alts)
     alpha_ok[n_alts_trlo-1:n_alts_trhi] = alpha

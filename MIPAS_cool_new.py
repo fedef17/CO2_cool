@@ -95,6 +95,8 @@ new_param = []
 new_param_fa = []
 new_param_fixco2 = []
 new_param_noextP = []
+new_param_starthigh = []
+new_param_alt2_50 = []
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
@@ -109,6 +111,8 @@ co2column_debug = []
 debug_alphafit = []
 
 do_calc = True
+calc_only_new = True
+
 if do_calc:
     inputs = dict()
     for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas', 'x']:
@@ -173,78 +177,99 @@ if do_calc:
         # call(cart+'./fomi_mipas')
         # nomeout = cart+'output__mipas.dat'
         # alt_fomi, cr_fomi = sbm.leggioutfomi(nomeout)
-        alt_fomi, x_fomi, cr_fomi = npl.old_param(alts, temp, pres, CO2con, Oprof = Ocon, O2prof = O2con, N2prof = N2con, input_in_ppm = True)
+        if not calc_only_new:
+            alt_fomi, x_fomi, cr_fomi = npl.old_param(alts, temp, pres, CO2con, Oprof = Ocon, O2prof = O2con, N2prof = N2con, input_in_ppm = True)
 
-        #######
-        # spl = spline(alt_manuel, o2vmr)
-        # o2vmr_or = spl(alts_O)
-        # spl = spline(alt_manuel, n2vmr)
-        # n2vmr_or = spl(alts_O)
+            #######
+            # spl = spline(alt_manuel, o2vmr)
+            # o2vmr_or = spl(alts_O)
+            # spl = spline(alt_manuel, n2vmr)
+            # n2vmr_or = spl(alts_O)
 
-        #cr_new, debug = npl.new_param_full_allgrids(temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, interp_coeffs = interp_coeffs, debug = True)
-        cr_new, debug = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = True)
+            #cr_new, debug = npl.new_param_full_allgrids(temp_or, temp_or[0], pres_or, CO2con_or*1.e-6, Ocon_or*1.e-6, o2vmr_or, n2vmr_or, interp_coeffs = interp_coeffs, debug = True)
+            cr_new, debug = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = True)
 
-        debug_alphafit.append(debug['alpha_fit'])
-        alpha_debug.append(debug['alpha'])
-        L_esc_debug.append(debug['L_esc'])
-        co2column_debug.append(debug['co2_column'])
+            debug_alphafit.append(debug['alpha_fit'])
+            alpha_debug.append(debug['alpha'])
+            L_esc_debug.append(debug['L_esc'])
+            co2column_debug.append(debug['co2_column'])
+
+            alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
+            fomialpha = np.append(alpha_fom, np.ones(9))
+
+            cr_new_fa = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_alpha = fomialpha)
+
+            cr_new_noextP = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old, debug = False, extrap_co2col = False)
+
+
+            co2vmr_ref = coeffs['co2profs'][2]
+            cr_new_fixco2 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_co2interp = co2vmr_ref)
+
+            ####
+            new_param.append(cr_new)
+            new_param_fa.append(cr_new_fa)
+            new_param_fixco2.append(cr_new_fixco2)
+            new_param_noextP.append(cr_new_noextP)
+
+            res.date[0] = CR.date[il]
+            res.latitude[0] = CR.latitude[il]
+            res.longitude[0] = CR.longitude[il]
+            res.sza[0] = CR.sza[il]
+            # res.altitude[0] = CR.altitude[il]
+            # res.pressure[0] = CR.pressure[il]
+            # res.temperature[0] = CR.temperature[il]
+            res.altitude[0] = alts
+            res.pressure[0] = pres
+            res.temperature[0] = temp
+
+            res.cr_mipas[0] = CR.target[il]
+            obs.append(CR.target[il])
+            res.alt_fomi[0] = alt_fomi
+            res.cr_fomi[0] = cr_fomi
+            res.cr_new[0] = cr_new
+
+            splcr = spline(alt_fomi, cr_fomi)
+            cr_fom_ok = splcr(res.altitude[0])
+            old_param.append(cr_fom_ok)
+            res.cr_fomi_int[0] = cr_fom_ok
+
+            restot = np.append(restot,res)
+
+        crmi = CR.target[il]
+        cspl = spline(x, crmi)
+        crmi_ok = cspl(x_ref)
+        alt2 = 51
+        starthigh = crmi_ok[alt2-1]
 
         alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
         fomialpha = np.append(alpha_fom, np.ones(9))
+        cr_new_starthigh = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = starthigh, debug_alpha = fomialpha)
+        new_param_starthigh.append(cr_new_starthigh)
 
-        cr_new_fa = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_alpha = fomialpha)
-
-        cr_new_noextP = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old, debug = False, extrap_co2col = False)
-
-        co2vmr_ref = coeffs['co2profs'][2]
-        cr_new_fixco2 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_co2interp = co2vmr_ref)
-
-        ####
-        new_param.append(cr_new)
-        new_param_fa.append(cr_new_fa)
-        new_param_fixco2.append(cr_new_fixco2)
-        new_param_noextP.append(cr_new_noextP)
-
-        res.date[0] = CR.date[il]
-        res.latitude[0] = CR.latitude[il]
-        res.longitude[0] = CR.longitude[il]
-        res.sza[0] = CR.sza[il]
-        # res.altitude[0] = CR.altitude[il]
-        # res.pressure[0] = CR.pressure[il]
-        # res.temperature[0] = CR.temperature[il]
-        res.altitude[0] = alts
-        res.pressure[0] = pres
-        res.temperature[0] = temp
-
-        res.cr_mipas[0] = CR.target[il]
-        obs.append(CR.target[il])
-        res.alt_fomi[0] = alt_fomi
-        res.cr_fomi[0] = cr_fomi
-        res.cr_new[0] = cr_new
-
-        splcr = spline(alt_fomi, cr_fomi)
-        cr_fom_ok = splcr(res.altitude[0])
-        old_param.append(cr_fom_ok)
-        res.cr_fomi_int[0] = cr_fom_ok
-
-        restot = np.append(restot,res)
+        cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = True, alt2up = 50, n_top = 64)
+        new_param_alt2_50.append(cr_new_alt2_50)
 
 
-    for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas', 'x']:
-        inputs[nam] = np.array(inputs[nam])
+    if not calc_only_new:
+        for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas', 'x']:
+            inputs[nam] = np.array(inputs[nam])
 
-    restot = restot[1:]
-    restot = restot.view(np.recarray)
+        restot = restot[1:]
+        restot = restot.view(np.recarray)
 
-    pickle.dump(restot, open(cart_out+'ssw2009_{}.p'.format(ctag),'wb'))
-    pickle.dump([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP], open(cart_out+'out_ssw2009_{}.p'.format(ctag),'wb'))
-    pickle.dump(inputs, open(cart_out+'in_ssw2009_{}.p'.format(ctag),'wb'))
-    pickle.dump([alpha_debug, L_esc_debug, co2column_debug, debug_alphafit], open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'wb'))
-else:
+        pickle.dump(restot, open(cart_out+'ssw2009_{}.p'.format(ctag),'wb'))
+        pickle.dump([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP], open(cart_out+'out_ssw2009_{}.p'.format(ctag),'wb'))
+        pickle.dump(inputs, open(cart_out+'in_ssw2009_{}.p'.format(ctag),'wb'))
+        pickle.dump([alpha_debug, L_esc_debug, co2column_debug, debug_alphafit], open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'wb'))
+    else:
+        pickle.dump([new_param_starthigh, new_param_alt2_50], open(cart_out+'check_starthigh_out_ssw2009_{}.p'.format(ctag),'wb'))
+
+if not do_calc or calc_only_new:
     restot = pickle.load(open(cart_out+'ssw2009_{}.p'.format(ctag),'rb'))
     obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP = pickle.load(open(cart_out+'out_ssw2009_{}.p'.format(ctag),'rb'))
     inputs = pickle.load(open(cart_out+'in_ssw2009_{}.p'.format(ctag),'rb'))
     alpha_debug, L_esc_debug, co2column_debug, debug_alphafit = pickle.load(open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'rb'))
+
 
 old_param = np.stack(old_param)
 obs = np.stack(obs)
@@ -252,6 +277,10 @@ new_param = np.stack(new_param)
 new_param_fa = np.stack(new_param_fa)
 new_param_fixco2 = np.stack(new_param_fixco2)
 new_param_noextP = np.stack(new_param_noextP)
+# new
+new_param_starthigh = np.stack(new_param_starthigh)
+new_param_alt2_50 = np.stack(new_param_alt2_50)
+
 
 # # produco atmosfera di input in formato manuel ->
 # # lancio fomi
@@ -279,7 +308,7 @@ new_param_noextP = np.stack(new_param_noextP)
 # d_new_fa = np.stack(d_new_fa)
 
 crall_rg = dict()
-for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2', 'new_noextP']):
+for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP, new_param_starthigh, new_param_alt2_50], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2', 'new_noextP', 'new_starthigh', 'new_alt2_50']):
     crall_rg[na] = []
     for x, cr in zip(inputs['x'], co):
         spl = spline(x, cr, extrapolate = False)
@@ -294,7 +323,8 @@ d_stats = dict()
 ### Figure shading
 fig, ax = plt.subplots()
 
-for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP'], ['blue', 'red', 'forestgreen', 'orange', 'violet']):
+#for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
+for na, col in zip(['fomi', 'new', 'new_fa', 'new_starthigh', 'new_alt2_50'], ['blue', 'red', 'orange', 'chocolate', 'grey']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -312,4 +342,4 @@ ax.set_xlim(-10., 15.)
 #ax.set_ylim(40., 110.)
 ax.set_ylim(10., 20.)
 
-fig.savefig(cart_out + 'global_check_shading_{}.pdf'.format(ctag))
+fig.savefig(cart_out + 'global_check_shading_{}_starthigh.pdf'.format(ctag))
