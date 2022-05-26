@@ -246,7 +246,7 @@ if do_calc:
         cr_new_starthigh = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = starthigh, debug_alpha = fomialpha)
         new_param_starthigh.append(cr_new_starthigh)
 
-        cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = True, alt2up = 50, n_top = 65)
+        cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = True, alt2up = 50, n_top = 64)
         new_param_alt2_50.append(cr_new_alt2_50)
 
 

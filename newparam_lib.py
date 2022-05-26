@@ -379,9 +379,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
 
     if debug:
-        alpha, debug_cose['alpha_fit'] = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2, n_top = n_top, debug = debug)
+        alpha, debug_cose['alpha_fit'] = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top, debug = debug)
     else:
-        alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2, n_top = n_top)
+        alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top)
 
     if debug:
         debug_cose['alpha'] = alpha
