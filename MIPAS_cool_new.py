@@ -237,12 +237,12 @@ if do_calc:
     restot = restot.view(np.recarray)
 
     pickle.dump(restot, open(cart_out+'ssw2009_{}.p'.format(ctag),'wb'))
-    pickle.dump([obs, old_param, new_param, new_param_fa, new_param_fixco2], open(cart_out+'out_ssw2009_{}.p'.format(ctag),'wb'))
+    pickle.dump([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP], open(cart_out+'out_ssw2009_{}.p'.format(ctag),'wb'))
     pickle.dump(inputs, open(cart_out+'in_ssw2009_{}.p'.format(ctag),'wb'))
     pickle.dump([alpha_debug, L_esc_debug, co2column_debug, debug_alphafit], open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'wb'))
 else:
     restot = pickle.load(open(cart_out+'ssw2009_{}.p'.format(ctag),'rb'))
-    obs, old_param, new_param, new_param_fa, new_param_fixco2 = pickle.load(open(cart_out+'out_ssw2009_{}.p'.format(ctag),'rb'))
+    obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP = pickle.load(open(cart_out+'out_ssw2009_{}.p'.format(ctag),'rb'))
     inputs = pickle.load(open(cart_out+'in_ssw2009_{}.p'.format(ctag),'rb'))
     alpha_debug, L_esc_debug, co2column_debug, debug_alphafit = pickle.load(open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'rb'))
 
