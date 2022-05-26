@@ -27,10 +27,14 @@ import spect_base_module as sbm
 
 cart_in = cart_base + 'lavori/CO2_cooling/MIPAS_2009/'
 
-savT = io.readsav(cart_in+'CR20090215/L2_20090215_T_521.6', verbose=True)
-savCR = io.readsav(cart_in+'CR20090215/L2_20090215_CR-CO2-IR_521.6', verbose=True)
-savO = io.readsav(cart_in+'CR20090215/L2_20090215_O_521.6', verbose=True)
-savCO2 = io.readsav(cart_in+'CR20090215/L2_20090215_CO2_521.6', verbose=True)
+# savT = io.readsav(cart_in+'CR20090215/L2_20090215_T_521.6', verbose=True)
+# savCR = io.readsav(cart_in+'CR20090215/L2_20090215_CR-CO2-IR_521.6', verbose=True)
+# savO = io.readsav(cart_in+'CR20090215/L2_20090215_O_521.6', verbose=True)
+# savCO2 = io.readsav(cart_in+'CR20090215/L2_20090215_CO2_521.6', verbose=True)
+savT = io.readsav(cart_in+'CR20090215_v561/L2_20090215_T_561.0', verbose=True)
+savCR = io.readsav(cart_in+'CR20090215_v561/L2_20090215_CR-CO2-IR@TLOS_561.0', verbose=True)
+savO = io.readsav(cart_in+'CR20090215_v561/L2_20090215_O_561.0', verbose=True)
+savCO2 = io.readsav(cart_in+'CR20090215_v561/L2_20090215_CO2_561.0', verbose=True)
 
 T = savT.result
 CR = savCR.result
@@ -412,7 +416,7 @@ if check_single_2:
 
 #################################################################
 
-check_cr = True
+check_cr = False
 x_ref = np.arange(0.125, 20.625+0.01, 0.25)
 x_fomi = np.arange(2., 25, 0.25)
 alt_manuel = np.linspace(0,120,121)
@@ -429,6 +433,8 @@ if check_cr:
             spl = spline(alt_manuel, crnew)
             crnw2 = spl(alts)
             crnew_ok.append(crnw2)
+        else:
+            crnew_ok = crnew
 
     crfom_ok = np.stack(crfom_ok)
     crnew_ok = np.stack(crnew_ok)
@@ -596,21 +602,10 @@ fig.savefig(cart_out + 'eofs_popup_ref.pdf')
 
 
 figpop, axpop = plt.subplots()
-axpop.plot(popup_mean, x_ref[alt2:n_top+1], colo = 'black')
+axpop.plot(popup_mean, x_ref[alt2:n_top+1], color = 'black')
 
 ## mipas eof
-cart = '/home/fabiano/Research/lavori/CO2_cooling/MIPAS_2009/'
-
-savT = io.readsav(cart+'CR20090215_v561/L2_20090215_T_561.0', verbose=True)
-#savCR = io.readsav(cart+'CR20090215/L2_20090215_CR-CO2-IR_521.6', verbose=True)
-savCR = io.readsav(cart+'CR20090215_v561/L2_20090215_CR-CO2-IR@TLOS_561.0', verbose=True)
-savO = io.readsav(cart+'CR20090215_v561/L2_20090215_O_561.0', verbose=True)
-savCO2 = io.readsav(cart+'CR20090215_v561/L2_20090215_CO2_561.0', verbose=True)
-
-T = savT.result
-CR = savCR.result
-O = savO.result
-CO2 = savCO2.result
+cart = cart_base + 'lavori/CO2_cooling/MIPAS_2009/'
 
 ### THIS IS WRONG!!
 ### the altitude grid is different
@@ -619,6 +614,9 @@ tempmip = []
 presmip = []
 co2conmip = []
 oconmip = []
+
+ctag = 'v10-nl0-65'
+inputs = pickle.load(open(cart_out+'in_ssw2009_{}.p'.format(ctag),'rb'))
 
 inputs_rg = dict()
 for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
@@ -636,8 +634,9 @@ for i in range(len(inputs['temp'])):
         inputs_rg[nam].append(v2)
 
 
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-qui volevi fare un check della media del popup in mipas, e delle eofs
+sys.exit()
+# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# qui volevi fare un check della media del popup in mipas, e delle eofs
 
 
 

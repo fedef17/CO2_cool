@@ -16,10 +16,12 @@ if os.uname()[1] == 'xaru':
     sys.path.insert(0, '/home/fedef/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fedef/Research/git/pythall/')
     cart_out = '/home/fedef/Research/lavori/CO2_cooling/new_param/mipas_check/'
+    cart_base = '/home/fedef/Research/'
 elif os.uname()[1] == 'hobbes':
     sys.path.insert(0, '/home/fabiano/Research/git/SpectRobot/')
     sys.path.insert(0, '/home/fabiano/Research/git/pythall/')
     cart_out = '/home/fabiano/Research/lavori/CO2_cooling/new_param/mipas_check/'
+    cart_base = '/home/fabiano/Research/'
 else:
     raise ValueError('Unknown platform {}. Specify paths!'.format(os.uname()[1]))
 
@@ -75,9 +77,11 @@ restot = res
 #####################################################################
 
 ctag = 'v10-nl0-65'
-coeff_file = '/home/fabiano/Research/lavori/CO2_cooling/new_param/reparam_allatm/coeffs_finale_{}.p'.format(ctag)
+coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_finale_{}.p'.format(ctag)
 
 interp_coeffs = npl.precalc_interp(coeff_file = coeff_file)
+
+coeffs = pickle.load(open(coeff_file, 'rb'))
 
 # Prova 1: atmosfera polare media durante un SSW
 alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart + 'gases_120.dat', version = 2)
@@ -87,6 +91,7 @@ alt_manuel = np.linspace(0,120,121)
 old_param = []
 new_param = []
 new_param_fa = []
+new_param_fixco2 = []
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
@@ -184,9 +189,13 @@ for il in range(len(CR)):
 
     cr_new_fa = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_alpha = fomialpha)
 
+    co2vmr_ref = coeffs['co2profs'][2]
+    cr_new_fixco2 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, debug_co2interp = co2vmr_ref)
+
     ####
     new_param.append(cr_new)
     new_param_fa.append(cr_new_fa)
+    new_param_fixco2.append(cr_new_fixco2)
 
     res.date[0] = CR.date[il]
     res.latitude[0] = CR.latitude[il]
@@ -221,7 +230,7 @@ restot = restot.view(np.recarray)
 
 pickle.dump(restot, open(cart_out+'ssw2009_{}.p'.format(ctag),'wb'))
 
-pickle.dump([obs, old_param, new_param], open(cart_out+'out_ssw2009_{}.p'.format(ctag),'wb'))
+pickle.dump([obs, old_param, new_param, new_param_fa, new_param_fixco2], open(cart_out+'out_ssw2009_{}.p'.format(ctag),'wb'))
 
 pickle.dump(inputs, open(cart_out+'in_ssw2009_{}.p'.format(ctag),'wb'))
 

@@ -193,6 +193,42 @@ def precalc_interp(coeffs = None, coeff_file = cart_out + '../reparam_allatm/coe
     return interp_coeffs
 
 
+def calc_coeffs_for_co2(interp_coeffs, co2vmr, alt2 = 51, n_top = 65):
+    """
+    Interpolates coefficients to actual co2 profile.
+    """
+    calc_coeffs = dict()
+    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
+        for regco in ['c', 'm', 'c1', 'm1', 'm2', 'm3', 'm4']:
+            #print(nam, regco)
+            if (nam, regco, 'int_fun') not in interp_coeffs:
+                continue
+            int_fun = interp_coeffs[(nam, regco, 'int_fun')]
+
+            if regco in ['c', 'c1'] and nam != 'nltecorr':
+                sc = interp_coeffs[(nam, regco, 'signc')]
+                coeff = coeff_from_interp_log(int_fun, sc, co2vmr)
+            else:
+                coeff = coeff_from_interp_lin(int_fun, co2vmr)
+
+            calc_coeffs[(nam, regco)] = coeff
+
+    # upper atm
+    intfutu = interp_coeffs[('alpha', 'int_fun')]
+    allco = []
+    for intfu in intfutu:
+        allco.append(coeff_from_interp_lin(intfu, co2vmr[alt2:n_top+1]))
+    calc_coeffs['alpha_fit'] = np.stack(allco).T
+
+    calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2:n_top+1])
+    calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2:n_top+1])
+
+    calc_coeffs['L_all'] = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
+    calc_coeffs['uco2'] = interp_coeffs['uco2']
+
+    return calc_coeffs
+
+
 def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
@@ -250,7 +286,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
         return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, n_alts_cs = 80, factor_from_code = True, debug = False, extrap_co2col = True):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80, factor_from_code = True, debug = False, extrap_co2col = True, debug_co2interp = None):
     """
     New param with new strategy (1/10/21).
     """
@@ -268,36 +304,13 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
 
     ############################################
     ##### INTERPOLATING TO ACTUAL CO2
-    calc_coeffs = dict()
-    for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'nltecorr']:
-        for regco in ['c', 'm', 'c1', 'm1', 'm2', 'm3', 'm4']:
-            #print(nam, regco)
-            if (nam, regco, 'int_fun') not in interp_coeffs:
-                continue
-            int_fun = interp_coeffs[(nam, regco, 'int_fun')]
 
-            if regco in ['c', 'c1'] and nam != 'nltecorr':
-                sc = interp_coeffs[(nam, regco, 'signc')]
-                coeff = coeff_from_interp_log(int_fun, sc, co2vmr)
-            else:
-                coeff = coeff_from_interp_lin(int_fun, co2vmr)
+    if debug_co2interp is None:
+        calc_coeffs = calc_coeffs_for_co2(interp_coeffs, co2vmr)
+    else:
+        calc_coeffs = calc_coeffs_for_co2(interp_coeffs, debug_co2interp)
 
-            calc_coeffs[(nam, regco)] = coeff
-
-    # upper atm
-    intfutu = interp_coeffs[('alpha', 'int_fun')]
-    allco = []
-    for intfu in intfutu:
-        allco.append(coeff_from_interp_lin(intfu, co2vmr[alt2up:n_top+1]))
-    calc_coeffs['alpha_fit'] = np.stack(allco).T
-
-    calc_coeffs['alpha_min'] = coeff_from_interp_lin(interp_coeffs[('alpha_min', 'int_fun')], co2vmr[alt2up:n_top+1])
-    calc_coeffs['alpha_max'] = coeff_from_interp_lin(interp_coeffs[('alpha_max', 'int_fun')], co2vmr[alt2up:n_top+1])
-
-    L_all = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr)
-    uco2 = interp_coeffs['uco2']
-
-    Lspl_all = spline(uco2, L_all, extrapolate = False)
+    Lspl_all = spline(calc_coeffs['uco2'], calc_coeffs['L_all'], extrapolate = False)
     MM = calc_MM(ovmr, o2vmr, n2vmr)
     uok2 = calc_co2column_P(pres, co2vmr, MM, extrapolate = extrap_co2col)
 
@@ -355,9 +368,9 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
 
     if debug:
-        alpha, debug_cose['alpha_fit'] = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top, debug = debug)
+        alpha, debug_cose['alpha_fit'] = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2, n_top = n_top, debug = debug)
     else:
-        alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2up, n_top = n_top)
+        alpha = alpha_from_fit(temp, surf_temp, lamb, calc_coeffs['alpha_fit'], alpha_max = calc_coeffs['alpha_max'], alpha_min = calc_coeffs['alpha_min'], alt2 = alt2, n_top = n_top)
 
     if debug:
         debug_cose['alpha'] = alpha
@@ -369,7 +382,7 @@ def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = N
         alpha = debug_alpha
         print('new: ',alpha)
 
-    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2up, n_alts_trhi = n_top, n_alts_cs = n_alts_cs, ovmr = ovmr, factor_from_code = factor_from_code)
+    hr_calc_fin = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, n_alts_cs = n_alts_cs, ovmr = ovmr, factor_from_code = factor_from_code)
     if debug: print('hr fin:', hr_calc_fin)
 
 
