@@ -101,7 +101,10 @@ new_param_alt2_50_fa = []
 new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
-nams = ['new_fomilike_51_starth', 'new_fomilike_51_starth_noextP']
+new_param_check = dict()
+nams = ['new_fomilike_51_starth', 'new_fa_starth']
+for nam in nams:
+    new_param_check[nam] = []
 
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
@@ -305,11 +308,11 @@ if do_calc:
 
         nam = 'new_fomilike_51_starth'
         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 51, n_top = 65, debug_alpha = alp, debug_Lesc = reL, debug_starthigh = starthigh)
-        new_params_check[nam].append(cr_new)
+        new_param_check[nam].append(cr_new)
 
         nam = 'new_fa_starth'
         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alp, debug_starthigh = starthigh)
-        new_params_check[nam].append(cr_new)
+        new_param_check[nam].append(cr_new)
 
 
     if not calc_only_new:
