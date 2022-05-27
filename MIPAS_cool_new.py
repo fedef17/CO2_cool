@@ -106,7 +106,7 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc']
+nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif']
 for nam in nams:
     new_param_check[nam] = []
 
@@ -129,7 +129,7 @@ alpha_fom = []
 Lesc_fom = []
 co2col_fom = []
 
-do_calc = False
+do_calc = True
 calc_only_new = True
 
 if do_calc:
@@ -328,8 +328,12 @@ if do_calc:
         # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alp, debug_starthigh = starthigh)
         # new_param_check[nam].append(cr_new)
 
-        nam = 'new_alphaunif_fomiLesc'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif, debug_Lesc = reL)
+        # nam = 'new_alphaunif_fomiLesc'
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif, debug_Lesc = reL)
+        # new_param_check[nam].append(cr_new)
+
+        nam = 'new_alphaunif'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif)
         new_param_check[nam].append(cr_new)
 
 
@@ -349,7 +353,7 @@ if do_calc:
         pickle.dump(new_param_alt2_50_fa, open(cart_out+'check_alt2_50_fa_out_ssw2009_{}.p'.format(ctag),'wb'))
         pickle.dump([new_param_fomilike_50, new_param_fomilike_51], open(cart_out+'check_fomilike_out_ssw2009_{}.p'.format(ctag),'wb'))
     else:
-        pickle.dump([alpha_fom, Lesc_fom], open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'wb'))
+        pickle.dump([alpha_fom, Lesc_fom, co2col_fom], open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'wb'))
 
         new_param_check_old = pickle.load( open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
 
@@ -420,7 +424,7 @@ d_stats = dict()
 fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
-for na, col in zip(['fomi', 'new', 'new_fomilike_51', 'new_alphaunif_fomiLesc'], ['blue', 'red', 'teal', 'forestgreen']):
+for na, col in zip(['fomi', 'new_fomilike_51', 'new_alphaunif_fomiLesc', 'new_alphaunif'], ['blue', 'teal', 'forestgreen', 'chocolate']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
