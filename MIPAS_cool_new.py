@@ -239,14 +239,14 @@ if do_calc:
         cspl = spline(x, crmi)
         crmi_ok = cspl(x_ref)
         alt2 = 51
-        starthigh = crmi_ok[alt2-1]
+        starthigh = -crmi_ok[alt2-1]
 
         alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
         fomialpha = np.append(alpha_fom, np.ones(9))
         cr_new_starthigh = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = starthigh, debug_alpha = fomialpha)
         new_param_starthigh.append(cr_new_starthigh)
 
-        cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = True, alt2up = 50, n_top = 64)
+        cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64)
         new_param_alt2_50.append(cr_new_alt2_50)
 
 
@@ -269,6 +269,7 @@ if not do_calc or calc_only_new:
     obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP = pickle.load(open(cart_out+'out_ssw2009_{}.p'.format(ctag),'rb'))
     inputs = pickle.load(open(cart_out+'in_ssw2009_{}.p'.format(ctag),'rb'))
     alpha_debug, L_esc_debug, co2column_debug, debug_alphafit = pickle.load(open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'rb'))
+    new_param_starthigh, new_param_alt2_50 = pickle.load(open(cart_out+'check_starthigh_out_ssw2009_{}.p'.format(ctag),'rb'))
 
 
 old_param = np.stack(old_param)
