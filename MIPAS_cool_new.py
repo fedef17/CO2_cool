@@ -235,19 +235,24 @@ if do_calc:
 
             restot = np.append(restot,res)
 
-        crmi = CR.target[il]
-        cspl = spline(x, crmi)
-        crmi_ok = cspl(x_ref)
-        alt2 = 51
-        starthigh = -crmi_ok[alt2-1]
+            crmi = CR.target[il]
+            cspl = spline(x, crmi)
+            crmi_ok = cspl(x_ref)
+            alt2 = 51
+            starthigh = -crmi_ok[alt2-1]
+
+            cr_new_starthigh = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = starthigh, debug_alpha = fomialpha)
+            new_param_starthigh.append(cr_new_starthigh)
+
+            cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64)
+            new_param_alt2_50.append(cr_new_alt2_50)
+
 
         alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
         fomialpha = np.append(alpha_fom, np.ones(9))
-        cr_new_starthigh = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, debug_starthigh = starthigh, debug_alpha = fomialpha)
-        new_param_starthigh.append(cr_new_starthigh)
 
-        cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64)
-        new_param_alt2_50.append(cr_new_alt2_50)
+        cr_new_alt2_50_fa = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64, debug_alpha = fomialpha)
+        new_param_alt2_50_fa.append(cr_new_alt2_50_fa)
 
 
     if not calc_only_new:
@@ -261,8 +266,9 @@ if do_calc:
         pickle.dump([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP], open(cart_out+'out_ssw2009_{}.p'.format(ctag),'wb'))
         pickle.dump(inputs, open(cart_out+'in_ssw2009_{}.p'.format(ctag),'wb'))
         pickle.dump([alpha_debug, L_esc_debug, co2column_debug, debug_alphafit], open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'wb'))
-    else:
         pickle.dump([new_param_starthigh, new_param_alt2_50], open(cart_out+'check_starthigh_out_ssw2009_{}.p'.format(ctag),'wb'))
+    else:
+        pickle.dump(new_param_alt2_50_fa, open(cart_out+'check_alt2_50_fa_out_ssw2009_{}.p'.format(ctag),'wb'))
 
 if not do_calc or calc_only_new:
     restot = pickle.load(open(cart_out+'ssw2009_{}.p'.format(ctag),'rb'))
@@ -279,8 +285,9 @@ new_param_fa = np.stack(new_param_fa)
 new_param_fixco2 = np.stack(new_param_fixco2)
 new_param_noextP = np.stack(new_param_noextP)
 # new
-new_param_starthigh = np.stack(new_param_starthigh)
+#new_param_starthigh = np.stack(new_param_starthigh)
 new_param_alt2_50 = np.stack(new_param_alt2_50)
+new_param_alt2_50_fa = np.stack(new_param_alt2_50_fa)
 
 
 # # produco atmosfera di input in formato manuel ->
@@ -309,7 +316,7 @@ new_param_alt2_50 = np.stack(new_param_alt2_50)
 # d_new_fa = np.stack(d_new_fa)
 
 crall_rg = dict()
-for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP, new_param_starthigh, new_param_alt2_50], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2', 'new_noextP', 'new_starthigh', 'new_alt2_50']):
+for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP, new_param_starthigh, new_param_alt2_50, new_param_alt2_50_fa], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2', 'new_noextP', 'new_starthigh', 'new_alt2_50', 'new_alt2_50_fa']):
     crall_rg[na] = []
     for x, cr in zip(inputs['x'], co):
         spl = spline(x, cr, extrapolate = False)
@@ -325,7 +332,7 @@ d_stats = dict()
 fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
-for na, col in zip(['fomi', 'new', 'new_fa', 'new_starthigh', 'new_alt2_50'], ['blue', 'red', 'orange', 'chocolate', 'grey']):
+for na, col in zip(['fomi', 'new', 'new_fa', 'new_alt2_50_fa', 'new_alt2_50'], ['blue', 'red', 'orange', 'chocolate', 'grey']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -336,11 +343,13 @@ for na, col in zip(['fomi', 'new', 'new_fa', 'new_starthigh', 'new_alt2_50'], ['
     d_stats[(na, 'mean')] = np.nanmean(co, axis = 0)
 
     ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.4)
-    ax.plot(d_stats[(na, 'median')], x_ref, color = col, lw = 2)
+    ax.plot(d_stats[(na, 'median')], x_ref, color = col, lw = 2, label = na)
 
 ax.grid()
 ax.set_xlim(-10., 15.)
 #ax.set_ylim(40., 110.)
 ax.set_ylim(10., 20.)
 
-fig.savefig(cart_out + 'global_check_shading_{}_starthigh.pdf'.format(ctag))
+ax.legend()
+
+fig.savefig(cart_out + 'global_check_shading_{}_alt2_50.pdf'.format(ctag))
