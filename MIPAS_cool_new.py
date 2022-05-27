@@ -267,7 +267,7 @@ if do_calc:
         X_fom = zunk[:, 1]
         spl = spline(X_fom, np.exp(zunk[:,3]))
         realpha = spl(x_ref[i0:i0+6])
-        print(cco2, realpha)
+        #print(cco2, realpha)
         alp = np.append(realpha, np.ones(9))
 
         ali = np.exp(zunk[:,4]) # with no correction
