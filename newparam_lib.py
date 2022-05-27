@@ -296,7 +296,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
         return hr_calc
 
 
-def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, n_alts_cs = 80, factor_from_code = True, debug = False, extrap_co2col = True, debug_co2interp = None, debug_starthigh = False):
+def new_param_full(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, alt2up = 51, n_top = 65, n_alts_cs = 80, factor_from_code = True, debug = False, extrap_co2col = True, debug_co2interp = None, debug_starthigh = None):
     """
     New param with new strategy (1/10/21).
     """
@@ -2194,6 +2194,7 @@ def recformula(alpha, L_esc, lamb, hr, co2vmr, MM, temp, n_alts_trlo = 51, n_alt
     if debug: print('cp', cp)
 
     if debug_starthigh is not None:
+        print('debug_starthigh, setting eps125 to ref value: {}'.format(debug_starthigh))
         eps125 = debug_starthigh * cp[n_alts_trlo-1] / (24*60*60)
     else:
         eps125 = hr[n_alts_trlo-1] * cp[n_alts_trlo-1] / (24*60*60)
