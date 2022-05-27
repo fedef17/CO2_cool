@@ -273,14 +273,9 @@ if do_calc:
         ali = np.exp(zunk[:,4]) # with no correction
         spl = spline(X_fom, ali)
         reLesc = spl(x_ref[i0:i0+17])
-        reL = np.zeros(len(L_esc))
+        reL = np.zeros(len(x_ref))
         reL[i0:i0+17] = reLesc
         reL[i0+17:] = 1.
-
-        if len(reL) >= len(x_ref):
-            relok = reL[:len(x_ref)]
-        else:
-            relok = np.append(reL, np.ones(len(x_ref)-len(reL)))
 
         cr_new_fomilike = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64, debug_alpha = alp, debug_Lesc = relok)
         new_param_fomilike.append(cr_new_fomilike)
