@@ -98,6 +98,7 @@ new_param_noextP = []
 new_param_starthigh = []
 new_param_alt2_50 = []
 new_param_alt2_50_fa = []
+new_param_fomilike = []
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
@@ -248,12 +249,39 @@ if do_calc:
             cr_new_alt2_50 = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64)
             new_param_alt2_50.append(cr_new_alt2_50)
 
+            alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
+            fomialpha = np.append(alpha_fom, np.ones(9))
 
-        alpha_fom = np.array([1.68717503, 1.52970568, 1.36024627, 1.18849647, 1.0773977, 1.02616183])
-        fomialpha = np.append(alpha_fom, np.ones(9))
+            cr_new_alt2_50_fa = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64, debug_alpha = fomialpha)
+            new_param_alt2_50_fa.append(cr_new_alt2_50_fa)
 
-        cr_new_alt2_50_fa = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64, debug_alpha = fomialpha)
-        new_param_alt2_50_fa.append(cr_new_alt2_50_fa)
+
+        alt_fomi, x_fomi, cr_fomi = npl.old_param(alts, temp, pres, CO2con, Oprof = Ocon, O2prof = O2con, N2prof = N2con, input_in_ppm = True)
+
+        i0 = 50
+
+        # Loading exactly fomi alpha and L_esc
+        zunk = np.loadtxt(crun + 'debug_alpha__mipas.dat')
+        X_fom = zunk[:, 1]
+        spl = spline(X_fom, np.exp(zunk[:,3]))
+        realpha = spl(x_ref[i0:i0+6])
+        print(cco2, realpha)
+        alp = np.append(realpha, np.ones(9))
+
+        ali = np.exp(zunk[:,4]) # with no correction
+        spl = spline(X_fom, ali)
+        reLesc = spl(x_ref[i0:i0+17])
+        reL = np.zeros(len(L_esc))
+        reL[i0:i0+17] = reLesc
+        reL[i0+17:] = 1.
+
+        if len(reL) >= len(x_ref):
+            relok = reL[:len(x_ref)]
+        else:
+            relok = np.append(reL, np.ones(len(x_ref)-len(reL)))
+
+        cr_new_fomilike = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64, debug_alpha = alp, debug_Lesc = relok)
+        new_param_fomilike.append(cr_new_fomilike)
 
 
     if not calc_only_new:
@@ -268,8 +296,9 @@ if do_calc:
         pickle.dump(inputs, open(cart_out+'in_ssw2009_{}.p'.format(ctag),'wb'))
         pickle.dump([alpha_debug, L_esc_debug, co2column_debug, debug_alphafit], open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'wb'))
         pickle.dump([new_param_starthigh, new_param_alt2_50], open(cart_out+'check_starthigh_out_ssw2009_{}.p'.format(ctag),'wb'))
-    else:
         pickle.dump(new_param_alt2_50_fa, open(cart_out+'check_alt2_50_fa_out_ssw2009_{}.p'.format(ctag),'wb'))
+    else:
+        pickle.dump(new_param_fomilike, open(cart_out+'check_fomilike_out_ssw2009_{}.p'.format(ctag),'wb'))
 
 if not do_calc or calc_only_new:
     restot = pickle.load(open(cart_out+'ssw2009_{}.p'.format(ctag),'rb'))
@@ -277,6 +306,7 @@ if not do_calc or calc_only_new:
     inputs = pickle.load(open(cart_out+'in_ssw2009_{}.p'.format(ctag),'rb'))
     alpha_debug, L_esc_debug, co2column_debug, debug_alphafit = pickle.load(open(cart_out+'debug_ssw2009_{}.p'.format(ctag),'rb'))
     new_param_starthigh, new_param_alt2_50 = pickle.load(open(cart_out+'check_starthigh_out_ssw2009_{}.p'.format(ctag),'rb'))
+    new_param_alt2_50_fa = pickle.load(open(cart_out+'check_alt2_50_fa_out_ssw2009_{}.p'.format(ctag),'rb'))
 
 
 old_param = np.stack(old_param)
@@ -289,6 +319,7 @@ new_param_noextP = np.stack(new_param_noextP)
 #new_param_starthigh = np.stack(new_param_starthigh)
 new_param_alt2_50 = np.stack(new_param_alt2_50)
 new_param_alt2_50_fa = np.stack(new_param_alt2_50_fa)
+new_param_fomilike = np.stack(new_param_fomilike)
 
 
 # # produco atmosfera di input in formato manuel ->
@@ -317,7 +348,7 @@ new_param_alt2_50_fa = np.stack(new_param_alt2_50_fa)
 # d_new_fa = np.stack(d_new_fa)
 
 crall_rg = dict()
-for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP, new_param_starthigh, new_param_alt2_50, new_param_alt2_50_fa], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2', 'new_noextP', 'new_starthigh', 'new_alt2_50', 'new_alt2_50_fa']):
+for co, na in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP, new_param_starthigh, new_param_alt2_50, new_param_alt2_50_fa, new_param_fomilike], ['obs', 'fomi', 'new', 'new_fa', 'new_fixco2', 'new_noextP', 'new_starthigh', 'new_alt2_50', 'new_alt2_50_fa', 'new_fomilike']):
     crall_rg[na] = []
     for x, cr in zip(inputs['x'], co):
         spl = spline(x, cr, extrapolate = False)
@@ -333,7 +364,7 @@ d_stats = dict()
 fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
-for na, col in zip(['fomi', 'new', 'new_fa', 'new_alt2_50_fa', 'new_alt2_50'], ['blue', 'red', 'orange', 'chocolate', 'grey']):
+for na, col in zip(['fomi', 'new', 'new_alt2_50_fa', 'new_fomilike'], ['blue', 'red', 'chocolate', 'forestgreen']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -353,4 +384,4 @@ ax.set_ylim(10., 20.)
 
 ax.legend()
 
-fig.savefig(cart_out + 'global_check_shading_{}_alt2_50.pdf'.format(ctag))
+fig.savefig(cart_out + 'global_check_shading_{}_fomilike.pdf'.format(ctag))
