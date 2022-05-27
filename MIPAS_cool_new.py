@@ -328,9 +328,9 @@ if do_calc:
         # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alp, debug_starthigh = starthigh)
         # new_param_check[nam].append(cr_new)
 
-        # nam = 'new_alphaunif_fomiLesc'
-        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif, debug_Lesc = reL)
-        # new_param_check[nam].append(cr_new)
+        nam = 'new_alphaunif_fomiLesc'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif, debug_Lesc = reL)
+        new_param_check[nam].append(cr_new)
 
         nam = 'new_alphaunif'
         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif)
