@@ -97,6 +97,7 @@ new_param_fixco2 = []
 new_param_noextP = []
 new_param_starthigh = []
 new_param_alt2_50 = []
+new_param_alt2_50_fa = []
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
