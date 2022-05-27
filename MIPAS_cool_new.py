@@ -277,7 +277,7 @@ if do_calc:
         reL[i0:i0+17] = reLesc
         reL[i0+17:] = 1.
 
-        cr_new_fomilike = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64, debug_alpha = alp, debug_Lesc = relok)
+        cr_new_fomilike = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = True, alt2up = 50, n_top = 64, debug_alpha = alp, debug_Lesc = reL)
         new_param_fomilike.append(cr_new_fomilike)
 
 
