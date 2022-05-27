@@ -105,6 +105,8 @@ new_param_fomilike = []
 x_ref = np.arange(0.125, 20.625+0.01, 0.25)
 x_fomi_ref = np.arange(2., 25, 0.25)
 
+cart_run_fomi = cart_base + 'lavori/CO2_cooling/cart_run_fomi/'
+
 obs = []
 alpha_debug = []
 L_esc_debug = []
@@ -261,7 +263,7 @@ if do_calc:
         i0 = 50
 
         # Loading exactly fomi alpha and L_esc
-        zunk = np.loadtxt(crun + 'debug_alpha__mipas.dat')
+        zunk = np.loadtxt(cart_run_fomi + 'debug_alpha__mipas.dat')
         X_fom = zunk[:, 1]
         spl = spline(X_fom, np.exp(zunk[:,3]))
         realpha = spl(x_ref[i0:i0+6])
