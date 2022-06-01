@@ -155,7 +155,8 @@ coeffs_fin['uco2'] = uco2
 # Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,npl.n_co2prof+1)])
 # Lesc_all[np.isnan(Lesc_all)] = 0.
 # coeffs_fin['Lesc'] = Lesc_all
-int_fun = npl.interp_coeff_linco2(L_all, co2profs)
+# int_fun = npl.interp_coeff_linco2(L_all, co2profs) # esto no està bien!!!! len(L_all) = 61, len(co2profs) = 83. Que estoy interpolando??
+int_fun = npl.interp_coeff_linco2(L_all, co2profs, use_co2mean = True)
 interp_coeffs[('Lesc', 'int_fun')] = int_fun
 #interp_coeffs[('Lesc', 'signc')] = signc
 

@@ -58,15 +58,15 @@ print('low trans at {}'.format(alts[n_alts_trlo]))
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 n_alts_lte = 40
-max_alts = 83 ### IMPORTANT! max alts for hr_from_ab
+max_alts = 55 ### IMPORTANT! max alts for hr_from_ab
 
 figs = []
 a0s = []
 a1s = []
 
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
-varfit_xis_4_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v4b.p', 'rb'))
-varfit_xis_5_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v5b.p', 'rb'))
+varfit_xis_4_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v4c.p', 'rb'))
+varfit_xis_5_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v5c.p', 'rb'))
 
 varfit_xis_wiatm = dict()
 for iatm in range(6):
@@ -78,6 +78,12 @@ for iatm in range(6):
 for cco2 in allco2:
     #acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_4_nlte, cco2, all_coeffs = all_coeffs_nlte_v4)
     acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_4_nlte, cco2, all_coeffs = all_coeffs_nlte)
+    acoeff[max_alts:, :] = 0.
+    bcoeff[max_alts:, :] = 0.
+    acoeff[:, max_alts:] = 0.
+    bcoeff[:, max_alts:] = 0.
+    asurf[max_alts:] = 0.
+    bsurf[max_alts:] = 0.
     tot_coeff_co2[('varfit4_nlte', 'acoeff', cco2)] = acoeff
     tot_coeff_co2[('varfit4_nlte', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit4_nlte', 'asurf', cco2)] = asurf
@@ -85,6 +91,12 @@ for cco2 in allco2:
 
     #acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_5_nlte, cco2, all_coeffs = all_coeffs_nlte_v5)
     acoeff, bcoeff, asurf, bsurf = npl.ab_from_xi_abfit_fromdict(varfit_xis_5_nlte, cco2, all_coeffs = all_coeffs_nlte)
+    acoeff[max_alts:, :] = 0.
+    bcoeff[max_alts:, :] = 0.
+    acoeff[:, max_alts:] = 0.
+    bcoeff[:, max_alts:] = 0.
+    asurf[max_alts:] = 0.
+    bsurf[max_alts:] = 0.
     tot_coeff_co2[('varfit5_nlte', 'acoeff', cco2)] = acoeff
     tot_coeff_co2[('varfit5_nlte', 'bcoeff', cco2)] = bcoeff
     tot_coeff_co2[('varfit5_nlte', 'asurf', cco2)] = asurf

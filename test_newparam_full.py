@@ -61,11 +61,11 @@ alts = atm_pt[('mle', 'alts')]
 
 pres = atm_pt[('mle', 'pres')]
 x = np.log(1000./pres)
-n_alts_trlo = np.sum(x < 12.5)
-print('low trans at {}, {:7.2f} km, {:7.2f}'.format(n_alts_trlo, alts[n_alts_trlo], x[n_alts_trlo]))
-
-n_alts_trhi = np.sum(x < 14)
-print('high trans at {}, {:7.2f} km {:7.2f}'.format(n_alts_trhi, alts[n_alts_trhi], x[n_alts_trhi]))
+# n_alts_trlo = np.sum(x < 12.5)
+# print('low trans at {}, {:7.2f} km, {:7.2f}'.format(n_alts_trlo, alts[n_alts_trlo], x[n_alts_trlo]))
+#
+# n_alts_trhi = np.sum(x < 14)
+# print('high trans at {}, {:7.2f} km {:7.2f}'.format(n_alts_trhi, alts[n_alts_trhi], x[n_alts_trhi]))
 
 # il cool-to-space è fuori dalle 66 alts
 # n_alts_cs = np.sum(x < 16.5)
@@ -73,13 +73,23 @@ print('high trans at {}, {:7.2f} km {:7.2f}'.format(n_alts_trhi, alts[n_alts_trh
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 n_alts_lte = 40
+n_top = 65
+alt2 = 51
 
 #tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
 tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb'))
 cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
-alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
 
-n_top = n_alts_trhi+5
+#alpha_dic = pickle.load(open(cart_out_3 + 'alpha_upper.p', 'rb'))
+
+ctag = 'vf4-a1'
+varfit = 'varfit4_nlte'
+
+cart_out_rep
+alpha_unif, _ = pickle.load(open(cart_out_rep + 'alpha_singleatm_v2_top65.p', 'rb'))
+
+
+#n_top = n_alts_trhi+5
 
 # Crea tabelle coeffs e salvale in pickle separati. (da convertire poi in file di testo o netcdf per Bernd)
 # che coeffs mi servono:
@@ -95,32 +105,45 @@ do_all = False
 coeffs_NLTE = dict()
 interp_coeffs = dict()
 for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-    ko = np.stack([tot_coeff_co2[('varfit5_nlte', nam, cco2)] for cco2 in range(1, npl.n_co2prof+1)])
+    ko = np.stack([tot_coeff_co2[(varfit, nam, cco2)] for cco2 in range(1, npl.n_co2prof+1)])
     coeffs_NLTE[nam] = ko
     # QUI SE DEVI SCRIVERLO COME FILE TXT o netcdf
     print(nam)
-    if do_all:
-        int_fun, signc = npl.interp_coeff_logco2(ko, co2profs)
-        interp_coeffs[(nam, 'int_fun')] = int_fun
-        interp_coeffs[(nam, 'signc')] = signc
+    # if do_all:
+    #     int_fun, signc = npl.interp_coeff_logco2(ko, co2profs)
+    #     interp_coeffs[(nam, 'int_fun')] = int_fun
+    #     interp_coeffs[(nam, 'signc')] = signc
 
-alphas_all = np.stack([alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)] for cco2 in range(1,npl.n_co2prof+1)])
-coeffs_NLTE['alpha'] = alphas_all
+# alphas_all = np.stack([alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)] for cco2 in range(1,npl.n_co2prof+1)])
+# coeffs_NLTE['alpha'] = alphas_all
+#
+# if do_all:
+#     int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
+#     interp_coeffs[('alpha', 'int_fun')] = int_fun
+#     interp_coeffs[('alpha', 'signc')] = signc
+#
+# Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,npl.n_co2prof+1)])
+# coeffs_NLTE['Lesc'] = Lesc_all
+# if do_all:
+#     int_fun, signc = npl.interp_coeff_logco2(Lesc_all, co2profs)
+#     interp_coeffs[('Lesc', 'int_fun')] = int_fun
+#     interp_coeffs[('Lesc', 'signc')] = signc
+
+#alphas_all = np.stack([alpha_dic[(n_top, 'L_esc_all_wutop', 'least_squares', cco2)] for cco2 in range(1,npl.n_co2prof+1)])
+coeffs_NLTE['alpha'] = alpha_unif
 
 if do_all:
     int_fun, signc = npl.interp_coeff_logco2(alphas_all, co2profs)
     interp_coeffs[('alpha', 'int_fun')] = int_fun
     interp_coeffs[('alpha', 'signc')] = signc
 
-Lesc_all = np.stack([cose_upper_atm[('mle', cco2, 'L_esc_all_wutop')] for cco2 in range(1,npl.n_co2prof+1)])
-coeffs_NLTE['Lesc'] = Lesc_all
-if do_all:
-    int_fun, signc = npl.interp_coeff_logco2(Lesc_all, co2profs)
-    interp_coeffs[('Lesc', 'int_fun')] = int_fun
-    interp_coeffs[('Lesc', 'signc')] = signc
+L_all = np.stack([np.mean([all_coeffs_nlte[(atm, cco2, 'l_esc')] for atm in allatms], axis = 0) for cco2 in range(1,npl.n_co2prof+1)])
+uco2 = all_coeffs_nlte[('mle', 1, 'uco2')] # same for all
+coeffs_NLTE['Lesc'] = L_all
+coeffs_NLTE['uco2'] = uco2
 
 coeffs_NLTE['co2profs'] = co2profs
-pickle.dump(coeffs_NLTE, open(cart_out_4 + 'coeffs_finale.p', 'wb'))
+pickle.dump(coeffs_NLTE, open(cart_out_4 + 'coeffs_finale_{}.p'.format(ctag), 'wb'))
 
 sys.exit()
 
@@ -160,7 +183,7 @@ for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf', 'alpha']:
 hr_calc = npl.hr_from_ab(calc_coeffs['acoeff'], calc_coeffs['bcoeff'], calc_coeffs['asurf'], calc_coeffs['bsurf'], temp, surf_temp)
 
 #alpha_ = 10.*np.ones(n_alts_trhi-n_alts_trlo+1)
-hr_calc = npl.recformula(calc_coeffs['alpha'], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_top)
+hr_calc = npl.recformula(calc_coeffs['alpha'], L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top)
 
 hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_nlte')]
 hr_ref[:n_alts_lte] = all_coeffs_nlte[(atm, cco2, 'hr_lte')][:n_alts_lte]
@@ -182,7 +205,7 @@ labels = ['nlte_ref', 'new_param', 'old_param']
 hrs = [hr_ref, hr_calc, hr_fomi]
 
 colors = np.array(npl.color_set(3))
-fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_top]])
+fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '-', '--'], colors = colors, orizlines = [70., alts[alt2], alts[n_top]])
 
 fig.savefig(cart_out_4 + 'test_calchr.pdf')
 
@@ -223,7 +246,7 @@ for cco2 in range(1, npl.n_co2prof+1):
 
         colors = np.array(npl.color_set(3))
         colors = ['dark violet', 'steelblue', 'indianred']
-        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '--'], colors = colors, orizlines = [70., alts[n_alts_trlo], alts[n_alts_trhi]])
+        fig, a0, a1 = npl.manuel_plot(alts, hrs, labels, xlabel = xlab, ylabel = ylab, title = tit, xlimdiff = (-15, 15), xlim = (-70, 10), linestyles = ['-', '--', '--'], colors = colors, orizlines = [70., alts[alt2], alts[n_top]])
 
         figs.append(fig)
         a0s.append(a0)
@@ -269,7 +292,7 @@ for atm in allatms:
     ax.set_title('co2: 0.25-8.0 - atm: {}'.format(atm))
     ax.set_xlabel('CR (K/day)')
     ax.set_ylabel('Alt (km)')
-    for orizli, col in zip([70., alts[n_alts_trlo], alts[n_alts_trhi]], ['red', 'orange', 'green']):
+    for orizli, col in zip([70., alts[alt2], alts[n_top]], ['red', 'orange', 'green']):
         ax.axhline(orizli, color = col, alpha = 0.6, linestyle = '--')
     ax.grid()
 

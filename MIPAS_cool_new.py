@@ -81,7 +81,11 @@ coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_fin
 
 interp_coeffs = npl.precalc_interp(coeff_file = coeff_file)
 
-interp_coeffs_old = npl.precalc_interp(n_top = 65, coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_finale_oldv10.p')
+#interp_coeffs_old = npl.precalc_interp(n_top = 65, coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_finale_oldv10.p')
+
+ctag = 'vf4-a1'
+coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
+interp_coeffs_old = npl.precalc_interp_old(coeff_file = coeff_file)
 
 coeffs = pickle.load(open(coeff_file, 'rb'))
 
@@ -106,7 +110,7 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif']
+nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1']
 for nam in nams:
     new_param_check[nam] = []
 
@@ -129,7 +133,7 @@ alpha_fom = []
 Lesc_fom = []
 co2col_fom = []
 
-do_calc = False
+do_calc = True
 calc_only_new = True
 
 if do_calc:
@@ -336,6 +340,10 @@ if do_calc:
         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif)
         new_param_check[nam].append(cr_new)
 
+        nam = 'new_old_vf4-a1'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old, old_param = True)
+        new_param_check[nam].append(cr_new)
+
 
 
     if not calc_only_new:
@@ -425,7 +433,7 @@ d_stats = dict()
 fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
-for na, col in zip(['fomi', 'new', 'new_alphaunif'], ['blue', 'red', 'gold']):
+for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a1'], ['blue', 'gold', 'red']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -447,4 +455,4 @@ ax.set_ylim(10., 20.)
 
 ax.legend()
 
-fig.savefig(cart_out + 'global_check_shading_{}_aunif_vs_new.pdf'.format(ctag))
+fig.savefig(cart_out + 'global_check_shading_newold_{}.pdf'.format(ctag))
