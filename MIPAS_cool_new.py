@@ -110,7 +110,7 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1']
+nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1', 'new_old_vf4-a2']
 for nam in nams:
     new_param_check[nam] = []
 
@@ -341,7 +341,11 @@ if do_calc:
         # new_param_check[nam].append(cr_new)
 
         nam = 'new_old_vf4-a1'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old, old_param = True)
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_a1, old_param = True)
+        new_param_check[nam].append(cr_new)
+
+        nam = 'new_old_vf4-a2'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_a2, old_param = True)
         new_param_check[nam].append(cr_new)
 
 
