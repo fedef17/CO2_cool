@@ -92,7 +92,7 @@ for vna, varfit in zip(['vf4', 'vf5'], ['varfit4_nlte', 'varfit5_nlte']):
     for afi in ['a1', 'a2']:
         ctag = '{}-{}'.format(vna, afi)
 
-        alpha_unif = pickle.load(open(cart_out_rep + 'alpha_unif_{}_top{}.p'.format(afi, n_top), 'rb'))
+        alpha_unif = pickle.load(open(cart_out_rep + 'alpha_unif_v{}_top{}.p'.format(afi[1], n_top), 'rb'))
 
     # per ogni a,b,ecc coeff faccio una matrice con prima dimensione quella della co2
     tot_coeff_co2 = pickle.load(open(cart_out_2 + 'tot_coeffs_co2_NLTE.p', 'rb')) # qui ci sono sia i LTE che i NLTE

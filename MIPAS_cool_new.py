@@ -83,9 +83,13 @@ interp_coeffs = npl.precalc_interp(coeff_file = coeff_file)
 
 #interp_coeffs_old = npl.precalc_interp(n_top = 65, coeff_file = cart_base + 'lavori/CO2_cooling/new_param/reparam_allatm/coeffs_finale_oldv10.p')
 
-ctag = 'vf4-a1'
+ctag = 'vf4-a2'
 coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
-interp_coeffs_old = npl.precalc_interp_old(coeff_file = coeff_file)
+interp_coeffs_old_vf4a2 = npl.precalc_interp_old(coeff_file = coeff_file)
+
+ctag = 'vf5-a1'
+coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
+interp_coeffs_old_vf5a1 = npl.precalc_interp_old(coeff_file = coeff_file)
 
 coeffs = pickle.load(open(coeff_file, 'rb'))
 
@@ -110,7 +114,7 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1', 'new_old_vf4-a2']
+nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1']
 for nam in nams:
     new_param_check[nam] = []
 
@@ -340,12 +344,12 @@ if do_calc:
         # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif)
         # new_param_check[nam].append(cr_new)
 
-        nam = 'new_old_vf4-a1'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_a1, old_param = True)
+        nam = 'new_old_vf4-a2'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
         new_param_check[nam].append(cr_new)
 
-        nam = 'new_old_vf4-a2'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_a2, old_param = True)
+        nam = 'new_old_vf5-a1'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True)
         new_param_check[nam].append(cr_new)
 
 
