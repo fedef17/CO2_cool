@@ -1567,7 +1567,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
             asurf = all_coeffs[(allatms[k], cco2, 'asurf')]
 
             #ajac = np.sum((acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
-            ajac = np.sum((acoeff[:max_alts, ialt] - agn) * phi_fun) # il contributo della colonna
+            ajac = np.sum((acoeff[:max_alts, ialt] - agn[:max_alts]) * phi_fun[:max_alts]) # il contributo della colonna
             # print(ajac)
             # print(len(acoeff[:, ialt]), len(agn), len(phi_fun))
             ajac += (asurf[ialt] - agn_surf) * phi_fun_g
@@ -1612,7 +1612,7 @@ def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_
             bsurf = all_coeffs[(allatms[k], cco2, 'bsurf')]
 
             #bjac = np.sum((bcoeff[:, ialt] - bgn) * phi_fun) # il contributo della colonna
-            bjac = np.sum((bcoeff[:max_alts, ialt] - bgn) * phi_fun) # il contributo della colonna
+            bjac = np.sum((bcoeff[:max_alts, ialt] - bgn[:max_alts]) * phi_fun[:max_alts]) # il contributo della colonna
             bjac += (bsurf[ialt] - bgn_surf) * phi_fun_g
 
             J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * phi_fun[ialt] * bjac
