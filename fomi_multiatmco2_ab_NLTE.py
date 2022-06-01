@@ -143,7 +143,7 @@ for cco2 in range(1,npl.n_co2prof+1):
             jloop += 1
 
 print('######################################################')
-pickle.dump(varfit_xis, open(cart_out_2+'varfit_NLTE_v4b.p', 'wb'))
+pickle.dump(varfit_xis, open(cart_out_2+'varfit_NLTE_v4c.p', 'wb'))
 # pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv4.p', 'wb'))
 
 xis_a_start = np.ones(6)/6.
@@ -202,7 +202,7 @@ for cco2 in range(1,npl.n_co2prof+1):
             jloop += 1
 
 print('######################################################')
-pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5b.p', 'wb'))
+pickle.dump(varfit_xis_2, open(cart_out_2+'varfit_NLTE_v5c.p', 'wb'))
 
 # pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE_fitv5.p', 'wb'))
 
