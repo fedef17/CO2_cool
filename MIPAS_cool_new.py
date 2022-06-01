@@ -361,8 +361,9 @@ if do_calc:
         pickle.dump(new_param_alt2_50_fa, open(cart_out+'check_alt2_50_fa_out_ssw2009_{}.p'.format(ctag),'wb'))
         pickle.dump([new_param_fomilike_50, new_param_fomilike_51], open(cart_out+'check_fomilike_out_ssw2009_{}.p'.format(ctag),'wb'))
     else:
-        pickle.dump([alpha_fom, Lesc_fom, co2col_fom], open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'wb'))
+        #pickle.dump([alpha_fom, Lesc_fom, co2col_fom], open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'wb'))
 
+        ctag = 'v10-nl0-65'
         new_param_check_old = pickle.load( open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
 
         for ke in new_param_check:
@@ -370,9 +371,13 @@ if do_calc:
                 new_param_check[ke] = np.stack(new_param_check[ke])
 
         new_param_check.update(new_param_check_old)
+
+        ctag = 'vf4-a1'
         pickle.dump(new_param_check, open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'wb'))
 
 if not do_calc or calc_only_new:
+    ctag = 'v10-nl0-65'
+
     restot = pickle.load(open(cart_out+'ssw2009_{}.p'.format(ctag),'rb'))
     obs, old_param, new_param, new_param_fa, new_param_fixco2, new_param_noextP = pickle.load(open(cart_out+'out_ssw2009_{}.p'.format(ctag),'rb'))
     inputs = pickle.load(open(cart_out+'in_ssw2009_{}.p'.format(ctag),'rb'))
@@ -384,6 +389,7 @@ if not do_calc or calc_only_new:
 
     alpha_fom, Lesc_fom, co2col_fom = pickle.load(open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'rb'))
 
+    ctag = 'vf4-a1'
     new_param_check = pickle.load(open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
 
 
@@ -446,7 +452,7 @@ for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a1'], ['blue', 'gold',
     ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.2)
     # ax.plot(d_stats[(na, '1st')], x_ref, color = col, ls = '--')
     # ax.plot(d_stats[(na, '3rd')], x_ref, color = col, ls = '--')
-    ax.plot(d_stats[(na, 'median')], x_ref, color = col, lw = 2, label = na)
+    ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = na)
 
 ax.grid()
 ax.set_xlim(-10., 15.)
@@ -456,3 +462,35 @@ ax.set_ylim(10., 20.)
 ax.legend()
 
 fig.savefig(cart_out + 'global_check_shading_newold_{}.pdf'.format(ctag))
+
+#########################################
+fig, axs = plt.subplots(3, 3, figsize = (16, 12))
+
+lats = np.arange(-90, 91, 20)
+for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
+    cond = (gigi.latitude > lat1) & (gigi.latitude <= lat2)
+
+    for na, col in zip(['fomi', 'new', 'new_alphaunif'], ['blue', 'red', 'gold']):
+        co = d_all[na][cond]
+
+        d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
+        d_stats[(na, '1st')] = np.nanpercentile(co, 25, axis = 0)
+        d_stats[(na, '3rd')] = np.nanpercentile(co, 75, axis = 0)
+        d_stats[(na, 'std')] = np.nanstd(co, axis = 0)
+        d_stats[(na, 'mean')] = np.nanmean(co, axis = 0)
+
+        ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.2)
+        # ax.plot(d_stats[(na, '1st')], x_ref, color = col, ls = '--')
+        # ax.plot(d_stats[(na, '3rd')], x_ref, color = col, ls = '--')
+        ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = na)
+
+    ax.grid()
+    ax.set_xlim(-10., 10.)
+    if lat2 == 90:
+        ax.set_xlim(-15., 25.)
+    #ax.set_ylim(40., 110.)
+    ax.set_ylim(10., 18.)
+
+    ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
+
+fig.savefig(cart_out + 'global_check_shading_latbands_newold_{}.pdf'.format(ctag))
