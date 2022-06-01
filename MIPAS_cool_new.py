@@ -461,7 +461,8 @@ fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
 #for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'gold', 'red', 'forestgreen']):
-for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
+#for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
+for na, col in zip(['fomi', 'new_amedio', 'new_ax2', 'new_ax05'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -483,7 +484,8 @@ ax.set_ylim(10., 20.)
 
 ax.legend()
 
-fig.savefig(cart_out + 'global_check_shading_newold_{}.pdf'.format(ctag))
+#fig.savefig(cart_out + 'global_check_shading_newold_{}.pdf'.format(ctag))
+fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
 
 #########################################
 fig, axs = plt.subplots(3, 3, figsize = (16, 12))
@@ -492,7 +494,8 @@ lats = np.arange(-90, 91, 20)
 for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
     cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
 
-    for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
+    #for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
+    for na, col in zip(['fomi', 'new_amedio', 'new_ax2', 'new_ax05'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
         co = d_all[na][cond]
 
         d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
@@ -515,4 +518,5 @@ for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
 
     ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
-fig.savefig(cart_out + 'global_check_shading_latbands_newold_{}.pdf'.format(ctag))
+#fig.savefig(cart_out + 'global_check_shading_latbands_newold_{}.pdf'.format(ctag))
+fig.savefig(cart_out + 'gcs_newold_latbands_alphasens.pdf')
