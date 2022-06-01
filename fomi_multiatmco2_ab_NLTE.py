@@ -63,7 +63,7 @@ pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
 #############################################################
 
 #bounds = (0.1*np.ones(6), 100.*np.ones(6))
-minb = 0.01*np.zeros(6)
+minb = 0.01*np.ones(6)
 maxb = 100*np.ones(6)
 maxb[allatms.index('mls')] = 0.011
 bounds = (minb, maxb)
@@ -91,7 +91,7 @@ xis_b_start[allatms.index('mls')] = 0.01
 
 ##### Rescaling both a and b by hr_nlte/hr_lte
 for cco2 in range(1,npl.n_co2prof+1):
-    for ialt in range(npl.n_alts_all):
+    for ialt in range(npl.max_alts_curtis):
         doloop = True
         jloop = 1
         xis_b = None
@@ -152,7 +152,7 @@ xis_b_start = np.ones(6)/6.
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 for cco2 in range(1,npl.n_co2prof+1):
-    for ialt in range(npl.n_alts_all):
+    for ialt in range(npl.max_alts_curtis):
         doloop = True
         jloop = 1
         xis_b = None
