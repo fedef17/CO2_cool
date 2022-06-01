@@ -47,7 +47,7 @@ NLTE_DEBUG = False
 # Define global parameters
 n_alts_all = 83 # vertical size of reference atmosphere
 n_co2prof = 8 # number of reference co2 profiles
-
+max_alts_curtis = 55 # max altitude for calculation with curtis matrix. The c.m. calc is used up to 51, but making this a bit higher reduces the difference in the LTE region.
 #############################################################
 
 allatms = ['mle', 'mls', 'mlw', 'tro', 'sas', 'saw']
@@ -572,7 +572,7 @@ def hr_atm_calc(atm, cco2):
 
     return hr
 
-def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = n_alts_all):# max_alts was 51, but n_alts_all in new_param_full
+def hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = max_alts_curtis):# max_alts was 51, but n_alts_all in new_param_full
     """
     This is the LTE cooling rate given a certain set of a and b coefficients.
     """
@@ -759,7 +759,7 @@ def hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, x0, max_alts
     return epsilon_ab_tot
 
 
-def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = n_alts_all):#, n_alts = 40):
+def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = max_alts_curtis):#, n_alts = 40):
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis.
     """
@@ -831,7 +831,7 @@ def hr_from_xi_at_x0(xis, atm, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm
     return hr_somma
 
 
-def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = n_alts_all):# was 51
+def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = max_alts_curtis):# was 51
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
@@ -862,7 +862,7 @@ def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, 
     return epsilon_ab_tot
 
 
-def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = n_alts_all):# was 51
+def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = max_alts_curtis):# was 51
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
@@ -1433,7 +1433,7 @@ def delta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_co
     return fu
 
 
-def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = False, max_alts = n_alts_all):
+def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', max_alts = max_alts_curtis, atm_pt = atm_pt, verbose = False):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -1460,7 +1460,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
     return fu
 
 
-def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, max_alts = n_alts_all):
+def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', max_alts = max_alts_curtis, atm_pt = atm_pt):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -1542,7 +1542,7 @@ def jacdelta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all
     return J
 
 
-def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = False):
+def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', max_alts = max_alts_curtis, atm_pt = atm_pt, verbose = False):
     """
     Jacobian of delta_xi_at_x0_afit.
     xis_b is not used, but the code expects the same parameters that are used by delta_xi_at_x0_afit
@@ -1566,7 +1566,8 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
             acoeff = all_coeffs[(allatms[k], cco2, 'acoeff')]
             asurf = all_coeffs[(allatms[k], cco2, 'asurf')]
 
-            ajac = np.sum((acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
+            #ajac = np.sum((acoeff[:, ialt] - agn) * phi_fun) # il contributo della colonna
+            ajac = np.sum((acoeff[:max_alts, ialt] - agn) * phi_fun) # il contributo della colonna
             # print(ajac)
             # print(len(acoeff[:, ialt]), len(agn), len(phi_fun))
             ajac += (asurf[ialt] - agn_surf) * phi_fun_g
@@ -1588,7 +1589,7 @@ def jacdelta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_
     return J
 
 
-def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
+def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', max_alts = max_alts_curtis, atm_pt = atm_pt):
     """
     Jacobian of delta_xi_at_x0_bfit.
     xis_a is not used, but the code expects the same parameters that are used by delta_xi_at_x0_bfit
@@ -1610,7 +1611,8 @@ def jacdelta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_
             bcoeff = all_coeffs[(allatms[k], cco2, 'bcoeff')]
             bsurf = all_coeffs[(allatms[k], cco2, 'bsurf')]
 
-            bjac = np.sum((bcoeff[:, ialt] - bgn) * phi_fun) # il contributo della colonna
+            #bjac = np.sum((bcoeff[:, ialt] - bgn) * phi_fun) # il contributo della colonna
+            bjac = np.sum((bcoeff[:max_alts, ialt] - bgn) * phi_fun) # il contributo della colonna
             bjac += (bsurf[ialt] - bgn_surf) * phi_fun_g
 
             J[i,k] = np.sqrt(atmweigths[allatms[i]])/np.sum(xis) * phi_fun[ialt] * bjac
