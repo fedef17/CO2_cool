@@ -138,7 +138,6 @@ for n_top in [65]:#, 60, 63, 67, 70]:
     start = np.ones(n_trans)
     name_escape_fun = 'L_esc_all_extP'
     for cco2 in range(1, npl.n_co2prof+1):
-        sys.exit()
         result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
         alpha_unif.append(result.x)
 
