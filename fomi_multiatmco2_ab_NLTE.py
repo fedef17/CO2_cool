@@ -63,9 +63,9 @@ pickle.dump(all_coeffs_nlte, open(cart_out_2 + 'all_coeffs_NLTE.p', 'wb'))
 #############################################################
 
 #bounds = (0.1*np.ones(6), 100.*np.ones(6))
-minb = np.zeros(6)
-maxb = np.ones(6)
-maxb[allatms.index('mls')] = 0.
+minb = 0.01*np.zeros(6)
+maxb = 100*np.ones(6)
+maxb[allatms.index('mls')] = 0.011
 bounds = (minb, maxb)
 
 allres_varfit = dict()
@@ -81,10 +81,10 @@ gtol = 1.e-12
 # xis_a_start = np.ones(6)
 # xis_b_start = np.ones(6)
 
-xis_a_start = np.array([0.3, 0.1, 0.1, 0.4, 0.05, 0.05])#*10
-xis_b_start = np.array([0.3, 0.1, 0.1, 0.4, 0.05, 0.05])#*10
-xis_a_start[allatms.index('mls')] = 0.
-xis_b_start[allatms.index('mls')] = 0.
+xis_a_start = np.array([0.3, 0.1, 0.1, 0.4, 0.05, 0.05])*10
+xis_b_start = np.array([0.3, 0.1, 0.1, 0.4, 0.05, 0.05])*10
+xis_a_start[allatms.index('mls')] = 0.01
+xis_b_start[allatms.index('mls')] = 0.01
 
 #xis_a_start = np.array([9.5, 0.5, 0.5, 5.5, 1.6, 1.6]) # comes from old fit
 #xis_b_start = np.array([9.5, 0.5, 0.5, 5.5, 1.6, 1.6])
