@@ -91,6 +91,7 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
 
     ### Interpolation of the coefficients to the actual CO2 profile
     if interp_coeffs is None:
+        print('interpolating for co2! this should be done calling npl.precalc_interp_old() just once')
         interp_coeffs = precalc_interp_old(coeffs = coeffs, coeff_file = coeff_file)
 
     print('Coeffs from interpolation!')
