@@ -114,10 +114,11 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1']
+nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1', 'new_ax05', 'new_amedio', 'new_ax2']
 for nam in nams:
     new_param_check[nam] = []
 
+alpha3, alpha4, alpha5 = pickle.load(open(cart_out_mip + 'test_alpha.p', 'rb'))
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
@@ -344,12 +345,24 @@ if do_calc:
         # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif)
         # new_param_check[nam].append(cr_new)
 
-        nam = 'new_old_vf4-a2'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
+        # nam = 'new_old_vf4-a2'
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
+        # new_param_check[nam].append(cr_new)
+        #
+        # nam = 'new_old_vf5-a1'
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True)
+        # new_param_check[nam].append(cr_new)
+
+        nam = 'new_ax05' # alpha5
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True, debug_alpha = alpha5)
         new_param_check[nam].append(cr_new)
 
-        nam = 'new_old_vf5-a1'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True)
+        nam = 'new_amedio' # alpha3
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha3)
+        new_param_check[nam].append(cr_new)
+
+        nam = 'new_ax2' # alpha4
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True, debug_alpha = alpha4)
         new_param_check[nam].append(cr_new)
 
 
@@ -447,7 +460,8 @@ d_stats = dict()
 fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
-for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'gold', 'red', 'forestgreen']):
+#for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'gold', 'red', 'forestgreen']):
+for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -476,9 +490,9 @@ fig, axs = plt.subplots(3, 3, figsize = (16, 12))
 
 lats = np.arange(-90, 91, 20)
 for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
-    cond = (gigi.latitude > lat1) & (gigi.latitude <= lat2)
+    cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
 
-    for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'gold', 'red', 'forestgreen']):
+    for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
         co = d_all[na][cond]
 
         d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
