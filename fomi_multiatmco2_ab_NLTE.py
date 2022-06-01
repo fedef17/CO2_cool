@@ -73,7 +73,7 @@ varfit_xis = dict()
 varfit_xis_2 = dict()
 
 thresloop = 1.e-8
-nloops = 100#0
+nloops = 1000
 
 xtol = 1.e-12
 gtol = 1.e-12
@@ -148,6 +148,10 @@ pickle.dump(varfit_xis, open(cart_out_2+'varfit_NLTE_v4c.p', 'wb'))
 
 xis_a_start = np.ones(6)/6.
 xis_b_start = np.ones(6)/6.
+minb = 0.01*np.ones(6)
+maxb = 100*np.ones(6)
+# maxb[allatms.index('mls')] = 0.011
+bounds = (minb, maxb)
 
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
