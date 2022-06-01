@@ -126,7 +126,10 @@ for cco2 in range(1,npl.n_co2prof+1):
             #         print('-----------------> ok!! this is crazyyyy')
 
         hr_lte_fun, hr_lte_hot = npl.hr_LTE_FB_vs_ob(atm, cco2) #### WHY!!!!
-        hr_lte_maxalts = hr_lte_fun + hr_lte_hot
+        #hr_lte_maxalts = hr_lte_fun + hr_lte_hot
+        xis = np.zeros(6)
+        xis[allatms.index(atm)] = 1
+        hr_lte_maxalts = npl.hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, max_alts = 55)
 
         for cnam in ['acoeff', 'bcoeff']:
             all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_fun/hr_lte_fun)[np.newaxis, :]
@@ -134,9 +137,9 @@ for cco2 in range(1,npl.n_co2prof+1):
             all_coeffs_nlte[(atm, cco2, cnam+'_new')] = all_coeffs[(atm, cco2, cnam)]*(hr_nlte_hot/hr_lte_hot)
 
         #ratio = hr_nlte/hr_lte
-        ratio = hr_nlte/hr_lte_maxalts #### WHY? This is done to be consistent with the use of maxalt = 51. The a and b coeffs are radically changed above i = 40, but hrs calculated this way have less values close to zero, so give less problems for the ratios.
+        ratio = hr_nlte/hr_lte_maxalts #### WHY? The a and b coeffs are radically changed above i = 40, but hrs calculated this way have less values close to zero, so give less problems for the ratios. The difference below 40 (LTE region) is smaller than 0.05 for all atms.
         ratio[all_alts < 15] = 1.
-        ratio[:40] = 1. # Setting the ratio to 1 to all the LTE region
+        ratio[:35] = 1. # Setting the ratio to 1 to all the LTE region, apart from the region neighboring the upper one
         for cnam in ['acoeff', 'bcoeff']:
             all_coeffs_nlte[(atm, cco2, cnam)] = all_coeffs[(atm, cco2, cnam)]*ratio[np.newaxis, :]
         for cnam in ['asurf', 'bsurf']:

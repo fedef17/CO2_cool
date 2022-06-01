@@ -129,7 +129,7 @@ alpha_fom = []
 Lesc_fom = []
 co2col_fom = []
 
-do_calc = True
+do_calc = False
 calc_only_new = True
 
 if do_calc:
@@ -358,7 +358,8 @@ if do_calc:
         new_param_check_old = pickle.load( open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
 
         for ke in new_param_check:
-            new_param_check[ke] = np.stack(new_param_check[ke])
+            if len(new_param_check[ke]) > 0:
+                new_param_check[ke] = np.stack(new_param_check[ke])
 
         new_param_check.update(new_param_check_old)
         pickle.dump(new_param_check, open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'wb'))
@@ -373,7 +374,7 @@ if not do_calc or calc_only_new:
 
     new_param_fomilike_50, new_param_fomilike_51 = pickle.load(open(cart_out+'check_fomilike_out_ssw2009_{}.p'.format(ctag),'rb'))
 
-    alpha_fom, Lesc_fom = pickle.load(open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'rb'))
+    alpha_fom, Lesc_fom, co2col_fom = pickle.load(open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'rb'))
 
     new_param_check = pickle.load(open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
 
@@ -424,7 +425,7 @@ d_stats = dict()
 fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
-for na, col in zip(['fomi', 'new_fomilike_51', 'new_alphaunif_fomiLesc', 'new_alphaunif'], ['blue', 'teal', 'forestgreen', 'chocolate']):
+for na, col in zip(['fomi', 'new', 'new_alphaunif'], ['blue', 'red', 'gold']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -446,4 +447,4 @@ ax.set_ylim(10., 20.)
 
 ax.legend()
 
-fig.savefig(cart_out + 'global_check_shading_{}_aunif.pdf'.format(ctag))
+fig.savefig(cart_out + 'global_check_shading_{}_aunif_vs_new.pdf'.format(ctag))

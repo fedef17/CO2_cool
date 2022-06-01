@@ -58,14 +58,16 @@ print('low trans at {}'.format(alts[n_alts_trlo]))
 all_coeffs_nlte = pickle.load(open(cart_out_2 + 'all_coeffs_NLTE.p', 'rb'))
 
 n_alts_lte = 40
+max_alts = 83 ### IMPORTANT! max alts for hr_from_ab
 
 figs = []
 a0s = []
 a1s = []
 
 tot_coeff_co2 = pickle.load(open(cart_out + 'tot_coeffs_co2_v2_LTE.p', 'rb'))
-varfit_xis_4_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v4.p', 'rb'))
-varfit_xis_5_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v5.p', 'rb'))
+varfit_xis_4_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v4b.p', 'rb'))
+varfit_xis_5_nlte = pickle.load(open(cart_out_2+'varfit_NLTE_v5b.p', 'rb'))
+
 varfit_xis_wiatm = dict()
 for iatm in range(6):
     varfit_xis_wiatm[iatm] = pickle.load(open(cart_out_2 + 'varfit_NLTE_iatm{}.p'.format(iatm), 'rb'))
@@ -147,7 +149,7 @@ for cco2 in range(1,npl.n_co2prof+1):
             asurf_cco2 = tot_coeff_co2[(tip, 'asurf', cco2)]
             bsurf_cco2 = tot_coeff_co2[(tip, 'bsurf', cco2)]
 
-            hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
+            hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp, max_alts = max_alts)[:n_alts]
             hr_calcs.append(hr_calc)
             fit_score[(tip, 'trans', 'std')].append(np.sqrt(np.mean((hr_calc[n_alts_lte:n_alts_trlo]-hr_ref[n_alts_lte:n_alts_trlo])**2)))
             fit_score[(tip, 'lte+trans', 'std')].append(np.sqrt(np.mean((hr_calc[alt0:n_alts_trlo]-hr_ref[alt0:n_alts_trlo])**2)))
@@ -157,7 +159,11 @@ for cco2 in range(1,npl.n_co2prof+1):
 
         pres = atm_pt[(atm, 'pres')]
         print(np.median(co2pr))
-        alt_fomi, x_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2pr, cart_run_fomi = cart_base + 'lavori/CO2_cooling/cart_run_fomi/')
+        ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+        o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+        n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+
+        alt_fomi, x_fomi, hr_fomi = npl.old_param(all_alts, temp, pres, co2pr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = cart_base + 'lavori/CO2_cooling/cart_run_fomi/')
         oldco = spline(alt_fomi, hr_fomi)
         hr_fomi = oldco(alts)
 
@@ -186,7 +192,7 @@ for cco2 in range(1,npl.n_co2prof+1):
             asurf_cco2 = all_coeffs_nlte[(atm, cco2, 'asurf'+pio)]
             bsurf_cco2 = all_coeffs_nlte[(atm, cco2, 'bsurf'+pio)]
 
-            hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp)[:n_alts]
+            hr_calc = npl.hr_from_ab(acoeff_cco2, bcoeff_cco2, asurf_cco2, bsurf_cco2, temp, surf_temp, max_alts = max_alts)[:n_alts]
             hr_ab_rescaled.append(hr_calc)
 
         ksk = np.mean(np.abs(hr_ref-hr_ab_rescaled[0]))

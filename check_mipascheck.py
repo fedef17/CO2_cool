@@ -623,6 +623,7 @@ for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
     inputs_rg[nam] = []
 
 for i in range(len(inputs['temp'])):
+    print(i)
     x = inputs['x'][i]
     for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
         if nam == 'pres':
@@ -633,35 +634,38 @@ for i in range(len(inputs['temp'])):
             v2 = spl(x_ref)
         inputs_rg[nam].append(v2)
 
+# check della media del popup in mipas, e delle eofs
 
-sys.exit()
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-# qui volevi fare un check della media del popup in mipas, e delle eofs
+for ke in inputs_rg:
+    inputs_rg[ke] = np.stack(inputs_rg[ke])
 
+miptemp = np.stack(inputs_rg['temp'])[:, alt2:n_top+1]
+mippres = np.stack(inputs_rg['pres'])[:, alt2:n_top+1]
+mipovmr = np.stack(inputs_rg['ovmr'])[:, alt2:n_top+1]
 
+# CO2con = 1.e-6*np.stack(inputs_rg['co2vmr'])[:, alt2:n_top+1]
+# Ocon = 1.e-6*np.stack(inputs_rg['ovmr'])[:, alt2:n_top+1]
+#
+# alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart_in + 'gases_120.dat', version = 2)
+# o2vmr = mol_vmrs['O2']*1.e-6
+# n2vmr = mol_vmrs['N2']*1.e-6
+# spl = spline(alt_manuel, o2vmr)
+# o2vmr_or = spl(alts)[alt2:n_top+1]
+# spl = spline(alt_manuel, n2vmr)
+# n2vmr_or = spl(alts)[alt2:n_top+1]
 
-miptemp = np.stack(gigi.temperature)[:, alt2:n_top+1]
-mippres = np.stack(gigi.pressure)[:, alt2:n_top+1]
-CO2con = 1.e-6*np.stack(CO2.target)[:, alt2:n_top+1]
-Ocon = 1.e-6*np.stack(O.target)[:, alt2:n_top+1]
-
-alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart_in + 'gases_120.dat', version = 2)
-o2vmr = mol_vmrs['O2']*1.e-6
-n2vmr = mol_vmrs['N2']*1.e-6
-spl = spline(alt_manuel, o2vmr)
-o2vmr_or = spl(alts)[alt2:n_top+1]
-spl = spline(alt_manuel, n2vmr)
-n2vmr_or = spl(alts)[alt2:n_top+1]
+o2vmr = inputs_rg['o2vmr'][0][alt2:n_top+1]
+n2vmr = inputs_rg['n2vmr'][0][alt2:n_top+1]
 
 phifunz = np.exp(-E_fun/(kbc*miptemp))
-lambs = np.stack(npl.calc_lamb(pr, te, opr, o2vmr_or, n2vmr_or) for te, pr, opr in zip(miptemp, mippres, Ocon))
+lambs = np.stack([npl.calc_lamb(pr, te, ovmr, o2vmr, n2vmr) for te, pr, ovmr in zip(miptemp, mippres, mipovmr)])
 
 popup_mip = phifunz*lambs/1.5988
 #popup_mean = np.mean(popup, axis = 0) USE ORIGINAL MEAN
 popup_anom_mip = popup_mip - popup_mean
 
-axpop.fill_betweenx(np.percentile(popup_mip, 25, axis = 0), np.percentile(popup_mip, 75, axis = 0), x_ref[alt2:n_top+1], color = 'orange')
-axpop.plot(np.mean(popup_mip, axis = 0), x_ref[alt2:n_top+1], colo = 'orange')
+axpop.fill_betweenx(x_ref[alt2:n_top+1], np.percentile(popup_mip, 25, axis = 0), np.percentile(popup_mip, 75, axis = 0), color = 'orange')
+axpop.plot(np.mean(popup_mip, axis = 0), x_ref[alt2:n_top+1], color = 'orange')
 
 solver_pop_mip = Eof(popup_anom_mip)
 

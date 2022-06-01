@@ -759,7 +759,7 @@ def hr_from_ab_at_x0(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, x0, max_alts
     return epsilon_ab_tot
 
 
-def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms):#, n_alts = 40):
+def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = n_alts_all):#, n_alts = 40):
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis.
     """
@@ -774,7 +774,7 @@ def hr_from_xi(xis, atm, cco2, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms
         asurf = all_coeffs[(atmprim, cco2, 'asurf')]
         bsurf = all_coeffs[(atmprim, cco2, 'bsurf')]
 
-        h_ab = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp)
+        h_ab = hr_from_ab(acoeff, bcoeff, asurf, bsurf, temp, surf_temp, max_alts = max_alts)
         #print(atm, xi, np.mean(h_ab))
         hr_somma += xi * h_ab#[:n_alts]
 
@@ -831,7 +831,7 @@ def hr_from_xi_at_x0(xis, atm, cco2, ialt, all_coeffs = all_coeffs, atm_pt = atm
     return hr_somma
 
 
-def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = 51):
+def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = n_alts_all):# was 51
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
@@ -862,7 +862,7 @@ def hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, 
     return epsilon_ab_tot
 
 
-def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = 51):
+def hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, atm_pt = atm_pt, allatms = allatms, max_alts = n_alts_all):# was 51
     """
     Calculates the HR from the acoeff and bcoeff of the different atmospheres, using the weights xis. But applies the weights only to acoeffs, keeping b fixed.
     """
@@ -1433,7 +1433,7 @@ def delta_xi_at_x0(xis, cco2, ialt, atmweigths = atmweigths, all_coeffs = all_co
     return fu
 
 
-def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = False):
+def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, verbose = False, max_alts = n_alts_all):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -1443,7 +1443,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
         hr = all_coeffs[(atm, cco2, hr_ref_nam)][ialt]
-        hr_somma = hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs)
+        hr_somma = hr_from_xi_at_x0_afit(xis, atm, cco2, ialt, xis_b, all_coeffs = all_coeffs, max_alts = max_alts)
 
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)
@@ -1460,7 +1460,7 @@ def delta_xi_at_x0_afit(xis, cco2, ialt, xis_b, atmweigths = atmweigths, all_coe
     return fu
 
 
-def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt):
+def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coeffs = all_coeffs, hr_ref_nam = 'hr_ref', atm_pt = atm_pt, max_alts = n_alts_all):
     """
     This is done for a single altitude x0.
     The delta function at page 511 bottom. xis is the set of weights in the order of allatms.
@@ -1470,7 +1470,7 @@ def delta_xi_at_x0_bfit(xis, cco2, ialt, xis_a, atmweigths = atmweigths, all_coe
     fu = np.zeros(len(allatms))
     for i, atm in enumerate(allatms):
         hr = all_coeffs[(atm, cco2, hr_ref_nam)][ialt]
-        hr_somma = hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs)
+        hr_somma = hr_from_xi_at_x0_bfit(xis, atm, cco2, ialt, xis_a, all_coeffs = all_coeffs, max_alts = max_alts)
 
         # atmweights will be squared by the loss function inside least_quares
         fu[i] = np.sqrt(atmweigths[atm]) * (hr_somma - hr)

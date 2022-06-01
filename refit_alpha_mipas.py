@@ -36,6 +36,8 @@ cart_out_3 = cart_base + 'NLTE_upper/'
 
 cart_out_F = cart_base + 'newpar_allatm_2/'
 
+cart_out_mip = cart_base + 'mipas_check/'
+
 import newparam_lib as npl
 from eofs.standard import Eof
 from sklearn.linear_model import LinearRegression
@@ -79,95 +81,128 @@ cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 
 ### LOADING MIPAS
 
-cart_out = cart_base + 'mipas_check/'
-version = '_xinterp_v3'
+# cart_out = cart_base + 'mipas_check/'
+# version = '_xinterp_v3'
+#
+# savT = io.readsav(cart_in+'CR20090215/L2_20090215_T_521.6', verbose=True)
+# savCR = io.readsav(cart_in+'CR20090215/L2_20090215_CR-CO2-IR_521.6', verbose=True)
+# savO = io.readsav(cart_in+'CR20090215/L2_20090215_O_521.6', verbose=True)
+# savCO2 = io.readsav(cart_in+'CR20090215/L2_20090215_CO2_521.6', verbose=True)
+#
+# T = savT.result
+# CR = savCR.result
+# O = savO.result
+# CO2 = savCO2.result
+#
+# sys.exit()
+#
+# fil = 'ssw2009_v3_okTOCO2_1e13_newparam{}.p'.format(version)
+#
+# gigi = pickle.load(open(cart_out+fil, 'rb'))
+# cose = gigi.dtype.names
 
-savT = io.readsav(cart_in+'CR20090215/L2_20090215_T_521.6', verbose=True)
-savCR = io.readsav(cart_in+'CR20090215/L2_20090215_CR-CO2-IR_521.6', verbose=True)
-savO = io.readsav(cart_in+'CR20090215/L2_20090215_O_521.6', verbose=True)
-savCO2 = io.readsav(cart_in+'CR20090215/L2_20090215_CO2_521.6', verbose=True)
+#obs, old_param, new_param, new_param_fa  = pickle.load(open(cart_out+'out_ssw2009{}.p'.format(version),'rb'))
 
-T = savT.result
-CR = savCR.result
-O = savO.result
-CO2 = savCO2.result
+#obs = np.stack(gigi.cr_mipas)
+#alts = gigi.altitude[0]
 
-sys.exit()
-
-fil = 'ssw2009_v3_okTOCO2_1e13_newparam{}.p'.format(version)
-
-gigi = pickle.load(open(cart_out+fil, 'rb'))
-cose = gigi.dtype.names
-
-obs, old_param, new_param, new_param_fa  = pickle.load(open(cart_out+'out_ssw2009{}.p'.format(version),'rb'))
-
-obs = np.stack(gigi.cr_mipas)
-alts = gigi.altitude[0]
-
-alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart_in + 'gases_120.dat', version = 2)
-o2vmr = mol_vmrs['O2']*1.e-6
-n2vmr = mol_vmrs['N2']*1.e-6
-spl = spline(alt_manuel, o2vmr)
-o2vmr = spl(alts)
-spl = spline(alt_manuel, n2vmr)
-n2vmr = spl(alts)
-
-miptemp = np.stack(gigi.temperature)
-mippres = np.stack(gigi.pressure)
-mipx = np.log(1000./mippres)
-mipovmr = 1.e-6*np.stack(O.target)
-mipco2vmr = 1.e-6*np.stack(CO2.target)
+# alt_manuel, mol_vmrs, molist, molnums = sbm.read_input_vmr_man(cart_in + 'gases_120.dat', version = 2)
+# o2vmr = mol_vmrs['O2']*1.e-6
+# n2vmr = mol_vmrs['N2']*1.e-6
+# spl = spline(alt_manuel, o2vmr)
+# o2vmr = spl(alts)
+# spl = spline(alt_manuel, n2vmr)
+# n2vmr = spl(alts)
+#
+# miptemp = np.stack(gigi.temperature)
+# mippres = np.stack(gigi.pressure)
+# mipx = np.log(1000./mippres)
+# mipovmr = 1.e-6*np.stack(O.target)
+# mipco2vmr = 1.e-6*np.stack(CO2.target)
 
 ######
 
 regrcoef = pickle.load(open(cart_out_rep + 'regrcoef_v3.p', 'rb'))
 nlte_corr = pickle.load(open(cart_out_rep + 'nlte_corr_low.p', 'rb'))
 
-alt2 = 50
-n_top = 64
+alt2 = 51
+n_top = 65
 
-x_ref = np.arange(0.125, 18.01, 0.25)
+x_ref = np.arange(0.125, 20.626, 0.25)
 
-mip_temp_rg = []
-mip_pres_rg = []
-mip_ovmr_rg = []
-mip_co2vmr_rg = []
-mip_o2vmr_rg = []
-mip_n2vmr_rg = []
+# mip_temp_rg = []
+# mip_pres_rg = []
+# mip_ovmr_rg = []
+# mip_co2vmr_rg = []
+# mip_o2vmr_rg = []
+# mip_n2vmr_rg = []
+#
+# for temp, pres, x, co2vmr, ovmr in zip(miptemp, mippres, mipx, mipco2vmr, mipovmr):
+#     spl = spline(x, temp, extrapolate = False)
+#     temp_rg = spl(x_ref)
+#
+#     spl = spline(x, np.log(pres), extrapolate = False)
+#     pres_rg = spl(x_ref)
+#     pres_rg = np.exp(pres_rg)
+#
+#     spl = spline(x, ovmr, extrapolate = False)
+#     ovmr_rg = spl(x_ref)
+#
+#     spl = spline(x, co2vmr, extrapolate = False)
+#     co2vmr_rg = spl(x_ref)
+#
+#     spl = spline(x, o2vmr, extrapolate = False)
+#     o2vmr_rg = spl(x_ref)
+#
+#     spl = spline(x, n2vmr, extrapolate = False)
+#     n2vmr_rg = spl(x_ref)
+#
+#     mip_temp_rg.append(temp_rg)
+#     mip_pres_rg.append(pres_rg)
+#     mip_ovmr_rg.append(ovmr_rg)
+#     mip_co2vmr_rg.append(co2vmr_rg)
+#     mip_o2vmr_rg.append(o2vmr_rg)
+#     mip_n2vmr_rg.append(n2vmr_rg)
+#
+# mip_temp_rg = np.stack(mip_temp_rg)
+# mip_pres_rg = np.stack(mip_pres_rg)
+# mip_ovmr_rg = np.stack(mip_ovmr_rg)
+# mip_co2vmr_rg = np.stack(mip_co2vmr_rg)
+# mip_o2vmr_rg = np.stack(mip_o2vmr_rg)
+# mip_n2vmr_rg = np.stack(mip_n2vmr_rg)
 
-for temp, pres, x, co2vmr, ovmr in zip(miptemp, mippres, mipx, mipco2vmr, mipovmr):
-    spl = spline(x, temp, extrapolate = False)
-    temp_rg = spl(x_ref)
+ctag = 'v10-nl0-65'
+inputs = pickle.load(open(cart_out_mip+'in_ssw2009_{}.p'.format(ctag),'rb'))
 
-    spl = spline(x, np.log(pres), extrapolate = False)
-    pres_rg = spl(x_ref)
-    pres_rg = np.exp(pres_rg)
+inputs_rg = dict()
+for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
+    inputs_rg[nam] = []
 
-    spl = spline(x, ovmr, extrapolate = False)
-    ovmr_rg = spl(x_ref)
+for i in range(len(inputs['temp'])):
+    print(i)
+    x = inputs['x'][i]
+    for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
+        if nam == 'pres':
+            spl = spline(x, np.log(inputs[nam][i]), extrapolate = False)
+            v2 = np.exp(spl(x_ref))
+        else:
+            spl = spline(x, inputs[nam][i], extrapolate = False)
+            v2 = spl(x_ref)
+        inputs_rg[nam].append(v2)
 
-    spl = spline(x, co2vmr, extrapolate = False)
-    co2vmr_rg = spl(x_ref)
+# check della media del popup in mipas, e delle eofs
 
-    spl = spline(x, o2vmr, extrapolate = False)
-    o2vmr_rg = spl(x_ref)
+for ke in inputs_rg:
+    inputs_rg[ke] = np.stack(inputs_rg[ke])
 
-    spl = spline(x, n2vmr, extrapolate = False)
-    n2vmr_rg = spl(x_ref)
+obs = inputs_rg['cr_mipas']
 
-    mip_temp_rg.append(temp_rg)
-    mip_pres_rg.append(pres_rg)
-    mip_ovmr_rg.append(ovmr_rg)
-    mip_co2vmr_rg.append(co2vmr_rg)
-    mip_o2vmr_rg.append(o2vmr_rg)
-    mip_n2vmr_rg.append(n2vmr_rg)
-
-mip_temp_rg = np.stack(mip_temp_rg)
-mip_pres_rg = np.stack(mip_pres_rg)
-mip_ovmr_rg = np.stack(mip_ovmr_rg)
-mip_co2vmr_rg = np.stack(mip_co2vmr_rg)
-mip_o2vmr_rg = np.stack(mip_o2vmr_rg)
-mip_n2vmr_rg = np.stack(mip_n2vmr_rg)
+# miptemp = np.stack(inputs_rg['temp'])[:, alt2:n_top+1]
+# mippres = np.stack(inputs_rg['pres'])[:, alt2:n_top+1]
+# mipovmr = np.stack(inputs_rg['ovmr'])[:, alt2:n_top+1]
+#
+# o2vmr = inputs_rg['o2vmr'][0][alt2:n_top+1]
+# n2vmr = inputs_rg['n2vmr'][0][alt2:n_top+1]
 
 ########### Qui c'è la parte del fit dell'alpha
 # alpha FIT!
@@ -177,20 +212,22 @@ n_trans = n_top-alt2+1
 #bounds = (0.1*np.ones(n_trans), 100*np.ones(n_trans))
 bounds = (0.5*np.ones(n_trans), 10*np.ones(n_trans))
 
-mip_alpha = []
-mip_alpha_baro = []
+#mip_alpha_baro = []
 start = np.ones(n_trans)
 
 interp_coeffs = npl.precalc_interp()
 
+mip_alpha = []
 for ii in range(len(obs)):
     print(ii)
-    temp = mip_temp_rg[ii][:n_top+1]
-    pres = mip_pres_rg[ii][:n_top+1]
-    co2vmr = mip_co2vmr_rg[ii][:n_top+1]
-    ovmr = mip_ovmr_rg[ii][:n_top+1]
-    o2vmr = mip_o2vmr_rg[ii][:n_top+1]
-    n2vmr = mip_n2vmr_rg[ii][:n_top+1]
+
+    temp = inputs_rg['temp'][ii]
+    pres = inputs_rg['pres'][ii]
+    ovmr = inputs_rg['ovmr'][ii]
+    co2vmr = inputs_rg['co2vmr'][ii]
+    o2vmr = inputs_rg['o2vmr'][ii]
+    n2vmr = inputs_rg['n2vmr'][ii]
+    hr_ref = inputs_rg['cr_mipas'][ii]
 
     MM = npl.calc_MM(ovmr, o2vmr, n2vmr)
 
@@ -199,28 +236,25 @@ for ii in range(len(obs)):
     Lspl_all = spline(uco2, L_all, extrapolate = False)
     uok = npl.calc_co2column_P(pres, co2vmr, MM)
     L_esc = Lspl_all(uok)
-    L_esc[np.isnan(L_esc)] = 0.
+    L_esc[:30][np.isnan(L_esc[:30])] = 0.0 # for extrapolated regions
+    L_esc[-20:][np.isnan(L_esc[-20:])] = 1.0 # for extrapolated regions
 
     lamb = npl.calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
 
-    spl = spline(mipx[ii], -obs[ii], extrapolate = False)
-    hr_ref = spl(x_ref)
+    alpha = npl.recformula_invert(hr_ref, L_esc, lamb, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, ovmr = ovmr, force_min_alpha = 0.5)
 
-    result = least_squares(npl.delta_alpha_rec3_general, start, args=(hr_ref[alt2], hr_ref[:n_top+1], temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alt2, n_top, interp_coeffs, L_esc, MM, lamb), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-    print('least_squares', result)
-    mip_alpha.append(result.x)
+    mip_alpha.append(alpha)
 
     ### Stessa cosa ma partendo dal mio HR:
-    spl = spline(mipx[ii], new_param[ii], extrapolate = False)
-    hr_ref = spl(x_ref)
-
-    result = least_squares(npl.delta_alpha_rec3_general, start, args=(hr_ref[alt2], hr_ref[:n_top+1], temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alt2, n_top, interp_coeffs, L_esc, MM, lamb), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
-    print('least_squares', result)
-    mip_alpha_baro.append(result.x)
+    # spl = spline(mipx[ii], new_param[ii], extrapolate = False)
+    # hr_ref = spl(x_ref)
+    #
+    # result = least_squares(npl.delta_alpha_rec3_general, start, args=(hr_ref[alt2], hr_ref[:n_top+1], temp, pres, co2vmr, ovmr, o2vmr, n2vmr, alt2, n_top, interp_coeffs, L_esc, MM, lamb), verbose=1, method = 'trf', bounds = bounds)#, gtol = gtol, xtol = xtol)
+    # print('least_squares', result)
+    # mip_alpha_baro.append(result.x)
 
 mip_alpha = np.stack(mip_alpha)
-mip_alpha_baro = np.stack(mip_alpha_baro)
-pickle.dump([mip_alpha, mip_alpha_baro], open(cart_out + 'mip_alphas.p', 'wb'))
+pickle.dump(mip_alpha, open(cart_out_mip + 'mip_alphas.p', 'wb'))
 
 alpha_mea = np.mean(mip_alpha, axis = 0)
 alpha_q1 = np.percentile(mip_alpha, 25, axis = 0)
@@ -235,24 +269,26 @@ plt.plot(alpha_median,  x_ref[alt2:n_top+1], color = 'red', ls = '--')
 plt.plot(alpha_q1,  x_ref[alt2:n_top+1], color = 'red', ls = ':')
 plt.plot(alpha_q3,  x_ref[alt2:n_top+1], color = 'red', ls = ':')
 
-fig.savefig(cart_out + 'refit_alpha_mipas_05-10.pdf')
+fig.savefig(cart_out_mip + 'refit_alpha_mipas_min05.pdf')
 
-alpha_mea = np.mean(mip_alpha_baro-mip_alpha, axis = 0)
-alpha_q1 = np.percentile(mip_alpha_baro-mip_alpha, 25, axis = 0)
-alpha_q3 = np.percentile(mip_alpha_baro-mip_alpha, 75, axis = 0)
-alpha_median = np.percentile(mip_alpha_baro-mip_alpha, 50, axis = 0)
-fig = plt.figure()
-x_ref[alt2:n_top+1]
-for ii in range(len(mip_alpha)):
-    plt.plot(mip_alpha_baro[ii]-mip_alpha[ii], x_ref[alt2:n_top+1], color = 'grey', lw = 0.1)
-plt.plot(alpha_mea,  x_ref[alt2:n_top+1], color = 'red')
-plt.plot(alpha_median,  x_ref[alt2:n_top+1], color = 'red', ls = '--')
-plt.plot(alpha_q1,  x_ref[alt2:n_top+1], color = 'red', ls = ':')
-plt.plot(alpha_q3,  x_ref[alt2:n_top+1], color = 'red', ls = ':')
+sys.exit()
 
-fig.savefig(cart_out + 'refit_alpha_mipas_barodiff.pdf')
-
-mip_alpha = mip_alpha_baro
+# alpha_mea = np.mean(mip_alpha_baro-mip_alpha, axis = 0)
+# alpha_q1 = np.percentile(mip_alpha_baro-mip_alpha, 25, axis = 0)
+# alpha_q3 = np.percentile(mip_alpha_baro-mip_alpha, 75, axis = 0)
+# alpha_median = np.percentile(mip_alpha_baro-mip_alpha, 50, axis = 0)
+# fig = plt.figure()
+# x_ref[alt2:n_top+1]
+# for ii in range(len(mip_alpha)):
+#     plt.plot(mip_alpha_baro[ii]-mip_alpha[ii], x_ref[alt2:n_top+1], color = 'grey', lw = 0.1)
+# plt.plot(alpha_mea,  x_ref[alt2:n_top+1], color = 'red')
+# plt.plot(alpha_median,  x_ref[alt2:n_top+1], color = 'red', ls = '--')
+# plt.plot(alpha_q1,  x_ref[alt2:n_top+1], color = 'red', ls = ':')
+# plt.plot(alpha_q3,  x_ref[alt2:n_top+1], color = 'red', ls = ':')
+#
+# fig.savefig(cart_out + 'refit_alpha_mipas_barodiff.pdf')
+#
+# mip_alpha = mip_alpha_baro
 
 ######### CHECK HR
 version = '_refit_baro'
