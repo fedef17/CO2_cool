@@ -447,7 +447,7 @@ d_stats = dict()
 fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
-for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a1'], ['blue', 'gold', 'red']):
+for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'gold', 'red', 'forestgreen']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -478,7 +478,7 @@ lats = np.arange(-90, 91, 20)
 for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
     cond = (gigi.latitude > lat1) & (gigi.latitude <= lat2)
 
-    for na, col in zip(['fomi', 'new', 'new_alphaunif'], ['blue', 'red', 'gold']):
+    for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'gold', 'red', 'forestgreen']):
         co = d_all[na][cond]
 
         d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
