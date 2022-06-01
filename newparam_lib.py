@@ -126,7 +126,7 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
 
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
 
-    if debug_alpha:
+    if debug_alpha is not None:
         alpha = debug_alpha
     else:
         alpha = calc_coeffs['alpha']
