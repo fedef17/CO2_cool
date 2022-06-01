@@ -1960,7 +1960,7 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
         hr_calc = transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo+1)
 
         # atmweights will be squared by the loss function inside least_quares
-        fu.append(np.sqrt(weigths) * (hr_calc - hr_ref))
+        fu.append(np.sqrt(weigths[i]) * (hr_calc - hr_ref))
         #fu.append(hr_calc - hr_ref)
 
     fu = np.concatenate(fu)
