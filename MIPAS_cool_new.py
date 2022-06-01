@@ -91,6 +91,14 @@ ctag = 'vf5-a1'
 coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
 interp_coeffs_old_vf5a1 = npl.precalc_interp_old(coeff_file = coeff_file)
 
+ctag = 'vf4-a1'
+coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
+interp_coeffs_old_vf4a1 = npl.precalc_interp_old(coeff_file = coeff_file)
+
+ctag = 'vf5-a2'
+coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
+interp_coeffs_old_vf5a2 = npl.precalc_interp_old(coeff_file = coeff_file)
+
 coeffs = pickle.load(open(coeff_file, 'rb'))
 
 cart_out_rep = cart_base + 'lavori/CO2_cooling/new_param/NLTE_reparam/'
@@ -114,7 +122,7 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1', 'new_ax05', 'new_amedio', 'new_ax2']
+nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1', 'new_old_vf4-a2', 'new_old_vf5-a1', 'new_ax05', 'new_ax07', 'new_amedio', 'new_ax2']
 for nam in nams:
     new_param_check[nam] = []
 
@@ -138,7 +146,7 @@ alpha_fom = []
 Lesc_fom = []
 co2col_fom = []
 
-do_calc = True
+do_calc = False
 calc_only_new = True
 
 if do_calc:
@@ -345,16 +353,29 @@ if do_calc:
         # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, debug = False, extrap_co2col = False, alt2up = 51, n_top = 65, debug_alpha = alpha_unif)
         # new_param_check[nam].append(cr_new)
 
-        # nam = 'new_old_vf4-a2'
-        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
-        # new_param_check[nam].append(cr_new)
-        #
-        # nam = 'new_old_vf5-a1'
-        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True)
-        # new_param_check[nam].append(cr_new)
+        nam = 'new_old_vf4-a2'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
+        new_param_check[nam].append(cr_new)
+
+        nam = 'new_old_vf4-a1'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
+        new_param_check[nam].append(cr_new)
+
+        nam = 'new_old_vf5-a1'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True)
+        new_param_check[nam].append(cr_new)
+
+        nam = 'new_old_vf5-a2'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a2, old_param = True)
+        new_param_check[nam].append(cr_new)
 
         nam = 'new_ax05' # alpha5
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True, debug_alpha = alpha5)
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha5)
+        new_param_check[nam].append(cr_new)
+
+        nam = 'new_ax07' # alpha5
+        alpha = 1+(alpha3-1)*0.7
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha5)
         new_param_check[nam].append(cr_new)
 
         nam = 'new_amedio' # alpha3
@@ -362,7 +383,7 @@ if do_calc:
         new_param_check[nam].append(cr_new)
 
         nam = 'new_ax2' # alpha4
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True, debug_alpha = alpha4)
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha4)
         new_param_check[nam].append(cr_new)
 
 
@@ -384,7 +405,8 @@ if do_calc:
     else:
         #pickle.dump([alpha_fom, Lesc_fom, co2col_fom], open(cart_out+'alpha_Lesc_fom_ssw2009_{}.p'.format(ctag),'wb'))
 
-        ctag = 'v10-nl0-65'
+        #ctag = 'v10-nl0-65'
+        ctag = 'vf4-a1'
         new_param_check_old = pickle.load( open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
 
         for ke in new_param_check:
@@ -461,8 +483,71 @@ fig, ax = plt.subplots()
 
 #for na, col in zip(['fomi', 'new', 'new_fixco2', 'new_fa', 'new_noextP', 'new_starthigh'], ['blue', 'red', 'forestgreen', 'orange', 'violet', 'chocolate']):
 #for na, col in zip(['fomi', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'gold', 'red', 'forestgreen']):
-#for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
-for na, col in zip(['fomi', 'new_amedio', 'new_ax2', 'new_ax05'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
+for na, col, doll in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen'], [True, False, False, False, True]):
+#for na, col in zip(['new_amedio', 'new_ax2', 'new_ax05'], ['red', 'gold', 'grey', 'forestgreen']):
+    co = crall_rg[na] + crall_rg['obs']
+    d_all[na] = co
+
+    d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
+    d_stats[(na, '1st')] = np.nanpercentile(co, 25, axis = 0)
+    d_stats[(na, '3rd')] = np.nanpercentile(co, 75, axis = 0)
+    d_stats[(na, 'std')] = np.nanstd(co, axis = 0)
+    d_stats[(na, 'mean')] = np.nanmean(co, axis = 0)
+
+    if doll:
+        ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.2)
+    # ax.plot(d_stats[(na, '1st')], x_ref, color = col, ls = '--')
+    # ax.plot(d_stats[(na, '3rd')], x_ref, color = col, ls = '--')
+    ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = na)
+
+ax.grid()
+ax.set_xlim(-10., 15.)
+#ax.set_ylim(40., 110.)
+ax.set_ylim(10., 20.)
+
+ax.legend()
+
+fig.savefig(cart_out + 'global_check_shading_newold_{}.pdf'.format(ctag))
+#fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
+
+#########################################
+fig, axs = plt.subplots(3, 3, figsize = (16, 12))
+
+lats = np.arange(-90, 91, 20)
+for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
+    cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
+
+    for na, col, doll in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen'], [True, False, False, False, True]):
+        co = d_all[na][cond]
+
+        d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
+        d_stats[(na, '1st')] = np.nanpercentile(co, 25, axis = 0)
+        d_stats[(na, '3rd')] = np.nanpercentile(co, 75, axis = 0)
+        d_stats[(na, 'std')] = np.nanstd(co, axis = 0)
+        d_stats[(na, 'mean')] = np.nanmean(co, axis = 0)
+
+        if doll:
+            ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.2)
+        # ax.plot(d_stats[(na, '1st')], x_ref, color = col, ls = '--')
+        # ax.plot(d_stats[(na, '3rd')], x_ref, color = col, ls = '--')
+        ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = na)
+
+    ax.grid()
+    ax.set_xlim(-10., 10.)
+    if lat2 == 90:
+        ax.set_xlim(-15., 25.)
+    #ax.set_ylim(40., 110.)
+    ax.set_ylim(10., 18.)
+
+    ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
+
+fig.savefig(cart_out + 'global_check_shading_latbands_newold_{}.pdf'.format(ctag))
+#fig.savefig(cart_out + 'gcs_newold_latbands_alphasens.pdf')
+
+
+###
+
+for na, col in zip(['new_amedio', 'new_ax2', 'new_ax05'], ['red', 'gold', 'grey', 'forestgreen']):
     co = crall_rg[na] + crall_rg['obs']
     d_all[na] = co
 
@@ -495,7 +580,7 @@ for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
     cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
 
     #for na, col in zip(['fomi', 'new', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
-    for na, col in zip(['fomi', 'new_amedio', 'new_ax2', 'new_ax05'], ['blue', 'red', 'gold', 'grey', 'forestgreen']):
+    for na, col in zip(['new_amedio', 'new_ax2', 'new_ax05'], ['red', 'gold', 'grey', 'forestgreen']):
         co = d_all[na][cond]
 
         d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
