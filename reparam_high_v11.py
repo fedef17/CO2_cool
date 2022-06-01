@@ -93,6 +93,8 @@ x2 = solver_anom.pcs(pcscaling = 1)[:, 2]
 x3 = solver_anom.pcs(pcscaling = 1)[:, 3]
 x4 = solver_anom.pcs(pcscaling = 1)[:, 4]
 
+do_single = False
+
 for n_top in [65]:#, 60, 63, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
@@ -113,17 +115,18 @@ for n_top in [65]:#, 60, 63, 67, 70]:
         result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
         alpha_unif.append(result.x)
 
-        alphas = []
-        for atm in allatms:
-            print(atm, cco2)
-            cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-            ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
-            result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
-            #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-            print('least_squares', result)
-            alphas.append(result.x)
+        if do_single:
+            alphas = []
+            for atm in allatms:
+                print(atm, cco2)
+                cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
+                ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
+                result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
+                #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+                print('least_squares', result)
+                alphas.append(result.x)
 
-        alpha_dic_atm[cco2] = np.stack(alphas)
+            alpha_dic_atm[cco2] = np.stack(alphas)
 
     alpha_unif = np.stack(alpha_unif)
     pickle.dump(alpha_unif, open(cart_out_rep + 'alpha_unif_v1_top{}.p'.format(n_top), 'wb'))
@@ -139,17 +142,18 @@ for n_top in [65]:#, 60, 63, 67, 70]:
         result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
         alpha_unif.append(result.x)
 
-        alphas = []
-        for atm in allatms:
-            print(atm, cco2)
-            cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-            ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
-            result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
-            #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-            print('least_squares', result)
-            alphas.append(result.x)
+        if do_single:
+            alphas = []
+            for atm in allatms:
+                print(atm, cco2)
+                cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
+                ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
+                result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
+                #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+                print('least_squares', result)
+                alphas.append(result.x)
 
-        alpha_dic_atm[cco2] = np.stack(alphas)
+            alpha_dic_atm[cco2] = np.stack(alphas)
 
     alpha_unif = np.stack(alpha_unif)
     pickle.dump(alpha_unif, open(cart_out_rep + 'alpha_unif_v2_top{}.p'.format(n_top), 'wb'))
