@@ -118,7 +118,7 @@ nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'ne
 for nam in nams:
     new_param_check[nam] = []
 
-alpha3, alpha4, alpha5 = pickle.load(open(cart_out_mip + 'test_alpha.p', 'rb'))
+alpha3, alpha4, alpha5 = pickle.load(open(cart_out + 'test_alpha.p', 'rb'))
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
