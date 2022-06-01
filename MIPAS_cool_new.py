@@ -122,7 +122,7 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a2', 'new_old_vf5-a1', 'new_old_vf4-a2', 'new_old_vf5-a1', 'new_ax05', 'new_ax07', 'new_amedio', 'new_ax2']
+nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1', 'new_old_vf5-a1', 'new_old_vf4-a2', 'new_old_vf5-a2', 'new_ax05', 'new_ax07', 'new_amedio', 'new_ax2']
 for nam in nams:
     new_param_check[nam] = []
 
@@ -146,7 +146,7 @@ alpha_fom = []
 Lesc_fom = []
 co2col_fom = []
 
-do_calc = False
+do_calc = True
 calc_only_new = True
 
 if do_calc:
