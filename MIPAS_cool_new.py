@@ -360,7 +360,7 @@ if do_calc:
         vfit = 'vf5'
         afit = 'a1'
         nam = 'new_old_{}-{}_alphareint'.format(vfit, afit)
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}'.format(vfit, afit)], old_param = True)
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-65'.format(vfit, afit)], old_param = True)
         new_param_check[nam].append(cr_new)
 
         # nam = 'new_old_vf4-a1'
