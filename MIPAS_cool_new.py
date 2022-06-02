@@ -347,7 +347,7 @@ if do_calc:
         # new_param_check[nam].append(cr_new)
 
         for vfit in ['vf4', 'vf5']:
-            for afit in ['a1', 'a2', 'a3', 'a4', 'a5']:
+            for afit in ['a{}'.format(i) for i in range(5)]:
                 nam = 'new_old_{}-{}'.format(vfit, afit)
                 cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}'.format(vfit, afit)], old_param = True)
                 new_param_check[nam].append(cr_new)
