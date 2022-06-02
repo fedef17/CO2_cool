@@ -357,34 +357,34 @@ if do_calc:
         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
         new_param_check[nam].append(cr_new)
 
-        nam = 'new_old_vf4-a1'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
-        new_param_check[nam].append(cr_new)
+        # nam = 'new_old_vf4-a1'
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf4a2, old_param = True)
+        # new_param_check[nam].append(cr_new)
 
         nam = 'new_old_vf5-a1'
         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True)
         new_param_check[nam].append(cr_new)
 
-        nam = 'new_old_vf5-a2'
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a2, old_param = True)
-        new_param_check[nam].append(cr_new)
+        # nam = 'new_old_vf5-a2'
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a2, old_param = True)
+        # new_param_check[nam].append(cr_new)
 
-        nam = 'new_ax05' # alpha5
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha5)
-        new_param_check[nam].append(cr_new)
-
-        nam = 'new_ax07' # alpha5
-        alpha = 1+(alpha3-1)*0.7
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha5)
-        new_param_check[nam].append(cr_new)
-
-        nam = 'new_amedio' # alpha3
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha3)
-        new_param_check[nam].append(cr_new)
-
-        nam = 'new_ax2' # alpha4
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha4)
-        new_param_check[nam].append(cr_new)
+        # nam = 'new_ax05' # alpha5
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha5)
+        # new_param_check[nam].append(cr_new)
+        #
+        # nam = 'new_ax07' # alpha5
+        # alpha = 1+(alpha3-1)*0.7
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha5)
+        # new_param_check[nam].append(cr_new)
+        #
+        # nam = 'new_amedio' # alpha3
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha3)
+        # new_param_check[nam].append(cr_new)
+        #
+        # nam = 'new_ax2' # alpha4
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old_vf5a1, old_param = True, debug_alpha = alpha4)
+        # new_param_check[nam].append(cr_new)
 
 
 
@@ -413,10 +413,10 @@ if do_calc:
             if len(new_param_check[ke]) > 0:
                 new_param_check[ke] = np.stack(new_param_check[ke])
 
-        new_param_check.update(new_param_check_old)
+        new_param_check_old.update(new_param_check)
 
         ctag = 'vf4-a1'
-        pickle.dump(new_param_check, open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'wb'))
+        pickle.dump(new_param_check_old, open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'wb'))
 
 if not do_calc or calc_only_new:
     ctag = 'v10-nl0-65'
