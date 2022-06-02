@@ -95,16 +95,16 @@ x4 = solver_anom.pcs(pcscaling = 1)[:, 4]
 
 do_single = False
 
+alpha_dic = dict()
 for n_top in [65, 60, 63, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
     # alpha FIT!
-    alpha_dic = dict()
 
     n_trans = n_top-alt2+1
 
     #bounds = (0.1*np.ones(n_trans), 100*np.ones(n_trans))
-    bounds = (np.ones(n_trans), 100*np.ones(n_trans))
+    bounds = (0.1*np.ones(n_trans), 100*np.ones(n_trans))
 
     for afit, atmw in zip(['a{}'.format(i) for i in range(5)], [np.ones(6), [0.3, 0.1, 0.1, 0.4, 0.05, 0.05], np.array([0.3, 0.1, 0.1, 0.4, 0.05, 0.05])**2, [0., 0.1, 0.1, 0., 1, 1], [1, 0., 0., 1, 0., 0.]]):
         atmweights = atmw
@@ -132,7 +132,7 @@ for n_top in [65, 60, 63, 67, 70]:
 
         alpha_unif = np.stack(alpha_unif)
         pickle.dump(alpha_unif, open(cart_out_rep + 'alpha_unif_v{}_top{}.p'.format(afit[-1], n_top), 'wb'))
-        alpha_dic[afit] = alpha_unif
+        alpha_dic[(afit, n_top)] = alpha_unif
 
     continue
 

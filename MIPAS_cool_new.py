@@ -88,9 +88,10 @@ interp_coeffs_old = dict()
 n_top = 65
 for vfit in ['vf4', 'vf5']:
     for afit in ['a{}'.format(i) for i in range(5)]:
-        ctag = '{}-{}-{}'.format(vfit, afit, n_top)
-        coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
-        interp_coeffs_old[ctag] = npl.precalc_interp_old(coeff_file = coeff_file)
+        for n_top in [60, 63, 65, 67, 70]:
+            ctag = '{}-{}-{}'.format(vfit, afit, n_top)
+            coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
+            interp_coeffs_old[ctag] = npl.precalc_interp_old(coeff_file = coeff_file, n_top = n_top)
 
 coeffs = pickle.load(open(coeff_file, 'rb'))
 
@@ -116,11 +117,17 @@ new_param_fomilike_51 = []
 
 new_param_check = dict()
 #nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1', 'new_old_vf5-a1', 'new_old_vf4-a2', 'new_old_vf5-a2', 'new_ax05', 'new_ax07', 'new_amedio', 'new_ax2', 'new_old_vf4-a3', 'new_old_vf5-a3']
-nams = ['new_old_{}-a{}'.format(vf, i) for i in range(5) for vf in ['vf4', 'vf5']]
-for nam in nams:
+# nams = ['new_old_{}-a{}'.format(vf, i) for i in range(5) for vf in ['vf4', 'vf5']]
+# for nam in nams:
+#     new_param_check[nam] = []
+
+vfit = 'vf5'
+afit = 'a1'
+for n_top in [60, 63, 65, 67, 70]:
+    nam = 'new_old_{}-{}-{}'.format(vfit, afit, n_top)
     new_param_check[nam] = []
 
-new_param_check['new_old_vf5-a1_alphareint'] = []
+# new_param_check['new_old_vf5-a1_alphareint'] = []
 
 alpha3, alpha4, alpha5 = pickle.load(open(cart_out + 'test_alpha.p', 'rb'))
 
@@ -351,17 +358,20 @@ if do_calc:
 
         # for vfit in ['vf4', 'vf5']:
         #     for afit in ['a{}'.format(i) for i in range(5)]:
-        #         nam = 'new_old_{}-{}'.format(vfit, afit)
-        #         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}'.format(vfit, afit)], old_param = True)
-        #         new_param_check[nam].append(cr_new)
+        vfit = 'vf5'
+        afit = 'a1'
+        for n_top in [60, 63, 65, 67, 70]:
+            nam = 'new_old_{}-{}-{}'.format(vfit, afit, n_top)
+            cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-{}'.format(vfit, afit, n_top)], old_param = True, n_top = n_top)
+            new_param_check[nam].append(cr_new)
 
         # for vfit in ['vf4', 'vf5']:
         #     for afit in ['a{}'.format(i) for i in range(5)]:
-        vfit = 'vf5'
-        afit = 'a1'
-        nam = 'new_old_{}-{}_alphareint'.format(vfit, afit)
-        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-65'.format(vfit, afit)], old_param = True)
-        new_param_check[nam].append(cr_new)
+        # vfit = 'vf5'
+        # afit = 'a1'
+        # nam = 'new_old_{}-{}_alphareint'.format(vfit, afit)
+        # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-65'.format(vfit, afit)], old_param = True)
+        # new_param_check[nam].append(cr_new)
 
         # nam = 'new_old_vf4-a1'
         # cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['vf4-a1'], old_param = True)
@@ -494,7 +504,10 @@ for co, nam in zip([obs, old_param, new_param, new_param_fa, new_param_fixco2, n
 # d_new = np.stack(d_new)
 # d_new_fa = np.stack(d_new_fa)
 
-crall_rg = pickle.load(open(cart_out + 'crall_rg.p', 'rb'))
+try:
+    crall_rg = pickle.load(open(cart_out + 'crall_rg.p', 'rb'))
+except:
+    crall_rg = dict()
 
 for na in new_param_check:
     if na in crall_rg:
@@ -509,6 +522,8 @@ for na in new_param_check:
 
     crall_rg[na] = np.stack(crall_rg[na])
 
+pickle.dump(crall_rg, open(cart_out + 'crall_rg.p', 'wb'))
+
 cco2 = 3
 
 atm_pt = pickle.load(open(cart_out + '../LTE/atm_pt_v4.p'))
@@ -516,18 +531,10 @@ all_coeffs_nlte = pickle.load(open(cart_out + '../NLTE/all_coeffs_NLTE.p', 'rb')
 cose_upper_atm = pickle.load(open(cart_out + '../NLTE_upper/cose_upper_atm.p', 'rb'))
 all_alts = atm_pt[('mle', 'alts')]
 
-d_all = dict()
-rms_all = dict()
-d_stats = dict()
 
-### Figure shading
-for vf in ['vf4', 'vf5']:
-    ctag = '{}-5alp'.format(vf)
-    fig, ax = plt.subplots()
-
-    nams = ['fomi']+ ['new_old_{}-a{}'.format(vf, i) for i in range(5)] + ['new_old_vf5-a1_alphareint']
-    colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet'] + ['black']
-    dolls =  [False, True, False, False, False, False, False]
+def plot_all_mipas(figtag, nams, colors, dolls = None):
+    if dolls is None:
+        dolls = [True]*len(nams)
 
     for na, col, doll in zip(nams, colors, dolls):
         co = crall_rg[na] + crall_rg['obs']
@@ -552,7 +559,7 @@ for vf in ['vf4', 'vf5']:
 
     ax.legend()
 
-    fig.savefig(cart_out + 'gcs_{}_latest.pdf'.format(ctag))
+    fig.savefig(cart_out + 'gcs_{}.pdf'.format(figtag))
     #fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
 
     #########################################
@@ -586,11 +593,7 @@ for vf in ['vf4', 'vf5']:
 
         ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
-    fig.savefig(cart_out + 'gcs_latbands_{}_latest.pdf'.format(ctag))
-
-
-    #############################################
-    ### now with RMS
+    fig.savefig(cart_out + 'gcs_latbands_{}.pdf'.format(figtag))
 
     fig, ax = plt.subplots()
 
@@ -608,7 +611,7 @@ for vf in ['vf4', 'vf5']:
 
     ax.legend()
 
-    fig.savefig(cart_out + 'gcs_RMS_{}_latest.pdf'.format(ctag))
+    fig.savefig(cart_out + 'gcs_RMS_{}.pdf'.format(figtag))
     #fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
 
     #########################################
@@ -634,8 +637,140 @@ for vf in ['vf4', 'vf5']:
 
         ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
-    fig.savefig(cart_out + 'gcs_RMS_latbands_{}_latest.pdf'.format(ctag))
+    fig.savefig(cart_out + 'gcs_RMS_latbands_{}'.format(figtag))
 
+    return
+
+
+### now the plots
+
+figtag = 'vf5-a1-allntops'
+nams = ['fomi']+ ['new_old_vf5-a1-{}'.format(n_top) for n_top in [60, 63, 65, 67, 70]]
+colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
+dolls =  [True, True, False, False, False, False]
+plot_all_mipas(figtag, nams, colors, dolls)
+
+sys.exit()
+
+d_all = dict()
+rms_all = dict()
+d_stats = dict()
+
+### Figure shading
+for vf in ['vf4', 'vf5']:
+    ctag = '{}-5alp'.format(vf)
+    fig, ax = plt.subplots()
+
+    nams = ['fomi']+ ['new_old_{}-a{}'.format(vf, i) for i in range(5)] + ['new_old_vf5-a1_alphareint']
+    colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet'] + ['black']
+    dolls =  [True, False, False, False, False, False, True]
+
+    for na, col, doll in zip(nams, colors, dolls):
+        co = crall_rg[na] + crall_rg['obs']
+        d_all[na] = co
+
+        d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
+        d_stats[(na, '1st')] = np.nanpercentile(co, 25, axis = 0)
+        d_stats[(na, '3rd')] = np.nanpercentile(co, 75, axis = 0)
+        d_stats[(na, 'std')] = np.nanstd(co, axis = 0)
+        d_stats[(na, 'mean')] = np.nanmean(co, axis = 0)
+
+        if doll:
+            ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.2)
+        # ax.plot(d_stats[(na, '1st')], x_ref, color = col, ls = '--')
+        # ax.plot(d_stats[(na, '3rd')], x_ref, color = col, ls = '--')
+        ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = na)
+
+    ax.grid()
+    ax.set_xlim(-10., 10.)
+    #ax.set_ylim(40., 110.)
+    ax.set_ylim(9., 18.)
+
+    ax.legend()
+
+    fig.savefig(cart_out + 'gcs_{}_alphareint.pdf'.format(ctag))
+    #fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
+
+    #########################################
+    fig, axs = plt.subplots(2, 3, figsize = (16, 9))
+
+    lats = np.arange(-90, 91, 30)
+    for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
+        cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
+
+        for na, col, doll in zip(nams, colors, dolls):
+            co = d_all[na][cond]
+
+            d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
+            d_stats[(na, '1st')] = np.nanpercentile(co, 25, axis = 0)
+            d_stats[(na, '3rd')] = np.nanpercentile(co, 75, axis = 0)
+            d_stats[(na, 'std')] = np.nanstd(co, axis = 0)
+            d_stats[(na, 'mean')] = np.nanmean(co, axis = 0)
+
+            if doll:
+                ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.2)
+            # ax.plot(d_stats[(na, '1st')], x_ref, color = col, ls = '--')
+            # ax.plot(d_stats[(na, '3rd')], x_ref, color = col, ls = '--')
+            ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = na)
+
+        ax.grid()
+        ax.set_xlim(-10., 10.)
+        if lat2 == 90:
+            ax.set_xlim(-15., 25.)
+        #ax.set_ylim(40., 110.)
+        ax.set_ylim(9., 18.)
+
+        ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
+
+    fig.savefig(cart_out + 'gcs_latbands_{}_alphareint.pdf'.format(ctag))
+
+
+    #############################################
+    ### now with RMS
+
+    fig, ax = plt.subplots()
+
+    for na, col, doll in zip(nams, colors, dolls):
+        co = crall_rg[na] + crall_rg['obs']
+        coso = np.mean(co**2, axis = 0)
+        rms_all[na] = np.sqrt(coso)
+
+        ax.plot(rms_all[na], x_ref, color = col, lw = 2, label = na)
+
+    ax.grid()
+    ax.set_xlim(0., 15.)
+    #ax.set_ylim(40., 110.)
+    ax.set_ylim(9., 18.)
+
+    ax.legend()
+
+    fig.savefig(cart_out + 'gcs_RMS_{}_alphareint.pdf'.format(ctag))
+    #fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
+
+    #########################################
+    fig, axs = plt.subplots(2, 3, figsize = (16, 9))
+
+    lats = np.arange(-90, 91, 30)
+    for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
+        cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
+
+        for na, col, doll in zip(nams, colors, dolls):
+            co = d_all[na][cond]
+            coso = np.mean(co**2, axis = 0)
+            coso = np.sqrt(coso)
+
+            ax.plot(coso, x_ref, color = col, lw = 2, label = na)
+
+        ax.grid()
+        ax.set_xlim(0., 15.)
+        if lat2 == 90:
+            ax.set_xlim(0., 25.)
+        #ax.set_ylim(40., 110.)
+        ax.set_ylim(9., 18.)
+
+        ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
+
+    fig.savefig(cart_out + 'gcs_RMS_latbands_{}_alphareint.pdf'.format(ctag))
 
     ##### now with reference
     fig, ax = plt.subplots()
@@ -676,7 +811,7 @@ for vf in ['vf4', 'vf5']:
                 spl = spline(x_fomi, cr_fomi)
                 hr_calc = spl(x_ref)
             else:
-                version = na.split('_')[-1]
+                version = na.split('_')[-1] + '-65'
                 hr_calc = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old[version], old_param = True)
 
             ref_calcs[(na, atm)] = hr_calc-all_coeffs_nlte[(atm, 3, 'hr_ref')]
@@ -743,7 +878,7 @@ for vf in ['vf4', 'vf5']:
     # for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
     #     cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
     #for atm in allatms:
-    for atm in ['sas', 'mls', 'tro', 'mle', 'mlw', 'saw']:
+    for atm, ax in zip(['sas', 'mls', 'tro', 'mle', 'mlw', 'saw'], axs.flatten()):
         ax.set_title(atm)
         for na, col, doll in zip(nams, colors, dolls):
             ax.plot(ref_calcs[(na, atm)], x_ref, color = col, lw = 2, label = na)
@@ -755,13 +890,13 @@ for vf in ['vf4', 'vf5']:
         #ax.set_ylim(40., 110.)
         ax.set_ylim(9., 18.)
 
-        ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
+        #ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
     fig.savefig(cart_out + 'gcs_reference_latbands_{}_latest.pdf'.format(ctag))
 
     fig, axs = plt.subplots(2, 3, figsize = (16, 9))
 
-    for atm in ['sas', 'mls', 'tro', 'mle', 'mlw', 'saw']:
+    for atm, ax in zip(['sas', 'mls', 'tro', 'mle', 'mlw', 'saw'], axs.flatten()):
         ax.set_title(atm)
         for na, col, doll in zip(nams, colors, dolls):
             rms = np.abs(ref_calcs[(na, atm)])
@@ -774,7 +909,7 @@ for vf in ['vf4', 'vf5']:
         #ax.set_ylim(40., 110.)
         ax.set_ylim(9., 18.)
 
-        ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
+        #ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
     fig.savefig(cart_out + 'gcs_reference_latbands_RMS_{}_latest.pdf'.format(ctag))
 

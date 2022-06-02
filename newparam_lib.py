@@ -75,13 +75,13 @@ from scipy.optimize import Bounds, minimize, least_squares
 #############################################################
 
 
-def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None):
+def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80):
     """
     New param valid for the full atmosphere.
     """
-    alt2 = 51 # 50
-    n_top = 65 # 61
-    n_alts_cs = 80
+    # alt2 = 51 # 50
+    # n_top = 65 # 61
+    # n_alts_cs = 80
 
     ##### Interpolate all profiles to param grid.
     #print('I am not interpolating yet! profiles should already be given on a fix grid')
@@ -268,9 +268,9 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
         if not old_param:
-            interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file)
+            interp_coeffs = precalc_interp(coeffs = coeffs, coeff_file = coeff_file, n_top = n_top)
         else:
-            interp_coeffs = precalc_interp_old(coeffs = coeffs, coeff_file = coeff_file)
+            interp_coeffs = precalc_interp_old(coeffs = coeffs, coeff_file = coeff_file, n_top = n_top)
 
     ## custom x grid
     x = np.log(1000./pres)
@@ -285,28 +285,28 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     ##### INTERPOLATE EVERYTHING TO REFERENCE GRID HERE ####
     spl = spline(x, temp, extrapolate = True)
     temp_rg = spl(x_ref)
-    temp_rg[x_ref > np.max(x)] = np.nan
+    temp_rg[x_ref > np.max(x)+0.25] = np.nan
 
     spl = spline(x, np.log(pres), extrapolate = True)
     pres_rg = spl(x_ref)
     pres_rg = np.exp(pres_rg)
-    pres_rg[x_ref > np.max(x)] = np.nan
+    pres_rg[x_ref > np.max(x)+0.25] = np.nan
 
     spl = spline(x, ovmr, extrapolate = True)
     ovmr_rg = spl(x_ref)
-    ovmr_rg[x_ref > np.max(x)] = np.nan
+    ovmr_rg[x_ref > np.max(x)+0.25] = np.nan
 
     spl = spline(x, o2vmr, extrapolate = True)
     o2vmr_rg = spl(x_ref)
-    o2vmr_rg[x_ref > np.max(x)] = np.nan
+    o2vmr_rg[x_ref > np.max(x)+0.25] = np.nan
 
     spl = spline(x, co2vmr, extrapolate = True)
     co2vmr_rg = spl(x_ref)
-    co2vmr_rg[x_ref > np.max(x)] = np.nan
+    co2vmr_rg[x_ref > np.max(x)+0.25] = np.nan
 
     spl = spline(x, n2vmr, extrapolate = True)
     n2vmr_rg = spl(x_ref)
-    n2vmr_rg[x_ref > np.max(x)] = np.nan
+    n2vmr_rg[x_ref > np.max(x)+0.25] = np.nan
 
 
     ########## Call new param
@@ -315,7 +315,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     if not old_param:
         resu = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col, debug_starthigh = debug_starthigh, alt2up = alt2up, n_top = n_top)
     else:
-        resu = new_param_full_old(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha)
+        rp = alt2up, n_top = n_topesu = new_param_full_old(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha, alt2 = alt2up, n_top = n_top)
 
     if not old_param and debug:
         hr_calc_fin, cose = resu
