@@ -89,7 +89,7 @@ cose_upper_atm = pickle.load(open(cart_out_3 + 'cose_upper_atm.p', 'rb'))
 #   - gli alpha per la upper transition region, anche loro per tutti i co2
 
 for vna, varfit in zip(['vf4', 'vf5'], ['varfit4_nlte', 'varfit5_nlte']):
-    for afi in ['a1', 'a2']:
+    for afi in ['a{}'.format(i) for i in range(5)]:
         ctag = '{}-{}'.format(vna, afi)
 
         alpha_unif = pickle.load(open(cart_out_rep + 'alpha_unif_v{}_top{}.p'.format(afi[1], n_top), 'rb'))

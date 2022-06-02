@@ -1834,7 +1834,7 @@ def transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7, 
     #fac = (2.63187e11 * co2vmr * (1-lamb))/MM
     fac = (2.55520997e11 *co2vmr * (1-lamb))/MM
 
-    eps_gn = np.zeros(n_trans)
+    eps_gn = np.zeros(n_trans+1)
     eps_gn[0] = eps125/fac[0]
 
     for j in range(1, n_trans): # Formula 9
@@ -1853,11 +1853,11 @@ def transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7, 
     #     Phi_165 = eps_gn[n_trans] + phi_fun[n_trans]
     #     eps_gn[n_trans:] = (Phi_165 - phi_fun[n_trans:])
 
-    hr_new = fac * eps_gn  # Formula 7 ### change sign back to heating rate if changed above
+    hr_new = fac[1:] * eps_gn[1:]  # Formula 7 ### change sign back to heating rate if changed above
 
-    hr_new = hr_new * (24*60*60) / cp # convert back to K/day
+    hr_new = hr_new * (24*60*60) / cp[1:] # convert back to K/day
 
-    return hr_new[1:]
+    return hr_new#[1:]
 
 
 def transrec_step(nu_alpha, ii, alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = 7, ovmr = None, factor_from_code = True):
@@ -1948,16 +1948,18 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
 
     fu = []
     for i, atm in enumerate(allatms):
-        hr_ref = all_coeffs[(atm, cco2, 'hr_nlte')][n_alts_trlo:n_alts_trhi]
+        hr_ref = all_coeffs[(atm, cco2, 'hr_nlte')][n_alts_trlo:n_alts_trhi+1]
+        eps125 = all_coeffs[(atm, cco2, 'hr_ref')][n_alts_trlo-1]
 
         L_esc = cose_upper_atm[(atm, cco2, name_escape_fun)][n_alts_trlo-1:n_alts_trhi]
-        lamb = cose_upper_atm[(atm, cco2, 'lamb')][n_alts_trlo-1:n_alts_trhi]
-        co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo-1:n_alts_trhi]
-        MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo-1:n_alts_trhi]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')][n_alts_trlo-1:n_alts_trhi+1]
+        co2vmr = cose_upper_atm[(atm, cco2, 'co2vmr')][n_alts_trlo-1:n_alts_trhi+1]
+        MM = cose_upper_atm[(atm, cco2, 'MM')][n_alts_trlo-1:n_alts_trhi+1]
+        ovmr = cose_upper_atm[(atm, cco2, 'ovmr')][n_alts_trlo-1:n_alts_trhi+1]
         temp = atm_pt[(atm, 'temp')][n_alts_trlo-1:n_alts_trhi]
-        eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
+        #eps125 = cose_upper_atm[(atm, cco2, 'eps125')]
 
-        hr_calc = transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, n_trans = n_alts_trhi-n_alts_trlo+1)
+        hr_calc = transrecformula2(alpha, L_esc, lamb, eps125, co2vmr, MM, temp, ovmr = ovmr, n_trans = n_alts_trhi-n_alts_trlo+1)
 
         # atmweights will be squared by the loss function inside least_quares
         fu.append(np.sqrt(weigths[i]) * (hr_calc - hr_ref))
@@ -1967,6 +1969,35 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
     # fu = weigths[:, np.newaxis]*fu**2
     # fu = np.sqrt(np.sum(fu, axis = 0)) # in questo modo fu ha dimensione n_trans
     # #resid = np.sqrt(atmweigths[i] * np.sum((hr_calc - hr)**2))
+
+    return fu
+
+
+def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_trhi = 65, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc_all_extP'):
+    """
+    This is done for all n_trans = 6 altitudes at a time.
+    """
+    n_alts_cs = 80
+
+    n_trans = n_alts_trhi-n_alts_trlo+1
+
+    fu = []
+    for i, atm in enumerate(allatms):
+        temp = atm_pt[(atm, 'temp')]
+        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
+        co2vmr = atm_pt[(atm, cco2, 'co2')]
+        ovmr = all_coeffs[(atm, cco2, 'o_vmr')]
+        L_esc = cose_upper_atm[(atm, cco2, name_escape_fun)]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')]
+        MM = cose_upper_atm[(atm, cco2, 'MM')]
+
+        hr_calc = recformula(alpha, L_esc, lamb, hr_ref, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi, ovmr = ovmr, n_alts_cs = n_alts_cs)
+
+        # atmweights will be squared by the loss function inside least_quares
+        fu.append(np.sqrt(weigths[i]) * (hr_calc[n_alts_trlo:n_alts_trhi+1] - hr_ref[n_alts_trlo:n_alts_trhi+1]))
+        #fu.append(hr_calc - hr_ref)
+
+    fu = np.concatenate(fu)
 
     return fu
 

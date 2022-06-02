@@ -99,63 +99,40 @@ for n_top in [65]:#, 60, 63, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
     # alpha FIT!
+    alpha_dic = dict()
 
     n_trans = n_top-alt2+1
 
     #bounds = (0.1*np.ones(n_trans), 100*np.ones(n_trans))
     bounds = (np.ones(n_trans), 100*np.ones(n_trans))
 
-    atmweights = np.ones(6)
+    for afit, atmw in zip(['a{}'.format(i) for i in range(5)], [np.ones(6), [0.3, 0.1, 0.1, 0.4, 0.05, 0.05], np.array([0.3, 0.1, 0.1, 0.4, 0.05, 0.05])**2, [0., 0.1, 0.1, 0., 1, 1], [1, 0., 0., 1, 0., 0.]]):
+        atmweights = atmw
 
-    alpha_unif = []
-    alpha_dic_atm = dict()
-    start = np.ones(n_trans)
-    name_escape_fun = 'L_esc_all_extP'
-    for cco2 in range(1, npl.n_co2prof+1):
-        result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
-        alpha_unif.append(result.x)
+        alpha_unif = []
+        alpha_dic_atm = dict()
+        start = np.ones(n_trans)
+        name_escape_fun = 'L_esc_all_extP'
+        for cco2 in range(1, npl.n_co2prof+1):
+            result = least_squares(npl.delta_alpha_rec2_recf, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
+            alpha_unif.append(result.x)
 
-        if do_single:
-            alphas = []
-            for atm in allatms:
-                print(atm, cco2)
-                cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-                ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
-                result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
-                #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-                print('least_squares', result)
-                alphas.append(result.x)
+            if do_single:
+                alphas = []
+                for atm in allatms:
+                    print(atm, cco2)
+                    cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
+                    ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
+                    result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
+                    #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
+                    print('least_squares', result)
+                    alphas.append(result.x)
 
-            alpha_dic_atm[cco2] = np.stack(alphas)
+                alpha_dic_atm[cco2] = np.stack(alphas)
 
-    alpha_unif = np.stack(alpha_unif)
-    pickle.dump(alpha_unif, open(cart_out_rep + 'alpha_unif_v1_top{}.p'.format(n_top), 'wb'))
-
-    atmweigths = [0.3, 0.1, 0.1, 0.4, 0.05, 0.05]
-
-    alpha_unif = []
-    alpha_dic_atm = dict()
-    start = np.ones(n_trans)
-    name_escape_fun = 'L_esc_all_extP'
-    for cco2 in range(1, npl.n_co2prof+1):
-        result = least_squares(npl.delta_alpha_rec2, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
-        alpha_unif.append(result.x)
-
-        if do_single:
-            alphas = []
-            for atm in allatms:
-                print(atm, cco2)
-                cose_upper_atm[(atm, cco2, 'eps125')] = all_coeffs_nlte[(atm, cco2, 'hr_ref')][alt2-1] # Trying with the reference HR
-                ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')][alt2-1:n_top]
-                result = least_squares(npl.delta_alpha_rec2_atm, start, args=(atm, cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ovmr, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000)#, gtol = gtol, xtol = xtol)
-                #result = least_squares(npl.delta_alpha_rec2, 10*np.ones(n_trans), args=(cco2, cose_upper_atm, n_alts_trlo, n_alts_trhi, atmweights, all_coeffs_nlte, atm_pt, ), verbose=1, method = 'lm')
-                print('least_squares', result)
-                alphas.append(result.x)
-
-            alpha_dic_atm[cco2] = np.stack(alphas)
-
-    alpha_unif = np.stack(alpha_unif)
-    pickle.dump(alpha_unif, open(cart_out_rep + 'alpha_unif_v2_top{}.p'.format(n_top), 'wb'))
+        alpha_unif = np.stack(alpha_unif)
+        pickle.dump(alpha_unif, open(cart_out_rep + 'alpha_unif_v{}_top{}.p'.format(afit[-1], n_top), 'wb'))
+        alpha_dic[afit] = alpha_unif
 
     continue
 
