@@ -95,7 +95,7 @@ x4 = solver_anom.pcs(pcscaling = 1)[:, 4]
 
 do_single = False
 
-for n_top in [65]:#, 60, 63, 67, 70]:
+for n_top in [65, 60, 63, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
     # alpha FIT!

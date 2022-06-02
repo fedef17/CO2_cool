@@ -103,7 +103,7 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
         coeff = coeff_from_interp_log(int_fun, sc, co2vmr)
         calc_coeffs[nam] = coeff
 
-    calc_coeffs['alpha'] = coeff_from_interp_lin(interp_coeffs[('alpha', 'int_fun')], co2vmr)
+    calc_coeffs['alpha'] = coeff_from_interp_lin(interp_coeffs[('alpha', 'int_fun')], co2vmr[alt2:n_top+1])
 
     calc_coeffs['L_all'] = coeff_from_interp_lin(interp_coeffs[('Lesc', 'int_fun')], co2vmr, use_co2mean = True)
     calc_coeffs['uco2'] = interp_coeffs['uco2']
@@ -136,7 +136,7 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
     return hr_calc
 
 
-def precalc_interp_old(coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p'):
+def precalc_interp_old(coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', alt2 = 51, n_top = 65):
 
     if coeffs is None:
         coeffs = pickle.load(open(coeff_file, 'rb'))
@@ -153,7 +153,7 @@ def precalc_interp_old(coeffs = None, coeff_file = cart_out + '../newpar_allatm/
     interp_coeffs[('Lesc', 'int_fun')] = int_fun
     interp_coeffs['uco2'] = coeffs['uco2']
 
-    int_fun = interp_coeff_linco2(coeffs['alpha'], coeffs['co2profs'])
+    int_fun = interp_coeff_linco2(coeffs['alpha'], coeffs['co2profs'][:, alt2:n_top+1])
     interp_coeffs[('alpha', 'int_fun')] = int_fun
 
     return interp_coeffs
