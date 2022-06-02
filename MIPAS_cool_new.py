@@ -412,6 +412,9 @@ if do_calc:
         ctag = 'vf4-a1'
         new_param_check_old = pickle.load( open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
 
+        ctag = '5alphas'
+        pickle.dump(new_param_check, open(cart_out+'check_all_out_ssw2009_{}.p'.format(ctag),'wb'))
+
         for ke in list(new_param_check.keys()):
             if len(new_param_check[ke]) > 0:
                 new_param_check[ke] = np.stack(new_param_check[ke])
@@ -422,7 +425,7 @@ if do_calc:
             if ke in new_param_check:
                 del new_param_check_old[ke]
                 continue
-                
+
             if len(new_param_check_old[ke]) > 0:
                 new_param_check_old[ke] = np.stack(new_param_check_old[ke])
             else:
