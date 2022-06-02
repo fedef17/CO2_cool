@@ -2001,6 +2001,29 @@ def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_
 
     return fu
 
+def delta_alpha_rec2_recf_general(alpha, hr_refs, temps, co2vmrs, ovmrs, L_escs, MMs, lambs, n_alts_trlo = 51, n_alts_trhi = 65, weights = None):
+    """
+    This is done for all n_trans = 6 altitudes at a time.
+    """
+    n_alts_cs = 80
+
+    n_trans = n_alts_trhi-n_alts_trlo+1
+
+    fu = []
+    for i, (hr_ref, temp, co2vmr, ovmr, L_esc, MM, lamb) in enumerate(zip(hr_refs, temps, co2vmrs, ovmrs, L_escs, MMs, lambs)):
+        hr_calc = recformula(alpha, L_esc, lamb, hr_ref, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi, ovmr = ovmr, n_alts_cs = n_alts_cs)
+
+        # atmweights will be squared by the loss function inside least_quares
+        fac = 1.
+        if weights is not None:
+            fac = np.sqrt(weigths[i])
+        fu.append(fac*(hr_calc[n_alts_trlo:n_alts_trhi+1] - hr_ref[n_alts_trlo:n_alts_trhi+1]))
+        #fu.append(hr_calc - hr_ref)
+
+    fu = np.concatenate(fu)
+
+    return fu
+
 
 def delta_alpha_rec2_atm(alpha, atm, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi = 56, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc', ovmr = None, eps125 = None):
     """

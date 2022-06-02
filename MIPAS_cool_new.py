@@ -121,13 +121,16 @@ new_param_check = dict()
 # for nam in nams:
 #     new_param_check[nam] = []
 
-vfit = 'vf5'
-afit = 'a1'
-for n_top in [60, 63, 65, 67, 70]:
-    nam = 'new_old_{}-{}-{}'.format(vfit, afit, n_top)
-    new_param_check[nam] = []
+# vfit = 'vf5'
+# afit = 'a1'
+# for n_top in [60, 63, 65, 67, 70]:
+#     nam = 'new_old_{}-{}-{}'.format(vfit, afit, n_top)
+#     new_param_check[nam] = []
+
+new_param_check['new_mipfit65'] = []
 
 # new_param_check['new_old_vf5-a1_alphareint'] = []
+alpha_mip = pickle.load(open(cart_out + 'alpha_mip_fit.p', 'rb'))
 
 alpha3, alpha4, alpha5 = pickle.load(open(cart_out + 'test_alpha.p', 'rb'))
 
@@ -358,12 +361,18 @@ if do_calc:
 
         # for vfit in ['vf4', 'vf5']:
         #     for afit in ['a{}'.format(i) for i in range(5)]:
+        # vfit = 'vf5'
+        # afit = 'a1'
+        # for n_top in [60, 63, 65, 67, 70]:
+        #     nam = 'new_old_{}-{}-{}'.format(vfit, afit, n_top)
+        #     cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-{}'.format(vfit, afit, n_top)], old_param = True, n_top = n_top)
+        #     new_param_check[nam].append(cr_new)
         vfit = 'vf5'
         afit = 'a1'
-        for n_top in [60, 63, 65, 67, 70]:
-            nam = 'new_old_{}-{}-{}'.format(vfit, afit, n_top)
-            cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-{}'.format(vfit, afit, n_top)], old_param = True, n_top = n_top)
-            new_param_check[nam].append(cr_new)
+        n_top = 65
+        nam = 'new_mipfit65'
+        cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-{}'.format(vfit, afit, n_top)], old_param = True, n_top = n_top, debug_alpha = alpha_mip[65])
+        new_param_check[nam].append(cr_new)
 
         # for vfit in ['vf4', 'vf5']:
         #     for afit in ['a{}'.format(i) for i in range(5)]:
@@ -533,8 +542,14 @@ all_alts = atm_pt[('mle', 'alts')]
 
 
 def plot_all_mipas(figtag, nams, colors, dolls = None):
+    d_all = dict()
+    rms_all = dict()
+    d_stats = dict()
+
     if dolls is None:
         dolls = [True]*len(nams)
+
+    fig, ax = plt.subplots()
 
     for na, col, doll in zip(nams, colors, dolls):
         co = crall_rg[na] + crall_rg['obs']
@@ -648,6 +663,12 @@ figtag = 'vf5-a1-allntops'
 nams = ['fomi']+ ['new_old_vf5-a1-{}'.format(n_top) for n_top in [60, 63, 65, 67, 70]]
 colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, False, False, False, False]
+plot_all_mipas(figtag, nams, colors, dolls)
+
+figtag = 'mipfit65'
+nams = ['fomi', 'new_old_vf5-a1-65', 'new_mipfit65']
+colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
+dolls =  [True, True, True, False, False, False]
 plot_all_mipas(figtag, nams, colors, dolls)
 
 sys.exit()
