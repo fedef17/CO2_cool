@@ -419,6 +419,10 @@ if do_calc:
                 del new_param_check[ke]
 
         for ke in list(new_param_check_old.keys()):
+            if ke in new_param_check:
+                del new_param_check_old[ke]
+                continue
+                
             if len(new_param_check_old[ke]) > 0:
                 new_param_check_old[ke] = np.stack(new_param_check_old[ke])
             else:
