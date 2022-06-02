@@ -86,7 +86,7 @@ interp_coeffs = npl.precalc_interp(coeff_file = coeff_file)
 interp_coeffs_old = dict()
 
 for vfit in ['vf4', 'vf5']:
-    for afit in ['a1', 'a2', 'a3']:
+    for afit in ['a{}'.format(i) for i in range(5)]:
         ctag = '{}-{}'.format(vfit, afit)
         coeff_file = cart_base + 'lavori/CO2_cooling/new_param/newpar_allatm/coeffs_finale_{}.p'.format(ctag)
         interp_coeffs_old[ctag] = npl.precalc_interp_old(coeff_file = coeff_file)
