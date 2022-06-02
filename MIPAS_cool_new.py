@@ -114,7 +114,8 @@ new_param_fomilike_50 = []
 new_param_fomilike_51 = []
 
 new_param_check = dict()
-nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1', 'new_old_vf5-a1', 'new_old_vf4-a2', 'new_old_vf5-a2', 'new_ax05', 'new_ax07', 'new_amedio', 'new_ax2', 'new_old_vf4-a3', 'new_old_vf5-a3']
+#nams = ['new_fomilike_51_starth', 'new_fa_starth', 'new_alphaunif_fomiLesc', 'new_alphaunif', 'new_old_vf4-a1', 'new_old_vf5-a1', 'new_old_vf4-a2', 'new_old_vf5-a2', 'new_ax05', 'new_ax07', 'new_amedio', 'new_ax2', 'new_old_vf4-a3', 'new_old_vf5-a3']
+nams = ['new_old_{}-a{}'.format(vf, i) for i in range(5) for vf in ['vf4', 'vf5']]
 for nam in nams:
     new_param_check[nam] = []
 
