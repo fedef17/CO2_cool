@@ -127,7 +127,9 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
 
     if debug_alpha is not None:
+        print('alpha old: ', calc_coeffs['alpha'])
         alpha = debug_alpha
+        print('alpha new: ', alpha)
     else:
         alpha = calc_coeffs['alpha']
 
@@ -1973,7 +1975,7 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
     return fu
 
 
-def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_trhi = 65, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc_all_extP'):
+def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_trhi = 65, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc_all_extP', imaxcalc = None):
     """
     This is done for all n_trans = 6 altitudes at a time.
     """
@@ -1983,13 +1985,13 @@ def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_
 
     fu = []
     for i, atm in enumerate(allatms):
-        temp = atm_pt[(atm, 'temp')]
-        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')]
-        co2vmr = atm_pt[(atm, cco2, 'co2')]
-        ovmr = all_coeffs[(atm, cco2, 'o_vmr')]
-        L_esc = cose_upper_atm[(atm, cco2, name_escape_fun)]
-        lamb = cose_upper_atm[(atm, cco2, 'lamb')]
-        MM = cose_upper_atm[(atm, cco2, 'MM')]
+        temp = atm_pt[(atm, 'temp')][:imaxcalc]
+        hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:imaxcalc]
+        co2vmr = atm_pt[(atm, cco2, 'co2')][:imaxcalc]
+        ovmr = all_coeffs[(atm, cco2, 'o_vmr')][:imaxcalc]
+        L_esc = cose_upper_atm[(atm, cco2, name_escape_fun)][:imaxcalc]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')][:imaxcalc]
+        MM = cose_upper_atm[(atm, cco2, 'MM')][:imaxcalc]
 
         hr_calc = recformula(alpha, L_esc, lamb, hr_ref, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi, ovmr = ovmr, n_alts_cs = n_alts_cs)
 

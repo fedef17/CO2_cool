@@ -152,7 +152,7 @@ alpha_fom = []
 Lesc_fom = []
 co2col_fom = []
 
-do_calc = True
+do_calc = False
 calc_only_new = True
 
 if do_calc:
@@ -652,9 +652,49 @@ def plot_all_mipas(figtag, nams, colors, dolls = None):
 
         ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
-    fig.savefig(cart_out + 'gcs_RMS_latbands_{}'.format(figtag))
+    fig.savefig(cart_out + 'gcs_RMS_latbands_{}.pdf'.format(figtag))
 
     return
+
+
+def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = interp_coeffs_old[('vf5-a0-65')], use_fomi = False):
+    """
+    Calcs difference to all reference atms.
+    """
+    ref_calcs = dict()
+
+    for atm in allatms:
+        #calc
+        ii = allatms.index(atm)
+
+        temp = atm_pt[(atm, 'temp')]
+        surf_temp = atm_pt[(atm, 'surf_temp')]
+        pres = atm_pt[(atm, 'pres')]
+
+        hr_ref = all_coeffs_nlte[(atm, cco2, 'hr_ref')]
+
+        x_ref = np.log(1000./pres)
+
+        co2vmr = atm_pt[(atm, cco2, 'co2')]
+        ovmr = all_coeffs_nlte[(atm, cco2, 'o_vmr')]
+        o2vmr = all_coeffs_nlte[(atm, cco2, 'o2_vmr')]
+        n2vmr = all_coeffs_nlte[(atm, cco2, 'n2_vmr')]
+
+        L_esc = cose_upper_atm[(atm, cco2, 'L_esc_all_extP')]
+        lamb = cose_upper_atm[(atm, cco2, 'lamb')]
+        MM = cose_upper_atm[(atm, cco2, 'MM')]
+
+        if use_fomi:
+            alt_fomi, x_fomi, cr_fomi = npl.old_param(all_alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = cart_run_fomi)
+            spl = spline(x_fomi, cr_fomi)
+            hr_calc = spl(x_ref)
+        else:
+            hr_calc = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, old_param = True, debug_alpha = debug_alpha, n_top = n_top)
+
+        ref_calcs[atm] = hr_calc-all_coeffs_nlte[(atm, 3, 'hr_ref')]
+
+    return ref_calcs
+
 
 
 ### now the plots
@@ -664,6 +704,13 @@ nams = ['fomi']+ ['new_old_vf5-a1-{}'.format(n_top) for n_top in [60, 63, 65, 67
 colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, False, False, False, False]
 plot_all_mipas(figtag, nams, colors, dolls)
+
+for vf in ['vf4', 'vf5']:
+    figtag = '{}-5alp'.format(vf)
+    nams = ['fomi']+ ['new_old_{}-a{}'.format(vf, i) for i in range(5)]
+    colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
+    dolls =  [True, False, True, False, False, False]
+    plot_all_mipas(figtag, nams, colors, dolls)
 
 figtag = 'mipfit65'
 nams = ['fomi', 'new_old_vf5-a1-65', 'new_mipfit65']
@@ -794,6 +841,7 @@ for vf in ['vf4', 'vf5']:
     fig.savefig(cart_out + 'gcs_RMS_latbands_{}_alphareint.pdf'.format(ctag))
 
     ##### now with reference
+
     fig, ax = plt.subplots()
 
     nams = ['fomi']+ ['new_old_{}-a{}'.format(vf, i) for i in range(5)]

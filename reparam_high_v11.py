@@ -96,7 +96,7 @@ x4 = solver_anom.pcs(pcscaling = 1)[:, 4]
 do_single = False
 
 alpha_dic = dict()
-for n_top in [65, 60, 63, 67, 70]:
+for n_top in [57, 60, 63, 65, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
     # alpha FIT!
@@ -133,6 +133,8 @@ for n_top in [65, 60, 63, 67, 70]:
         alpha_unif = np.stack(alpha_unif)
         pickle.dump(alpha_unif, open(cart_out_rep + 'alpha_unif_v{}_top{}.p'.format(afit[-1], n_top), 'wb'))
         alpha_dic[(afit, n_top)] = alpha_unif
+
+    pickle.dump(alpha_dic, open(cart_out_rep + 'alpha_unif_allw_ntops.p', 'wb'))
 
     continue
 
