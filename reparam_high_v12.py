@@ -97,7 +97,7 @@ do_single = False
 
 alpha_dic = dict()
 neste = 100
-for n_top in [57, 60, 63, 65, 67, 70]:
+for n_top in [65, 57, 60, 63, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
     # alpha FIT!
