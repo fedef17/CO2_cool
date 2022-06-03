@@ -138,15 +138,15 @@ for n_top in [57, 60, 63, 65, 67, 70]:
 
             calpall = [dic1[ke] for ke in dic1]
             este1, este2 = list(dic1.keys())[np.argmin(calpall)]
-            alp0in = np.append(este1*(alpha_range[1][0]-alpha_range[0][0])/neste, este2*(alpha_range[1][1]-alpha_range[0][1])/neste)
+            alp0in = np.append(1+este1*(alpha_range[1][0]-alpha_range[0][0])/neste, 1+este2*(alpha_range[1][1]-alpha_range[0][1])/neste)
             alp0 = alp0in.copy()
 
-            for imaxcalc in range(alt2+3, n_top+1):
+            for imaxcalc in range(alt2+3, n_top+2):
                 costall = []
                 for este in range(neste):
                     #alp = np.ones(imaxcalc-alt2) + este*(alpha_range[1][:imaxcalc-alt2]-alpha_range[0][:imaxcalc-alt2])/neste
 
-                    alp = np.append(alp0, este*(alpha_range[1][imaxcalc-alt2]-alpha_range[0][imaxcalc-alt2])/neste)
+                    alp = np.append(alp0, 1+este*(alpha_range[1][imaxcalc-alt2]-alpha_range[0][imaxcalc-alt2])/neste)
 
                     resu = npl.delta_alpha_rec2_recf(alp, cco2, cose_upper_atm, alt2, imaxcalc-1, atmweights, all_coeffs_nlte, atm_pt, imaxcalc = imaxcalc)
                     #np.sqrt(np.mean(resu**2))
