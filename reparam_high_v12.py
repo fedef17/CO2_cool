@@ -97,7 +97,7 @@ do_single = False
 
 alpha_dic = dict()
 neste = 100
-for n_top in [65, 57, 60, 63, 67, 70]:
+for n_top in [57, 60, 63, 65, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
     # alpha FIT!
@@ -115,7 +115,8 @@ for n_top in [65, 57, 60, 63, 67, 70]:
         alpha_dic_atm = dict()
         start = np.ones(n_trans)
         name_escape_fun = 'L_esc_all_extP'
-        for cco2 in range(1, npl.n_co2prof+1):
+        #for cco2 in range(1, npl.n_co2prof+1):
+        for cco2 in [3]:
             result = least_squares(npl.delta_alpha_rec2_recf, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
             alpha_unif.append(result.x)
 
@@ -141,7 +142,7 @@ for n_top in [65, 57, 60, 63, 67, 70]:
             alp0in = np.append(1+este1*(alpha_range[1][0]-alpha_range[0][0])/neste, 1+este2*(alpha_range[1][1]-alpha_range[0][1])/neste)
             alp0 = alp0in.copy()
 
-            for imaxcalc in range(alt2+3, n_top+2):
+            for imaxcalc in range(alt2+3, n_top+1):
                 costall = []
                 for este in range(neste):
                     #alp = np.ones(imaxcalc-alt2) + este*(alpha_range[1][:imaxcalc-alt2]-alpha_range[0][:imaxcalc-alt2])/neste
