@@ -96,7 +96,7 @@ x4 = solver_anom.pcs(pcscaling = 1)[:, 4]
 do_single = False
 
 alpha_dic = dict()
-neste = 20
+neste = 100
 for n_top in [57, 60, 63, 65, 67, 70]:
     print('------------------- \n {} \n ---------------------'.format(n_top))
     ########### Qui c'è la parte del fit dell'alpha
