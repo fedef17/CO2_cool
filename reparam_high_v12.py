@@ -117,49 +117,52 @@ for n_top in [57, 60, 63, 65, 67, 70]:
         name_escape_fun = 'L_esc_all_extP'
         #for cco2 in range(1, npl.n_co2prof+1):
         for cco2 in [3]:
-            result = least_squares(npl.delta_alpha_rec2_recf, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = 1.e-10, gtol = 1.e-10, xtol = 1.e-10)
+            result = least_squares(npl.delta_alpha_rec2_recf, start, args=(cco2, cose_upper_atm, alt2, n_top, atmweights, all_coeffs_nlte, atm_pt, name_escape_fun, ), verbose=1, method = 'trf', bounds = bounds, max_nfev = 20000, ftol = None, gtol = 1.e-12, xtol = 1.e-12)
             alpha_unif.append(result.x)
 
             ### now the brute force version
             ### vamos entre 1 y 2 veces el valor encontrado arriba, con 10 steps
             ### cada altura indipendente? (va a costar mas)
-            alpha_range = (np.ones(len(result.x)), 2*result.x)
+            n_trans = n_top+1-alt2
+            alpha_range = (np.min([np.ones(n_trans), 0.5*result.x], axis = 0), np.max([np.ones(n_trans), 1.5*result.x], axis = 0))
+
+            def alpstep(ii, este):
+                okalp = alpha_range[0][ii] + este*(alpha_range[1][ii]-alpha_range[0][ii])/neste
+                return okalp
 
             dic1 = dict()
             for este1 in range(neste):
                 for este2 in range(neste):
-                    #alp = np.ones(imaxcalc-alt2) + este*(alpha_range[1][:imaxcalc-alt2]-alpha_range[0][:imaxcalc-alt2])/neste
-
-                    alp = np.append(este1*(alpha_range[1][0]-alpha_range[0][0])/neste, este2*(alpha_range[1][1]-alpha_range[0][1])/neste)
+                    alp = np.append(alpstep(0, este1), alpstep(1, este2))
+                    #print(alp)
 
                     resu = npl.delta_alpha_rec2_recf(alp, cco2, cose_upper_atm, alt2, alt2+1, atmweights, all_coeffs_nlte, atm_pt, imaxcalc = alt2+2)
-                    #np.sqrt(np.mean(resu**2))
-                    cost = np.sum(resu**2)
+                    cost = np.sqrt(np.mean(resu**2))
                     dic1[(este1, este2)] = cost
 
             calpall = [dic1[ke] for ke in dic1]
             este1, este2 = list(dic1.keys())[np.argmin(calpall)]
-            alp0in = np.append(1+este1*(alpha_range[1][0]-alpha_range[0][0])/neste, 1+este2*(alpha_range[1][1]-alpha_range[0][1])/neste)
+            alp0in = np.append(alpstep(0, este1), alpstep(1, este2))
             alp0 = alp0in.copy()
+            print(alp0)
 
             for imaxcalc in range(alt2+3, n_top+1):
                 costall = []
                 for este in range(neste):
-                    #alp = np.ones(imaxcalc-alt2) + este*(alpha_range[1][:imaxcalc-alt2]-alpha_range[0][:imaxcalc-alt2])/neste
-
-                    alp = np.append(alp0, 1+este*(alpha_range[1][imaxcalc-alt2]-alpha_range[0][imaxcalc-alt2])/neste)
+                    alp = np.append(alp0, alpstep(imaxcalc-alt2, este))
 
                     resu = npl.delta_alpha_rec2_recf(alp, cco2, cose_upper_atm, alt2, imaxcalc-1, atmweights, all_coeffs_nlte, atm_pt, imaxcalc = imaxcalc)
-                    #np.sqrt(np.mean(resu**2))
-                    cost = np.sum(resu**2)
+                    cost = np.sqrt(np.mean(resu**2))
                     costall.append(cost)
 
                 estok = np.argmin(costall)
-                print(imaxcalc, estok)
-                alp = np.append(alp0, estok*(alpha_range[1][imaxcalc-alt2]-alpha_range[0][imaxcalc-alt2])/neste)
+                #print(imaxcalc, estok)
+                alp = np.append(alp0, alpstep(imaxcalc-alt2, estok))
+                print(alp)
 
                 alp0 = alp
 
+            print(np.min(costall))
             alpha_unif_bf.append(alp)
 
         alpha_unif = np.stack(alpha_unif)
