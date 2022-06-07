@@ -75,7 +75,7 @@ from scipy.optimize import Bounds, minimize, least_squares
 #############################################################
 
 
-def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80):
+def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80, debug = False):
     """
     New param valid for the full atmosphere.
     """
@@ -93,6 +93,8 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
     if interp_coeffs is None:
         print('interpolating for co2! this should be done calling npl.precalc_interp_old() just once')
         interp_coeffs = precalc_interp_old(coeffs = coeffs, coeff_file = coeff_file)
+
+    debudict = dict()
 
     print('Coeffs from interpolation!')
     calc_coeffs = dict()
@@ -126,6 +128,10 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
 
     lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
 
+    debudict['L_esc'] = L_esc
+    debudict['MM'] = MM
+    debudict['lamb'] = lamb
+
     if debug_alpha is not None:
         print('alpha old: ', calc_coeffs['alpha'])
         alpha = debug_alpha
@@ -133,9 +139,14 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
     else:
         alpha = calc_coeffs['alpha']
 
+    debudict['alpha'] = alpha
+
     hr_calc = recformula(alpha, L_esc, lamb, hr_calc, co2vmr, MM, temp, n_alts_trlo = alt2, n_alts_trhi = n_top, n_alts_cs = n_alts_cs, ovmr = ovmr, factor_from_code = True)
 
-    return hr_calc
+    if debug:
+        return hr_calc, debudict
+    else:
+        return hr_calc
 
 
 def precalc_interp_old(coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', alt2 = 51, n_top = 65):
@@ -317,9 +328,9 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     if not old_param:
         resu = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col, debug_starthigh = debug_starthigh, alt2up = alt2up, n_top = n_top)
     else:
-        resu = new_param_full_old(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha, alt2 = alt2up, n_top = n_top)
+        resu = new_param_full_old(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha, alt2 = alt2up, n_top = n_top, debug = debug)
 
-    if not old_param and debug:
+    if debug:
         hr_calc_fin, cose = resu
     else:
         hr_calc_fin = resu
@@ -1975,7 +1986,7 @@ def delta_alpha_rec2(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
     return fu
 
 
-def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_trhi = 65, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc_all_extP', imaxcalc = None):
+def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_trhi = 65, weigths = np.ones(len(allatms)), all_coeffs = None, atm_pt = atm_pt, name_escape_fun = 'L_esc_all_extP', eps125_allatms = None, imaxcalc = None, debug = False):
     """
     This is done for all n_trans = 6 altitudes at a time.
     """
@@ -1984,6 +1995,9 @@ def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_
     n_trans = n_alts_trhi-n_alts_trlo+1
 
     fu = []
+    hrs = []
+    lescs = []
+    mms = []
     for i, atm in enumerate(allatms):
         temp = atm_pt[(atm, 'temp')][:imaxcalc]
         hr_ref = all_coeffs[(atm, cco2, 'hr_ref')][:imaxcalc]
@@ -1993,15 +2007,27 @@ def delta_alpha_rec2_recf(alpha, cco2, cose_upper_atm, n_alts_trlo = 51, n_alts_
         lamb = cose_upper_atm[(atm, cco2, 'lamb')][:imaxcalc]
         MM = cose_upper_atm[(atm, cco2, 'MM')][:imaxcalc]
 
-        hr_calc = recformula(alpha, L_esc, lamb, hr_ref, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi, ovmr = ovmr, n_alts_cs = n_alts_cs)
+        if eps125_allatms is None:
+            start = None
+        else:
+            start = eps125_allatms[i]
+
+        hr_calc = recformula(alpha, L_esc, lamb, hr_ref, co2vmr, MM, temp, n_alts_trlo = n_alts_trlo, n_alts_trhi = n_alts_trhi, ovmr = ovmr, n_alts_cs = n_alts_cs, debug_starthigh = start)
 
         # atmweights will be squared by the loss function inside least_quares
         fu.append(np.sqrt(weigths[i]) * (hr_calc[n_alts_trlo:n_alts_trhi+1] - hr_ref[n_alts_trlo:n_alts_trhi+1]))
         #fu.append(hr_calc - hr_ref)
+        if debug:
+            hrs.append(hr_calc[n_alts_trlo:n_alts_trhi+1])
+            lescs.append(L_esc)
+            mms.append(MM)
 
     fu = np.concatenate(fu)
 
-    return fu
+    if debug:
+        return fu, hrs, lescs, mms
+    else:
+        return fu
 
 def delta_alpha_rec2_recf_general(alpha, hr_refs, temps, co2vmrs, ovmrs, L_escs, MMs, lambs, n_alts_trlo = 51, n_alts_trhi = 65, weights = None):
     """
