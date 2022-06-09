@@ -396,4 +396,4 @@ for dat in alldates:
     nams = ['fomi', 'new_vf5-a0s-65']
     colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
     dolls =  [True, True]
-    plot_all_mipas(dat, version, figtag, nams, colors, dolls = dolls, tags = tags)
+    plot_all_mipas(dat, version, figtag, nams, colors, dolls = dolls)#, tags = tags)
