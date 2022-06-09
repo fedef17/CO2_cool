@@ -238,7 +238,7 @@ def plot_all_mipas(dat, version, figtag, nams, colors, dolls = None, tags = None
     fig, ax = plt.subplots()
 
     for na, ta, col, doll in zip(nams, tags, colors, dolls):
-        co = crall_rg[(dat, version, na)] + crall_rg[(dat, version, 'obs')]
+        co = crall_rg[((dat, version), na)] + crall_rg[((dat, version), 'obs')]
         d_all[na] = co
 
         d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
