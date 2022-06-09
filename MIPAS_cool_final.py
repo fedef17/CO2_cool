@@ -134,7 +134,7 @@ def calc_all_mipas(date, version):
         inputs['lon'].append(CR.longitude[il])
         inputs['sza'].append(CR.sza[il])
 
-        new_param_check['obs'] = CR.target[il]
+        new_param_check['obs'].append(CR.target[il])
 
         alt_fomi, x_fomi, cr_fomi = npl.old_param(alts, temp, pres, CO2con, Oprof = Ocon, O2prof = O2con, N2prof = N2con, input_in_ppm = True, cart_run_fomi = cart_base + '../cart_run_fomi/')
         splcr = spline(alt_fomi, cr_fomi)
@@ -182,6 +182,13 @@ else:
         print(dat)
         inp, npc = pickle.load(open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'rb'))
         inputs_all[(dat, version)] = inp
+
+        if len(npc['obs'] == 85):
+            print('ricreo obs')
+            npc['obs'] = inp['cr_mipas']
+            pickle.dump([inp, npc], open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'wb'))
+            np.savetxt(cart_out_mip + 'crmipas_{}_{}.txt'.format(dat, version), npc['obs'])
+
         new_param_check_all[(dat, version)] = npc
 
 ###############################################################################################################
