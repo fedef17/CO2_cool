@@ -123,8 +123,14 @@ new_param_check = dict()
 
 vfit = 'vf5'
 afit = 'a0s'
+# for vfit in ['vf4', 'vf5']:
+#     for n_top in [57, 60, 63, 65, 67, 70, 75]:
+#         nam = 'new_astart_{}-{}-{}'.format(vfit, afit, n_top)
+#         new_param_check[nam] = []
+
+n_top = 75
 for vfit in ['vf4', 'vf5']:
-    for n_top in [57, 60, 63, 65, 67, 70, 75]:
+    for afit in ['a{}s'.format(i) for i in range(5)]:
         nam = 'new_astart_{}-{}-{}'.format(vfit, afit, n_top)
         new_param_check[nam] = []
 
@@ -363,12 +369,20 @@ if do_calc:
         #     for afit in ['a{}'.format(i) for i in range(5)]:
         # vfit = 'vf5'
         # afit = 'a1'
-        afit = 'a0s'
-        for vfit in ['vf4', 'vf5']:
-            for n_top in [57, 60, 63, 65, 67, 70, 75]:
-                nam = 'new_astart_{}-{}-{}'.format(vfit, afit, n_top)
-                cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-{}'.format(vfit, afit, n_top)], old_param = True, n_top = n_top)
-                new_param_check[nam].append(cr_new)
+        # afit = 'a0s'
+        # for vfit in ['vf4', 'vf5']:
+        #     for n_top in [57, 60, 63, 65, 67, 70, 75]:
+        #         nam = 'new_astart_{}-{}-{}'.format(vfit, afit, n_top)
+        #         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-{}'.format(vfit, afit, n_top)], old_param = True, n_top = n_top)
+        #         new_param_check[nam].append(cr_new)
+
+        #for n_top in [57, 60, 63, 65, 67, 70, 75]:
+        #for vfit in ['vf4', 'vf5']:
+        vfit = 'vf5'
+        for afit in ['a{}s'.format(i) for i in range(5)]:
+            nam = 'new_astart_{}-{}-75'.format(vfit, afit, n_top)
+            cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs_old['{}-{}-{}'.format(vfit, afit, n_top)], old_param = True, n_top = n_top)
+            new_param_check[nam].append(cr_new)
 
         # vfit = 'vf5'
         # afit = 'a1'
@@ -713,17 +727,23 @@ def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = inte
 #     colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
 #     dolls =  [True, False, True, False, False, False]
 #     plot_all_mipas(figtag, nams, colors, dolls)
-#
+
 # figtag = 'mipfit65'
 # nams = ['fomi', 'new_old_vf5-a1-65', 'new_mipfit65']
 # colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
 # dolls =  [True, True, True, False, False, False]
 # plot_all_mipas(figtag, nams, colors, dolls)
 
+figtag = 'astart_vf5_allafit'
+nams = ['fomi']+ ['new_astart_{}-a{}s-'.format(vf, i) for i in range(5)]
+colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
+dolls =  [True, False, True, False, False, False]
+plot_all_mipas(figtag, nams, colors, dolls)
+
 figtag = 'astart_vf5_allntops'
 vfit = 'vf5'
 nams = ['fomi'] + ['new_astart_{}-a0s-{}'.format(vfit, nto) for nto in [57, 60, 63, 65, 67, 70, 75]]
-colors = np.append(['blue'], npl.color_set(7))#, 'red', 'gold', 'grey', 'forestgreen', 'violet']
+colors = ['blue'] + npl.color_set(7)#, 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, False, False, False, False, False, True]
 plot_all_mipas(figtag, nams, colors, dolls)
 
@@ -731,7 +751,7 @@ plot_all_mipas(figtag, nams, colors, dolls)
 figtag = 'astart_vf4_allntops'
 vfit = 'vf4'
 nams = ['fomi'] + ['new_astart_{}-a0s-{}'.format(vfit, nto) for nto in [57, 60, 63, 65, 67, 70, 75]]
-colors = np.append(['blue'], npl.color_set(7))#, 'red', 'gold', 'grey', 'forestgreen', 'violet']
+colors = ['blue'] + npl.color_set(7)#, 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, False, False, False, False, False, True]
 plot_all_mipas(figtag, nams, colors, dolls)
 
@@ -742,6 +762,11 @@ colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, True, False, False, False, False, True]
 plot_all_mipas(figtag, nams, colors, dolls)
 
+figtag = 'vf5_a0vsa0s_ntop65'
+nams = ['fomi', 'new_old_vf5-a0', 'new_astart_vf5-a0s-65']
+colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
+dolls =  [True, True, True, False, False, False, False, True]
+plot_all_mipas(figtag, nams, colors, dolls)
 
 sys.exit()
 
