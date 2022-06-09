@@ -139,6 +139,8 @@ def calc_all_mipas(date, version):
         inputs['lon'].append(CR.longitude[il])
         inputs['sza'].append(CR.sza[il])
 
+        new_param_check['obs'] = CR.target[il]
+
         alt_fomi, x_fomi, cr_fomi = npl.old_param(alts, temp, pres, CO2con, Oprof = Ocon, O2prof = O2con, N2prof = N2con, input_in_ppm = True, cart_run_fomi = cart_base + '../cart_run_fomi/')
         splcr = spline(alt_fomi, cr_fomi)
         cr_fom_ok = splcr(alts)
@@ -146,6 +148,7 @@ def calc_all_mipas(date, version):
 
         cr_new = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, old_param = True, n_top = n_top)
         new_param_check['new_vf5-a0s-65'].append(cr_new)
+
 
     for ke in new_param_check:
         new_param_check[ke] = np.stack(new_param_check[ke])
