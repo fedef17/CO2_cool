@@ -69,16 +69,16 @@ def calc_all_mipas(date, version):
     O = io.readsav(cart_in + 'L2_{}_O_{}'.format(date, version), verbose=True).result
     CO2 = io.readsav(cart_in + 'L2_{}_CO2_{}'.format(date, version), verbose=True).result
 
-    # questo stampa i nomi degli ingressi (help di IDL)
-    print(CR.dtype.names)
-    alts = CR.altitude[1]
-
-    # Creo struttura dei risultati
-    tipi = [('date', 'O'), ('latitude', '>f4'), ('longitude', '>f4'), ('sza', '>f4'), ('altitude', 'O'), ('pressure', 'O'),
-    ('temperature', 'O'), ('cr_mipas', 'O'), ('alt_fomi', 'O'), ('cr_fomi', 'O'), ('cr_fomi_int', 'O'), ('cr_new', 'O')]
-    res = np.empty(1, dtype = tipi)
-    res = res.view(np.recarray)
-    restot = res
+    # # questo stampa i nomi degli ingressi (help di IDL)
+    # print(CR.dtype.names)
+    # alts = CR.altitude[1]
+    #
+    # # Creo struttura dei risultati
+    # tipi = [('date', 'O'), ('latitude', '>f4'), ('longitude', '>f4'), ('sza', '>f4'), ('altitude', 'O'), ('pressure', 'O'),
+    # ('temperature', 'O'), ('cr_mipas', 'O'), ('alt_fomi', 'O'), ('cr_fomi', 'O'), ('cr_fomi_int', 'O'), ('cr_new', 'O')]
+    # res = np.empty(1, dtype = tipi)
+    # res = res.view(np.recarray)
+    # restot = res
     #####################################################################
 
     inputs = dict()
@@ -270,7 +270,7 @@ def plot_all_mipas(dat, version, figtag, nams, colors, dolls = None, tags = None
 
     lats = np.arange(-90, 91, 30)
     for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
-        cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
+        cond = (np.array(inputs_all[(dat, version)]['lat']) > lat1) & (np.array(inputs_all[(dat, version)]['lat']) <= lat2)
 
         for na, col, doll in zip(nams, colors, dolls):
             co = d_all[na][cond]
@@ -326,7 +326,8 @@ def plot_all_mipas(dat, version, figtag, nams, colors, dolls = None, tags = None
 
     lats = np.arange(-90, 91, 30)
     for ax, lat1, lat2 in zip(axs.flatten(), lats[:-1], lats[1:]):
-        cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
+        # cond = (restot.latitude > lat1) & (restot.latitude <= lat2)
+        cond = (np.array(inputs_all[(dat, version)]['lat']) > lat1) & (np.array(inputs_all[(dat, version)]['lat']) <= lat2)
 
         for na, col, doll in zip(nams, colors, dolls):
             co = d_all[na][cond]
