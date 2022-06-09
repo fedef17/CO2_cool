@@ -557,7 +557,7 @@ cose_upper_atm = pickle.load(open(cart_out + '../NLTE_upper/cose_upper_atm.p', '
 all_alts = atm_pt[('mle', 'alts')]
 
 
-def plot_all_mipas(figtag, nams, colors, dolls = None):
+def plot_all_mipas(figtag, nams, colors, dolls = None, tags = None):
     d_all = dict()
     rms_all = dict()
     d_stats = dict()
@@ -565,9 +565,12 @@ def plot_all_mipas(figtag, nams, colors, dolls = None):
     if dolls is None:
         dolls = [True]*len(nams)
 
+    if tags is None:
+        tags = nams
+
     fig, ax = plt.subplots()
 
-    for na, col, doll in zip(nams, colors, dolls):
+    for na, ta, col, doll in zip(nams, tags, colors, dolls):
         co = crall_rg[na] + crall_rg['obs']
         d_all[na] = co
 
@@ -581,14 +584,16 @@ def plot_all_mipas(figtag, nams, colors, dolls = None):
             ax.fill_betweenx(x_ref, d_stats[(na, '1st')], d_stats[(na, '3rd')], color = col, alpha = 0.2)
         # ax.plot(d_stats[(na, '1st')], x_ref, color = col, ls = '--')
         # ax.plot(d_stats[(na, '3rd')], x_ref, color = col, ls = '--')
-        ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = na)
+        ax.plot(d_stats[(na, 'mean')], x_ref, color = col, lw = 2, label = ta)
 
     ax.grid()
     ax.set_xlim(-10., 10.)
     #ax.set_ylim(40., 110.)
     ax.set_ylim(9., 18.)
 
-    ax.legend()
+    ax.legend(fontsize = 'small')
+    ax.set_xlabel('HR (K/day)')
+    ax.set_ylabel('x')
 
     fig.savefig(cart_out + 'gcs_{}.pdf'.format(figtag))
     #fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
@@ -621,6 +626,8 @@ def plot_all_mipas(figtag, nams, colors, dolls = None):
             ax.set_xlim(-15., 25.)
         #ax.set_ylim(40., 110.)
         ax.set_ylim(9., 18.)
+        ax.set_xlabel('HR (K/day)')
+        ax.set_ylabel('x')
 
         ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
@@ -628,19 +635,21 @@ def plot_all_mipas(figtag, nams, colors, dolls = None):
 
     fig, ax = plt.subplots()
 
-    for na, col, doll in zip(nams, colors, dolls):
+    for na, ta, col, doll in zip(nams, tags, colors, dolls):
         co = crall_rg[na] + crall_rg['obs']
         coso = np.mean(co**2, axis = 0)
         rms_all[na] = np.sqrt(coso)
 
-        ax.plot(rms_all[na], x_ref, color = col, lw = 2, label = na)
+        ax.plot(rms_all[na], x_ref, color = col, lw = 2, label = ta)
 
     ax.grid()
     ax.set_xlim(0., 15.)
     #ax.set_ylim(40., 110.)
     ax.set_ylim(9., 18.)
 
-    ax.legend()
+    ax.legend(fontsize = 'small')
+    ax.set_xlabel('RMS (K/day)')
+    ax.set_ylabel('x')
 
     fig.savefig(cart_out + 'gcs_RMS_{}.pdf'.format(figtag))
     #fig.savefig(cart_out + 'gcs_newold_alphasens.pdf')
@@ -665,6 +674,8 @@ def plot_all_mipas(figtag, nams, colors, dolls = None):
             ax.set_xlim(0., 25.)
         #ax.set_ylim(40., 110.)
         ax.set_ylim(9., 18.)
+        ax.set_xlabel('RMS (K/day)')
+        ax.set_ylabel('x')
 
         ax.set_title('{} to {}'.format(int(lat1), int(lat2)))
 
@@ -734,26 +745,29 @@ def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = inte
 # dolls =  [True, True, True, False, False, False]
 # plot_all_mipas(figtag, nams, colors, dolls)
 
+vfit = 'vf5'
 figtag = 'astart_vf5_allafit'
-nams = ['fomi']+ ['new_astart_{}-a{}s-'.format(vf, i) for i in range(5)]
+nams = ['fomi']+ ['new_astart_{}-a{}s-75'.format(vfit, i) for i in range(5)]
+tags = ['fomi']+ ['{}-a{}s-75'.format(vfit, i) for i in range(5)]
 colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, False, True, False, False, False]
-plot_all_mipas(figtag, nams, colors, dolls)
+plot_all_mipas(figtag, nams, colors, dolls = dolls, tags = tags)
 
 figtag = 'astart_vf5_allntops'
-vfit = 'vf5'
 nams = ['fomi'] + ['new_astart_{}-a0s-{}'.format(vfit, nto) for nto in [57, 60, 63, 65, 67, 70, 75]]
+tags = ['fomi']+ ['{}-a0s-{}'.format(vfit, nto) for nto in [57, 60, 63, 65, 67, 70, 75]]
 colors = ['blue'] + npl.color_set(7)#, 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, False, False, False, False, False, True]
-plot_all_mipas(figtag, nams, colors, dolls)
+plot_all_mipas(figtag, nams, colors, dolls = dolls, tags = tags)
 
 
 figtag = 'astart_vf4_allntops'
 vfit = 'vf4'
 nams = ['fomi'] + ['new_astart_{}-a0s-{}'.format(vfit, nto) for nto in [57, 60, 63, 65, 67, 70, 75]]
+tags = ['fomi']+ ['{}-a0s-{}'.format(vfit, nto) for nto in [57, 60, 63, 65, 67, 70, 75]]
 colors = ['blue'] + npl.color_set(7)#, 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, False, False, False, False, False, True]
-plot_all_mipas(figtag, nams, colors, dolls)
+plot_all_mipas(figtag, nams, colors, dolls = dolls, tags = tags)
 
 
 figtag = 'astart_vf4-vf5_ntop75'
@@ -764,6 +778,12 @@ plot_all_mipas(figtag, nams, colors, dolls)
 
 figtag = 'vf5_a0vsa0s_ntop65'
 nams = ['fomi', 'new_old_vf5-a0', 'new_astart_vf5-a0s-65']
+colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
+dolls =  [True, True, True, False, False, False, False, True]
+plot_all_mipas(figtag, nams, colors, dolls)
+
+figtag = 'best_vf5-a0s-75'
+nams = ['fomi', 'new_astart_vf5-a0s-75']
 colors = ['blue', 'red', 'gold', 'grey', 'forestgreen', 'violet']
 dolls =  [True, True, True, False, False, False, False, True]
 plot_all_mipas(figtag, nams, colors, dolls)

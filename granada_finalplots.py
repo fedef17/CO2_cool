@@ -159,6 +159,7 @@ for ii, zu in enumerate(wei5.T):
     print(ii, np.mean(zu))
     zuini = zuini + zu
 plt.legend()
+plt.title('vf5')
 fig.savefig(cart_out_mip + 'check_finalweights_afit_vf5.pdf')
 
 fig = plt.figure()
@@ -168,6 +169,7 @@ for ii, zu in enumerate(wei4.T):
     print(ii, np.mean(zu))
     zuini = zuini + zu
 plt.legend()
+plt.title('vf4')
 fig.savefig(cart_out_mip + 'check_finalweights_afit_vf4.pdf')
 
 
@@ -175,15 +177,22 @@ fig.savefig(cart_out_mip + 'check_finalweights_afit_vf4.pdf')
 
 interp_coeffs_old = dict()
 vfit = 'vf5'
-afit = 'a0'
-for n_top in [57, 60, 63, 65, 67, 70]:
-    print(n_top)
-    ctag = '{}-{}-{}'.format(vfit, afit, n_top)
+for afit in ['a0s', 'a0']:
+    for n_top in [57, 60, 63, 65, 67, 70]:
+        print(n_top)
+        ctag = '{}-{}-{}'.format(vfit, afit, n_top)
+        coeff_file = cart_base + 'newpar_allatm/coeffs_finale_{}.p'.format(ctag)
+        interp_coeffs_old[ctag] = npl.precalc_interp_old(coeff_file = coeff_file, n_top = n_top)
+
+afit = 'a0s'
+n_top = 75
+for afi in ['a{}s'.format(i) for i in range(5)]:
+    ctag = '{}-{}-{}'.format(vfit, afi, n_top)
     coeff_file = cart_base + 'newpar_allatm/coeffs_finale_{}.p'.format(ctag)
     interp_coeffs_old[ctag] = npl.precalc_interp_old(coeff_file = coeff_file, n_top = n_top)
 
 
-def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = interp_coeffs_old, use_fomi = False, debug = False):
+def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = interp_coeffs_old, use_fomi = False, debug = False, extrap_co2col = False):
     """
     Calcs difference to all reference atms.
     """
@@ -217,7 +226,7 @@ def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = inte
             spl = spline(x_fomi, cr_fomi)
             hr_calc = spl(x_ref)
         else:
-            res = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, old_param = True, debug_alpha = debug_alpha, n_top = n_top, debug = debug)
+            res = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, old_param = True, debug_alpha = debug_alpha, n_top = n_top, debug = debug, extrap_co2col = extrap_co2col)
             if debug:
                 hr_calc, de = res
                 debucose.append(de)
@@ -280,13 +289,135 @@ for nto, col in zip(allntops, npl.color_set(len(allntops))):
     #alphaok = np.append(alpha_dic[(afi, nto)]
     afi = 'a0'
     plt.axhline(x_ref[nto], ls = '--', lw = 0.5, color = col)
-    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-a0-{}'.format(nto)])
+    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, nto)])
     rms = np.sqrt(np.mean(calcs**2, axis = 0))
     plt.plot(rms[alt2-1:], x_ref[alt2-1:], label = nto, color = col)
 
-    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-a0-{}'.format(nto)], debug_alpha = alpha_dic[('a0s', nto)][2])
+    afi = 'a0s'
+    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, nto)])
     rms = np.sqrt(np.mean(calcs**2, axis = 0))
-    plt.plot(rms[alt2-1:], x_ref[alt2-1:], color = col, ls = ':')
+    plt.plot(rms[alt2-1:], x_ref[alt2-1:], ls = ':', color = col)
+
+afi = 'a0s'
+calcs = calc_all_refs(n_top = 75, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, 75)])
+rms = np.sqrt(np.mean(calcs**2, axis = 0))
+plt.plot(rms[alt2-1:], x_ref[alt2-1:], ls = ':', color = 'grey', label = 75)
 
 plt.legend()
 plt.grid()
+
+plt.ylabel('x')
+plt.xlabel('RMS (K/day)')
+plt.title('alpha fit: a0 (solid) vs a0s (:)')
+
+fig.savefig(cart_out_mip + 'check_ref_RMS_alpha_a0vsa0s_allntop.pdf')
+
+#### check compare all ntops a0s
+fig = plt.figure()
+for nto, col in zip(allntops+[75], npl.color_set(len(allntops)+1)):
+    afi = 'a0s'
+    plt.axhline(x_ref[nto], ls = '--', lw = 0.5, color = col)
+    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, nto)])
+    rms = np.sqrt(np.mean(calcs**2, axis = 0))
+    plt.plot(rms[alt2-1:], x_ref[alt2-1:], label = nto, color = col)
+
+plt.legend()
+plt.grid()
+plt.title('alpha fit a0s: all n_tops')
+plt.ylabel('x')
+plt.xlabel('RMS (K/day)')
+
+fig.savefig(cart_out_mip + 'check_ref_RMS_alpha_a0s_allntop.pdf')
+
+
+#### check compare all ntops a0s
+fig = plt.figure()
+for nto, col in zip(allntops+[75], npl.color_set(len(allntops)+1)):
+    afi = 'a0s'
+    plt.axhline(x_ref[nto], ls = '--', lw = 0.5, color = col)
+    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, nto)])
+    rms = np.sqrt(np.mean(calcs**2, axis = 0))
+    plt.plot(rms[alt2-1:], x_ref[alt2-1:], label = nto, color = col)
+
+    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, nto)], extrap_co2col = False)
+    rms = np.sqrt(np.mean(calcs**2, axis = 0))
+    plt.plot(rms[alt2-1:], x_ref[alt2-1:], ls = ':', color = col)
+
+plt.legend()
+plt.grid()
+plt.title('alpha fit a0s: all n_tops')
+plt.ylabel('x')
+plt.xlabel('RMS (K/day)')
+
+fig.savefig(cart_out_mip + 'check_ref_RMS_alpha_a0s_allntop_noextrap.pdf')
+
+#### check compare all ntops a0s
+fig = plt.figure()
+for nto, col in zip(allntops+[75], npl.color_set(len(allntops)+1)):
+    afi = 'a0s'
+    plt.axhline(x_ref[nto], ls = '--', lw = 0.5, color = col)
+    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, nto)])
+    rms = np.sqrt(np.mean(calcs**2, axis = 0))
+    plt.plot(rms[alt2-1:], x_ref[alt2-1:], label = nto, color = col)
+
+calcs = calc_all_refs(use_fomi = True)
+rms = np.sqrt(np.mean(calcs**2, axis = 0))
+plt.plot(rms[alt2-1:], x_ref[alt2-1:], ls = '-.', color = 'black', label = 'fomi')
+
+plt.legend()
+plt.grid()
+plt.title('alpha fit a0s: all n_tops')
+plt.ylabel('x')
+plt.xlabel('RMS (K/day)')
+
+fig.savefig(cart_out_mip + 'check_ref_RMS_alpha_a0s_allntop_vsfomi.pdf')
+
+
+#### check compare all ntops a0s alphas
+fig = plt.figure()
+for nto, col in zip((allntops+[75])[::-1], npl.color_set(len(allntops)+1)[::-1]):
+    afi = 'a0s'
+    plt.axhline(x_ref[nto], ls = '--', lw = 0.5, color = col)
+    #plt.plot(np.append(alpha_dic[(afi, nto)][2], np.ones(25-(nto-alt2+1))), x_ref[alt2:76], color = col, label = nto)
+    plt.plot(alpha_dic[(afi, nto)][2], x_ref[alt2:nto+1], color = col, label = nto)
+
+plt.legend()
+plt.grid()
+plt.title('alpha fit a0s: all n_tops')
+
+fig.savefig(cart_out_mip + 'check_ref_RMS_alpha_a0s_allntop_alphas.pdf')
+
+
+#### check compare all ntops a0s
+fig = plt.figure()
+nto = 75
+for afi, col in zip(['a{}s'.format(i) for i in range(5)], npl.color_set(5)):
+    plt.axhline(x_ref[nto], ls = '--', lw = 0.5, color = col)
+    calcs = calc_all_refs(n_top = nto, interp_coeffs = interp_coeffs_old['vf5-{}-{}'.format(afi, nto)])
+    rms = np.sqrt(np.mean(calcs**2, axis = 0))
+    plt.plot(rms[alt2-1:], x_ref[alt2-1:], label = afi, color = col)
+
+calcs = calc_all_refs(use_fomi = True)
+rms = np.sqrt(np.mean(calcs**2, axis = 0))
+plt.plot(rms[alt2-1:], x_ref[alt2-1:], ls = '-.', color = 'black', label = 'fomi')
+
+plt.legend()
+plt.grid()
+plt.title('alpha fit: all weightings')
+plt.ylabel('x')
+plt.xlabel('RMS (K/day)')
+
+fig.savefig(cart_out_mip + 'check_ref_RMS_alpha_allafit_vsfomi.pdf')
+
+
+#### check compare all ntops a0s alphas
+fig = plt.figure()
+for afi, col in zip(['a{}s'.format(i) for i in range(5)], npl.color_set(5)):
+    plt.axhline(x_ref[nto], ls = '--', lw = 0.5, color = col)
+    plt.plot(alpha_dic[(afi, nto)][2], x_ref[alt2:nto+1], color = col, label = afi)
+
+plt.legend()
+plt.grid()
+plt.title('alpha fit: all weightings')
+
+fig.savefig(cart_out_mip + 'check_ref_RMS_alpha_allafit_alphas.pdf')
