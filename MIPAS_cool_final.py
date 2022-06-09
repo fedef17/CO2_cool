@@ -60,11 +60,6 @@ x_fomi_ref = np.arange(2., 25, 0.25)
 
 cart_run_fomi = cart_base + '../cart_run_fomi/'
 
-inputs_all = dict()
-new_param_check_all = dict()
-
-do_calc = True
-
 
 def calc_all_mipas(date, version):
     #######################################################################
@@ -159,19 +154,33 @@ def calc_all_mipas(date, version):
     return inputs, new_param_check
 
 
+########################################################################
+### calculation
+
 alldates = [co[3:11] for co in os.listdir(cart_in) if 'L2' in co and 'T_' in co]
 version = '561.0'
 
-for dat in alldates:
-    inp, npc = calc_all_mipas(dat, version)
-    inputs_all[(dat, version)] = inp
-    new_param_check_all[(dat, version)] = npc
+inputs_all = dict()
+new_param_check_all = dict()
 
-    pickle.dump([inp, npc], open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'wb'))
+do_calc = False
 
-    np.savetxt(cart_out_mip + 'crmipas_{}_{}.txt'.format(dat, version), npc['obs'])
-    np.savetxt(cart_out_mip + 'crfomi_{}_{}.txt'.format(dat, version), npc['fomi'])
-    np.savetxt(cart_out_mip + 'crnew_{}_{}_{}.txt'.format(dat, version, ctag), npc['new_{}'.format(ctag)])
+if do_calc:
+    for dat in alldates:
+        inp, npc = calc_all_mipas(dat, version)
+        inputs_all[(dat, version)] = inp
+        new_param_check_all[(dat, version)] = npc
+
+        pickle.dump([inp, npc], open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'wb'))
+
+        np.savetxt(cart_out_mip + 'crmipas_{}_{}.txt'.format(dat, version), npc['obs'])
+        np.savetxt(cart_out_mip + 'crfomi_{}_{}.txt'.format(dat, version), npc['fomi'])
+        np.savetxt(cart_out_mip + 'crnew_{}_{}_{}.txt'.format(dat, version, ctag), npc['new_{}'.format(ctag)])
+else:
+    for dat in alldates:
+        inp, npc = pickle.load(open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'rb'))
+        inputs_all[(dat, version)] = inp
+        new_param_check_all[(dat, version)] = npc
 
 ###############################################################################################################
 
@@ -181,13 +190,13 @@ except:
     crall_rg = dict()
 
 for cos in new_param_check_all:
-    for na in new_param_check[cos]:
+    for na in new_param_check_all[cos]:
         if (cos, na) in crall_rg:
             continue
 
         print(cos, na)
         crall_rg[(cos, na)] = []
-        for x, cr in zip(inputs[cos]['x'], new_param_check[cos][na]):
+        for x, cr in zip(inputs[cos]['x'], new_param_check_all[cos][na]):
             spl = spline(x, cr, extrapolate = False)
             crok = spl(x_ref)
             crall_rg[(cos, na)].append(crok)
