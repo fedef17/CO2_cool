@@ -167,6 +167,7 @@ do_calc = False
 
 if do_calc:
     for dat in alldates:
+        print(dat)
         inp, npc = calc_all_mipas(dat, version)
         inputs_all[(dat, version)] = inp
         new_param_check_all[(dat, version)] = npc
@@ -178,6 +179,7 @@ if do_calc:
         np.savetxt(cart_out_mip + 'crnew_{}_{}_{}.txt'.format(dat, version, ctag), npc['new_{}'.format(ctag)])
 else:
     for dat in alldates:
+        print(dat)
         inp, npc = pickle.load(open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'rb'))
         inputs_all[(dat, version)] = inp
         new_param_check_all[(dat, version)] = npc
@@ -196,7 +198,7 @@ for cos in new_param_check_all:
 
         print(cos, na)
         crall_rg[(cos, na)] = []
-        for x, cr in zip(inputs[cos]['x'], new_param_check_all[cos][na]):
+        for x, cr in zip(inputs_all[cos]['x'], new_param_check_all[cos][na]):
             spl = spline(x, cr, extrapolate = False)
             crok = spl(x_ref)
             crall_rg[(cos, na)].append(crok)
