@@ -183,9 +183,10 @@ else:
         inp, npc = pickle.load(open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'rb'))
         inputs_all[(dat, version)] = inp
 
-        if len(npc['obs'] == 85):
+        if len(npc['obs']) == 85:
             print('ricreo obs')
             npc['obs'] = inp['cr_mipas']
+            print(len(npc['obs']))
             pickle.dump([inp, npc], open(cart_out_mip + 'mipcalc_{}_{}_{}.p'.format(dat, version, ctag), 'wb'))
             np.savetxt(cart_out_mip + 'crmipas_{}_{}.txt'.format(dat, version), npc['obs'])
 
@@ -237,7 +238,7 @@ def plot_all_mipas(dat, version, figtag, nams, colors, dolls = None, tags = None
     fig, ax = plt.subplots()
 
     for na, ta, col, doll in zip(nams, tags, colors, dolls):
-        co = crall_rg[(date, version, na)] + crall_rg[(date, version, 'obs')]
+        co = crall_rg[(dat, version, na)] + crall_rg[(dat, version, 'obs')]
         d_all[na] = co
 
         d_stats[(na, 'median')] = np.nanmedian(co, axis = 0)
