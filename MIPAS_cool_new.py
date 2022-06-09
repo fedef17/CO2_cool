@@ -153,7 +153,7 @@ alpha_fom = []
 Lesc_fom = []
 co2col_fom = []
 
-do_calc = False
+do_calc = True
 calc_only_new = True
 
 if do_calc:
@@ -659,7 +659,7 @@ def plot_all_mipas(figtag, nams, colors, dolls = None):
     return
 
 
-def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = interp_coeffs_old[('vf5-a0-65')], use_fomi = False):
+def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = interp_coeffs_old[('vf5-a0s-65')], use_fomi = False):
     """
     Calcs difference to all reference atms.
     """
