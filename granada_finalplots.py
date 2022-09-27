@@ -192,7 +192,7 @@ for afi in ['a{}s'.format(i) for i in range(5)]:
     interp_coeffs_old[ctag] = npl.precalc_interp_old(coeff_file = coeff_file, n_top = n_top)
 
 
-def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = interp_coeffs_old, use_fomi = False, debug = False, extrap_co2col = False):
+def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = interp_coeffs_old, use_fomi = False, debug = False, extrap_co2col = False, output_diff_to_ref = True, cart_run_fomi = None):
     """
     Calcs difference to all reference atms.
     """
@@ -233,7 +233,10 @@ def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = inte
             else:
                 hr_calc = res
 
-        ref_calcs.append(hr_calc-all_coeffs_nlte[(atm, cco2, 'hr_ref')])
+        if output_diff_to_ref:
+            ref_calcs.append(hr_calc-all_coeffs_nlte[(atm, cco2, 'hr_ref')])
+        else:
+            ref_calcs.append(hr_calc)
 
     ref_calcs = np.stack(ref_calcs)
 
@@ -242,6 +245,26 @@ def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = inte
     else:
         return ref_calcs, debucose
 
+cart_ref = cart_out + '../final_refatm/'
+if not os.path.exists(cart_ref): os.mkdir(cart_ref)
+
+vfit = 'vf5'
+afi = 'a0s'
+n_top = 65
+ctag = '{}-{}-{}'.format(vfit, afi, n_top)
+for cco2 in allco2:
+    refcal = calc_all_refs(cco2 = cco2, n_top = n_top, interp_coeffs = interp_coeffs_old[ctag], use_fomi = False, debug = False, extrap_co2col = True, output_diff_to_ref = False)
+
+    np.savetxt(cart_ref + 'param_refatm_co2-{}.txt'.format(cco2), refcal)
+
+    refcal = calc_all_refs(cco2 = cco2, n_top = n_top, interp_coeffs = interp_coeffs_old[ctag], use_fomi = True, debug = False, extrap_co2col = True, output_diff_to_ref = False, cart_run_fomi = '/home/fedef/Research/lavori/CO2_cooling/cart_run_fomi/')
+
+    np.savetxt(cart_ref + 'fomi_refatm_co2-{}.txt'.format(cco2), refcal)
+
+    refhr = np.stack([all_coeffs_nlte[(atm, cco2, 'hr_ref')] for atm in allatms])
+    np.savetxt(cart_ref + 'ref_refatm_co2-{}.txt'.format(cco2), refhr)
+
+sys.exit()
 ######
 
 alpha_dic = pickle.load(open(cart_out_rep + 'alpha_unif_allwstart_ntops.p', 'rb'))
