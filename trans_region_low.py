@@ -24,7 +24,8 @@ sys.path.insert(0, cart_base + 'git/pythall/')
 cart_out = cart_base + 'lavori/CO2_cooling/new_param/LTE/'
 cart_out_2 = cart_base + 'lavori/CO2_cooling/new_param/NLTE/'
 
-cartsav = cart_base + 'lavori/CO2_cooling/new_param/sent8_hr_nlte_ext_v4.1/sav_v4/'
+# cartsav = cart_base + 'lavori/CO2_cooling/new_param/sent8_hr_nlte_ext_v4.1/sav_v4/'
+cartsav = cart_base + 'lavori/CO2_cooling/new_param/sent9_hr_nlte_ext_v4_ngt.1/sav_v4_ngt/'
 filsav = 'cr_nlte_{}_co2_{}.sav'
 
 import newparam_lib as npl
