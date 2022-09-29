@@ -247,6 +247,7 @@ def calc_all_refs(cco2 = 3, n_top = 65, debug_alpha = None, interp_coeffs = inte
 
 cart_ref = cart_out + '../final_refatm/'
 if not os.path.exists(cart_ref): os.mkdir(cart_ref)
+cart_run_fomi = '/home/{}/Research/lavori/CO2_cooling/cart_run_fomi/'.format(os.getlogin())
 
 vfit = 'vf5'
 afi = 'a0s'
@@ -257,7 +258,7 @@ for cco2 in allco2:
 
     np.savetxt(cart_ref + 'param_refatm_co2-{}.txt'.format(cco2), refcal)
 
-    refcal = calc_all_refs(cco2 = cco2, n_top = n_top, interp_coeffs = interp_coeffs_old[ctag], use_fomi = True, debug = False, extrap_co2col = True, output_diff_to_ref = False, cart_run_fomi = '/home/fedef/Research/lavori/CO2_cooling/cart_run_fomi/')
+    refcal = calc_all_refs(cco2 = cco2, n_top = n_top, interp_coeffs = interp_coeffs_old[ctag], use_fomi = True, debug = False, extrap_co2col = True, output_diff_to_ref = False, cart_run_fomi = cart_run_fomi)
 
     np.savetxt(cart_ref + 'fomi_refatm_co2-{}.txt'.format(cco2), refcal)
 
