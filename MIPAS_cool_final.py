@@ -71,7 +71,7 @@ def calc_all_mipas(date, version):
 
     # # questo stampa i nomi degli ingressi (help di IDL)
     # print(CR.dtype.names)
-    # alts = CR.altitude[1]
+    alts = CR.altitude[1]
     #
     # # Creo struttura dei risultati
     # tipi = [('date', 'O'), ('latitude', '>f4'), ('longitude', '>f4'), ('sza', '>f4'), ('altitude', 'O'), ('pressure', 'O'),
@@ -163,7 +163,7 @@ version = '561.0'
 inputs_all = dict()
 new_param_check_all = dict()
 
-do_calc = False
+do_calc = True
 
 if do_calc:
     for dat in alldates:

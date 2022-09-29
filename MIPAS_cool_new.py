@@ -137,9 +137,9 @@ for vfit in ['vf4', 'vf5']:
 #new_param_check['new_mipfit65'] = []
 
 # new_param_check['new_old_vf5-a1_alphareint'] = []
-alpha_mip = pickle.load(open(cart_out + 'alpha_mip_fit.p', 'rb'))
+#alpha_mip = pickle.load(open(cart_out + 'alpha_mip_fit.p', 'rb'))
 
-alpha3, alpha4, alpha5 = pickle.load(open(cart_out + 'test_alpha.p', 'rb'))
+#alpha3, alpha4, alpha5 = pickle.load(open(cart_out + 'test_alpha.p', 'rb'))
 
 # x_fomi_ref = np.arange(2., 17.26, 0.25)
 # x_ref = np.arange(0.125, 18.01, 0.25)
@@ -160,7 +160,7 @@ Lesc_fom = []
 co2col_fom = []
 
 do_calc = True
-calc_only_new = True
+calc_only_new = False
 
 if do_calc:
     inputs = dict()
