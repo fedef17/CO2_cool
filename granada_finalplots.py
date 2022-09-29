@@ -60,9 +60,9 @@ n_top = 65
 cart_out_mip = cart_base + 'mipas_check/'
 
 ctag = 'vf4-a1'
-new_param_check = pickle.load(open(cart_out_mip+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
-
-inputs = pickle.load(open(cart_out_mip+'in_ssw2009_{}.p'.format('v10-nl0-65'),'rb'))
+# new_param_check = pickle.load(open(cart_out_mip+'check_all_out_ssw2009_{}.p'.format(ctag),'rb'))
+#
+# inputs = pickle.load(open(cart_out_mip+'in_ssw2009_{}.p'.format('v10-nl0-65'),'rb'))
 
 # inputs_rg = dict()
 # for nam in ['temp', 'pres', 'ovmr', 'co2vmr', 'o2vmr', 'n2vmr', 'cr_mipas']:
@@ -84,7 +84,7 @@ inputs = pickle.load(open(cart_out_mip+'in_ssw2009_{}.p'.format('v10-nl0-65'),'r
 #     inputs_rg[ke] = np.stack(inputs_rg[ke])
 #
 # pickle.dump(inputs_rg, open(cart_out_mip+'inrg_ssw2009-02-15.p','wb'))
-inputs_rg = pickle.load(open(cart_out_mip+'inrg_ssw2009-02-15.p','rb'))
+# inputs_rg = pickle.load(open(cart_out_mip+'inrg_ssw2009-02-15.p','rb'))
 
 allntops = [57, 60, 63, 65, 67, 70]
 allatms = npl.allatms
@@ -94,52 +94,52 @@ n_top = 65
 #########################################################
 
 ###### PLOT sketch param
-fig, ax = plt.subplots()
-plt.plot(inputs_rg['temp'].T, all_alts, color = 'grey', lw = 0.3)
-plt.plot(inputs_rg['temp'][0], all_alts, color = 'grey', lw = 0.3, label = 'MIPAS 15-02-2009')
-for atm in allatms: plt.plot(atm_pt[(atm, 'temp')], all_alts, lw = 2, label = atm)
-plt.legend()
-plt.grid()
-plt.xlabel('Temperature (K)')
-ax.set_ylabel('Altitude')
-
-ax.set_ylim(0., 200.)
-
-ax2 = ax.twinx()
-ax2.set_yticks(ax.get_yticks())
-
-altsp = spline(x_ref, all_alts)
-ax2ti = [altsp(xi) for xi in [0., 9.875, 12.625, 16.375, 20.125]]
-ax2.set_yticks(ax2ti)
-ax2.set_yticklabels([0., 9.875, 12.625, 16.375, 20.125])
-ax2.set_ylabel('X')
-
-for ti, col in zip(ax2ti[1:], ['indianred', 'gold', 'forestgreen', 'steelblue']):
-    ax2.axhline(ti, color = col, ls = '--', lw = 2)
-
-ax.legend(loc = 'lower right')
-
-ti = ax.text(500, 55, 'LTE', fontsize = 18)
-
-ti2 = ax.text(420, 75, 'NLTE low trans', fontsize = 16)
-ti2.set_text('NLTE: modified Curtis matrix')
-ti2.set_fontsize(14)
-ti3 = ax.text(500, 92, 'NLTE upper trans', fontsize = 16)
-ti3.set_text('NLTE: recurrence formula with alpha')
-ti3.set_fontsize(14)
-
-ti4 = ax.text(180, 160, 'NLTE: pure recurrence formula', fontsize = 14)
-ti5 = ax.text(180, 185, 'NLTE: cool-to-space', fontsize = 14)
-
-pio = np.array(ax.get_xlim())
-iu = np.arange(pio[0], pio[1], 1)
-ax.set_xlim(pio)
-zood = ax.fill_between(iu, ax2ti[1], ax2ti[2], color = 'indianred', alpha = 0.1)
-zood = ax.fill_between(iu, ax2ti[2], ax2ti[3], color = 'gold', alpha = 0.1)
-zood = ax.fill_between(iu, ax2ti[3], ax2ti[4], color = 'forestgreen', alpha = 0.1)
-zood = ax.fill_between(iu, ax2ti[4], 200., color = 'steelblue', alpha = 0.1)
-
-fig.savefig(cart_out_mip + 'sketch_regions.pdf')
+# fig, ax = plt.subplots()
+# plt.plot(inputs_rg['temp'].T, all_alts, color = 'grey', lw = 0.3)
+# plt.plot(inputs_rg['temp'][0], all_alts, color = 'grey', lw = 0.3, label = 'MIPAS 15-02-2009')
+# for atm in allatms: plt.plot(atm_pt[(atm, 'temp')], all_alts, lw = 2, label = atm)
+# plt.legend()
+# plt.grid()
+# plt.xlabel('Temperature (K)')
+# ax.set_ylabel('Altitude')
+#
+# ax.set_ylim(0., 200.)
+#
+# ax2 = ax.twinx()
+# ax2.set_yticks(ax.get_yticks())
+#
+# altsp = spline(x_ref, all_alts)
+# ax2ti = [altsp(xi) for xi in [0., 9.875, 12.625, 16.375, 20.125]]
+# ax2.set_yticks(ax2ti)
+# ax2.set_yticklabels([0., 9.875, 12.625, 16.375, 20.125])
+# ax2.set_ylabel('X')
+#
+# for ti, col in zip(ax2ti[1:], ['indianred', 'gold', 'forestgreen', 'steelblue']):
+#     ax2.axhline(ti, color = col, ls = '--', lw = 2)
+#
+# ax.legend(loc = 'lower right')
+#
+# ti = ax.text(500, 55, 'LTE', fontsize = 18)
+#
+# ti2 = ax.text(420, 75, 'NLTE low trans', fontsize = 16)
+# ti2.set_text('NLTE: modified Curtis matrix')
+# ti2.set_fontsize(14)
+# ti3 = ax.text(500, 92, 'NLTE upper trans', fontsize = 16)
+# ti3.set_text('NLTE: recurrence formula with alpha')
+# ti3.set_fontsize(14)
+#
+# ti4 = ax.text(180, 160, 'NLTE: pure recurrence formula', fontsize = 14)
+# ti5 = ax.text(180, 185, 'NLTE: cool-to-space', fontsize = 14)
+#
+# pio = np.array(ax.get_xlim())
+# iu = np.arange(pio[0], pio[1], 1)
+# ax.set_xlim(pio)
+# zood = ax.fill_between(iu, ax2ti[1], ax2ti[2], color = 'indianred', alpha = 0.1)
+# zood = ax.fill_between(iu, ax2ti[2], ax2ti[3], color = 'gold', alpha = 0.1)
+# zood = ax.fill_between(iu, ax2ti[3], ax2ti[4], color = 'forestgreen', alpha = 0.1)
+# zood = ax.fill_between(iu, ax2ti[4], 200., color = 'steelblue', alpha = 0.1)
+#
+# fig.savefig(cart_out_mip + 'sketch_regions.pdf')
 
 #####################################################
 ### plot weights LTE + lower transition region
