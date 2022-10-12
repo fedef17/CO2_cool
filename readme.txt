@@ -79,3 +79,29 @@ Se cambi L_esc, devi rilanciare:
 - reparam_high_v8fin, reparam_high_v9_inverse, reparam_high_v10 (cambia L_esc)
 - check_fomialpha_refatm_v8_vs_v9: -> choose best param (cambia L_esc)
 - test_reparam_full -> new set of coeffs_finale.p!
+
+########################################################################
+---------------- Flow del codice parte NLTE (se cambiano le ref calc) (27/09/2022)
+
+Per la param LTE:
+1 - fomi_calc_ab_coeffs_LTE.py
+2 - fomi_multiatmco2_ab_LTE_v4.py (was: fomi_multiatmco2_ab_LTE_v3.py) -> varfit4, varfit5
+3 - check_LTE_fit_v2.py -> check_newparam_LTE_final_LEASTSQUARES_v3_abfit.pdf
+
+Per la param NLTE low trans:
+4 - trans_region_low.py -> all_coeffs_NLTE.p
+5 - fomi_multiatmco2_ab_NLTE.py -> varfit4_nlte, varfit5_nlte
+6 - check_NLTE_fit_low.py -> check_newparam_NLTE_lowtrans.pdf, produces tot_coeffs_co2_NLTE.p
+
+Per la param della upper transition region e della cool-to-space region:
+7 - reparam_high_v12.py -> calculates alpha unif
+8 - reparam_high_v11start.py -> calculates alpha unif starting from ref
+9 - test_newparam_full.py -> produces coeffs_finale.p!!
+
+Per il confronto con MIPAS:
+10 - MIPAS_cool_final.py -> produces all mipcalc calculations and plots
+11 - granada_finalplots.py -> refcalc, plot of weights for a, b and alpha
+
+-----
+Full atmosphere check:
+8 - test_newparam_full.py
