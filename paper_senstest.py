@@ -168,6 +168,8 @@ calcs = dict()
 
 ###################################################
 # for ko/2
+from subprocess import call
+
 cco2 = 3
 for atm in allatms:
     #calc
