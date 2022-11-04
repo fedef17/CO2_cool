@@ -120,50 +120,50 @@ cart_run_fomi = '/home/{}/Research/lavori/CO2_cooling/cart_run_fomi/'.format(os.
 figs = []
 calcs = dict()
 
-for cco2 in range(9, 12):
-    refcalcs = []
-    for atm in allatms:
-        #calc
-        ii = allatms.index(atm)
-
-        temp = atm_pt[(atm, 'temp')]
-        surf_temp = atm_pt[(atm, 'surf_temp')]
-        pres = atm_pt[(atm, 'pres')]
-
-        hr_ref = datain[(atm, cco2, 'hr_nlte')]
-
-        x_ref = np.log(1000./pres)
-
-        co2vmr = datain[(atm, cco2, 'co2_vmr')]
-        ovmr = datain[(atm, cco2, 'o_vmr')]
-        o2vmr = datain[(atm, cco2, 'o2_vmr')]
-        n2vmr = datain[(atm, cco2, 'n2_vmr')]
-
-        alt_fomi, x_fomi, cr_fomi = npl.old_param(all_alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = cart_run_fomi)
-        spl = spline(x_fomi, cr_fomi)
-        hr_calc = spl(x_ref)
-
-        calcs[(atm, cco2, 'fomi')] = hr_calc
-
-        res = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, old_param = True, n_top = n_top, extrap_co2col = True)
-
-        calcs[(atm, cco2)] = res
-
-        fig, a0, a1 = npl.manuel_plot(x_ref, [hr_ref, res, hr_calc], ['ref', 'new','fomi'], xlabel = 'HR (K/day)', ylabel = 'X', title = '{} - {}'.format(atm, cco2), xlimdiff = None, xlim = None, ylim = (9.5, 21), linestyles = ['-', '--', ':'], colors = ['black', 'red', 'blue'], orizlines = [9.875, 12.625, 16.375, 20.125])
-        figs.append(fig)
-
-#pickle.dump(calcs, open(cart_out + 'calcs_interm.p', 'wb'))
-
-###### write output in txt
-for cco2 in range(9,12):
-    refcal = np.stack([calcs[(atm, cco2)] for atm in allatms])
-    np.savetxt(cart_out + 'param_interm_co2-{}.txt'.format(cco2), refcal)
-
-    refcal = np.stack([calcs[(atm, cco2, 'fomi')] for atm in allatms])
-    np.savetxt(cart_out + 'fomi_interm_co2-{}.txt'.format(cco2), refcal)
-
-    refhr = np.stack([datain[(atm, cco2, 'hr_nlte')] for atm in allatms])
-    np.savetxt(cart_out + 'ref_interm_co2-{}.txt'.format(cco2), refhr)
+# for cco2 in range(9, 12):
+#     refcalcs = []
+#     for atm in allatms:
+#         #calc
+#         ii = allatms.index(atm)
+#
+#         temp = atm_pt[(atm, 'temp')]
+#         surf_temp = atm_pt[(atm, 'surf_temp')]
+#         pres = atm_pt[(atm, 'pres')]
+#
+#         hr_ref = datain[(atm, cco2, 'hr_nlte')]
+#
+#         x_ref = np.log(1000./pres)
+#
+#         co2vmr = datain[(atm, cco2, 'co2_vmr')]
+#         ovmr = datain[(atm, cco2, 'o_vmr')]
+#         o2vmr = datain[(atm, cco2, 'o2_vmr')]
+#         n2vmr = datain[(atm, cco2, 'n2_vmr')]
+#
+#         alt_fomi, x_fomi, cr_fomi = npl.old_param(all_alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = cart_run_fomi)
+#         spl = spline(x_fomi, cr_fomi)
+#         hr_calc = spl(x_ref)
+#
+#         calcs[(atm, cco2, 'fomi')] = hr_calc
+#
+#         res = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, old_param = True, n_top = n_top, extrap_co2col = True)
+#
+#         calcs[(atm, cco2)] = res
+#
+#         fig, a0, a1 = npl.manuel_plot(x_ref, [hr_ref, res, hr_calc], ['ref', 'new','fomi'], xlabel = 'HR (K/day)', ylabel = 'X', title = '{} - {}'.format(atm, cco2), xlimdiff = None, xlim = None, ylim = (9.5, 21), linestyles = ['-', '--', ':'], colors = ['black', 'red', 'blue'], orizlines = [9.875, 12.625, 16.375, 20.125])
+#         figs.append(fig)
+#
+# #pickle.dump(calcs, open(cart_out + 'calcs_interm.p', 'wb'))
+#
+# ###### write output in txt
+# for cco2 in range(9,12):
+#     refcal = np.stack([calcs[(atm, cco2)] for atm in allatms])
+#     np.savetxt(cart_out + 'param_interm_co2-{}.txt'.format(cco2), refcal)
+#
+#     refcal = np.stack([calcs[(atm, cco2, 'fomi')] for atm in allatms])
+#     np.savetxt(cart_out + 'fomi_interm_co2-{}.txt'.format(cco2), refcal)
+#
+#     refhr = np.stack([datain[(atm, cco2, 'hr_nlte')] for atm in allatms])
+#     np.savetxt(cart_out + 'ref_interm_co2-{}.txt'.format(cco2), refhr)
 
 
 ###################################################
@@ -193,6 +193,19 @@ for atm in allatms:
 
     calcs[(atm, cco2, 'fomi', 'kod2')] = hr_calc
 
+    wd = os.getcwd()
+    os.chdir(cart_run_fomi)
+    call('cp input_atm_kod2.dat input_atm.dat')
+    os.chdir(wd)
+    alt_fomi, x_fomi, cr_fomi = npl.old_param(all_alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = cart_run_fomi)
+    spl = spline(x_fomi, cr_fomi)
+    hr_calc = spl(x_ref)
+    os.chdir(cart_run_fomi)
+    call('cp input_atm_default.dat input_atm.dat')
+    os.chdir(wd)
+
+    calcs[(atm, cco2, 'fomi', 'zofac')] = hr_calc
+
     res = npl.new_param_full_allgrids(temp, temp[0], pres, co2vmr, ovmr/2., o2vmr, n2vmr, interp_coeffs = interp_coeffs, old_param = True, n_top = n_top, extrap_co2col = True)
 
     calcs[(atm, cco2, 'kod2')] = res
@@ -201,10 +214,10 @@ for atm in allatms:
 
     calcs[(atm, cco2, 'zofac')] = res2
 
-    fig, a0, a1 = npl.manuel_plot(x_ref, [hr_ref, res, res2, hr_calc], ['ref', 'Odiv2', 'ZOdiv2', 'fomi'], xlabel = 'HR (K/day)', ylabel = 'X', title = '{} - {} - KOD2'.format(atm, cco2), xlimdiff = None, xlim = None, ylim = (9.5, 21), linestyles = ['-', '--', ':', ':'], colors = ['black', 'red', 'orange', 'blue'], orizlines = [9.875, 12.625, 16.375, 20.125])
+    fig, a0, a1 = npl.manuel_plot(x_ref, [hr_ref, res2, hr_calc], ['ref', 'ZOdiv2', 'fomi'], xlabel = 'HR (K/day)', ylabel = 'X', title = '{} - {} - KOD2'.format(atm, cco2), xlimdiff = None, xlim = None, ylim = (9.5, 21), linestyles = ['-', '--', ':', ':'], colors = ['black', 'red', 'orange', 'blue'], orizlines = [9.875, 12.625, 16.375, 20.125])
     figs.append(fig)
 
-npl.plot_pdfpages(cart_out + 'check_calc.pdf', figs)
+npl.plot_pdfpages(cart_out + 'check_calc_kod2.pdf', figs)
 
 
 pickle.dump(calcs, open(cart_out + 'calcs_interm.p', 'wb'))
@@ -218,6 +231,9 @@ np.savetxt(cart_out + 'param_ZOdiv2_co2-{}.txt'.format(cco2), refcal)
 
 refcal = np.stack([calcs[(atm, cco2, 'fomi', 'kod2')] for atm in allatms])
 np.savetxt(cart_out + 'fomi_Odiv2_co2-{}.txt'.format(cco2), refcal)
+
+refcal = np.stack([calcs[(atm, cco2, 'fomi', 'zofac')] for atm in allatms])
+np.savetxt(cart_out + 'fomi_ZOdiv2_co2-{}.txt'.format(cco2), refcal)
 
 
 refhr = np.stack([datain[(atm, cco2, 'hr_nlte', 'kod2')] for atm in allatms])
