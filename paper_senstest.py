@@ -195,7 +195,7 @@ for atm in allatms:
 
     calcs[(atm, cco2, 'fomi', 'kod2')] = hr_calc
 
-    call('cp {}input_atm_kod2.dat {}input_atm.dat'.format(cart_run_fomi, cart_run_fomi))
+    call('echo {}; cp {}input_atm_kod2.dat {}input_atm.dat'.format(cart_run_fomi, cart_run_fomi, cart_run_fomi))
     alt_fomi, x_fomi, cr_fomi = npl.old_param(all_alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = cart_run_fomi)
     spl = spline(x_fomi, cr_fomi)
     hr_calc = spl(x_ref)
