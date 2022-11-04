@@ -211,7 +211,7 @@ for atm in allatms:
 
     calcs[(atm, cco2, 'zofac')] = res2
 
-    fig, a0, a1 = npl.manuel_plot(x_ref, [hr_ref, res2, hr_calc], ['ref', 'ZOdiv2', 'fomi'], xlabel = 'HR (K/day)', ylabel = 'X', title = '{} - {} - KOD2'.format(atm, cco2), xlimdiff = None, xlim = None, ylim = (9.5, 21), linestyles = ['-', '--', ':', ':'], colors = ['black', 'red', 'orange', 'blue'], orizlines = [9.875, 12.625, 16.375, 20.125])
+    fig, a0, a1 = npl.manuel_plot(x_ref, [hr_ref, res2, hr_calc], ['ref', 'ZOdiv2', 'fomi'], xlabel = 'HR (K/day)', ylabel = 'X', title = '{} - {} - KOD2'.format(atm, cco2), xlimdiff = None, xlim = None, ylim = (9.5, 21), linestyles = ['-', '--', ':', ':'], colors = ['black', 'red', 'blue'], orizlines = [9.875, 12.625, 16.375, 20.125])
     figs.append(fig)
 
 npl.plot_pdfpages(cart_out + 'check_calc_kod2.pdf', figs)
