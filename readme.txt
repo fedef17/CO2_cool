@@ -101,7 +101,3 @@ Per la param della upper transition region e della cool-to-space region:
 Per il confronto con MIPAS:
 10 - MIPAS_cool_final.py -> produces all mipcalc calculations and plots
 11 - granada_finalplots.py -> refcalc, plot of weights for a, b and alpha
-
------
-Full atmosphere check:
-8 - test_newparam_full.py

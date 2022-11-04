@@ -75,7 +75,7 @@ from scipy.optimize import Bounds, minimize, least_squares
 #############################################################
 
 
-def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80, debug = False):
+def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../newpar_allatm/coeffs_finale.p', interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80, debug = False, zofac = 1.):
     """
     New param valid for the full atmosphere.
     """
@@ -126,7 +126,7 @@ def new_param_full_old(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs
         print(L_esc)
         raise ValueError('{} nans in L_esc!'.format(np.sum(np.isnan(L_esc))))
 
-    lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr)
+    lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr, zofac = zofac)
 
     debudict['L_esc'] = L_esc
     debudict['MM'] = MM
@@ -273,10 +273,14 @@ def calc_coeffs_for_co2(interp_coeffs, co2vmr, alt2 = 51, n_top = 65):
     return calc_coeffs
 
 
-def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None, debug_allgr = False, extrap_co2col = True, debug_starthigh = None, alt2up = 51, n_top = 65, old_param = False):
+def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, coeff_file = cart_out + '../reparam_allatm/coeffs_finale.p', interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None, debug_allgr = False, extrap_co2col = True, debug_starthigh = None, alt2up = 51, n_top = 65, old_param = True, zofac = 1.):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
+    if old_param:
+        print('USING NEW FOMICHEV STYLE PARAM (old_param)')
+    else:
+        print('USING experimental multi-regression PARAM')
 
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')
@@ -328,7 +332,7 @@ def new_param_full_allgrids(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, c
     if not old_param:
         resu = new_param_full(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, debug_Lesc = debug_Lesc, debug_alpha = debug_alpha, debug = debug, debug_co2interp = debug_co2interp, extrap_co2col = extrap_co2col, debug_starthigh = debug_starthigh, alt2up = alt2up, n_top = n_top)
     else:
-        resu = new_param_full_old(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha, alt2 = alt2up, n_top = n_top, debug = debug)
+        resu = new_param_full_old(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, coeff_file = coeff_file, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha, alt2 = alt2up, n_top = n_top, debug = debug, zofac = zofac)
 
     if debug:
         hr_calc_fin, cose = resu
@@ -2187,7 +2191,7 @@ def delta_alpha_rec3(alpha, cco2, cose_upper_atm, n_alts_trlo = 50, n_alts_trhi 
     return fu
 
 
-def calc_lamb(pres, temp, ovmr, o2vmr, n2vmr):
+def calc_lamb(pres, temp, ovmr, o2vmr, n2vmr, zofac = 1.):
     """
     Calculates the lambda used in the transition formula.
     """
@@ -2197,7 +2201,7 @@ def calc_lamb(pres, temp, ovmr, o2vmr, n2vmr):
     t13 = temp**(-1./3)
 
     # Collisional rate between CO2 and O:
-    zo = 3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
+    zo = zofac*3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
     #ZCO2O = KO Fomichev value
     # Collisional rates between CO2 and N2/O2:
     zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
@@ -2548,9 +2552,12 @@ def manuel_plot(y, xs, labels, xlabel = None, ylabel = None, title = None, xlimd
         a1.set_xlim(xlimdiff)
     a0.legend(loc = 3)
 
-    a0.set_xlim(xlim)
-    a0.set_ylim(ylim)
-    a1.set_ylim(ylim)
+    if xlim is not None:
+        a0.set_xlim(xlim)
+
+    if ylim is not None:
+        a0.set_ylim(ylim)
+        a1.set_ylim(ylim)
 
     if xlabel is not None: a0.set_xlabel(xlabel)
     if ylabel is not None: a0.set_ylabel(ylabel)
