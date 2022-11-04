@@ -195,16 +195,11 @@ for atm in allatms:
 
     calcs[(atm, cco2, 'fomi', 'kod2')] = hr_calc
 
-    wd = os.getcwd()
-    os.chdir(cart_run_fomi)
-    call('cp input_atm_kod2.dat input_atm.dat')
-    os.chdir(wd)
+    call('cp {}input_atm_kod2.dat {}input_atm.dat'.format(cart_run_fomi, cart_run_fomi))
     alt_fomi, x_fomi, cr_fomi = npl.old_param(all_alts, temp, pres, co2vmr, Oprof = ovmr, O2prof = o2vmr, N2prof = n2vmr, input_in_ppm = False, cart_run_fomi = cart_run_fomi)
     spl = spline(x_fomi, cr_fomi)
     hr_calc = spl(x_ref)
-    os.chdir(cart_run_fomi)
-    call('cp input_atm_default.dat input_atm.dat')
-    os.chdir(wd)
+    call('cp {}input_atm_default.dat {}input_atm.dat'.format(cart_run_fomi, cart_run_fomi))
 
     calcs[(atm, cco2, 'fomi', 'zofac')] = hr_calc
 
