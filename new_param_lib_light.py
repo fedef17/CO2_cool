@@ -43,7 +43,7 @@ ctag = '{}-{}-{}'.format(vfit, afit, n_top)
 
 #############################################################
 
-def new_param_full_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, ctag = ctag, interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80, debug = False, zofac = 1.):
+def new_param_full_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, ctag = ctag, interp_coeffs = None, max_alts = max_alts_curtis, extrap_co2col = True, debug_alpha = None, alt2 = 51, n_top = 65, n_alts_cs = 80, debug = False, **kwargs):
     """
     New param valid for the full atmosphere.
     """
@@ -98,7 +98,9 @@ def new_param_full_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs 
         print(L_esc)
         raise ValueError('{} nans in L_esc!'.format(np.sum(np.isnan(L_esc))))
 
-    lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr, zofac = zofac)
+
+    rates = {key: val for key, val in kwargs.items() if key in ['a_zo', 'b_zo', 'g_zo', 'a_zn2', 'b_zn2', 'g_zn2', 'a_zo2', 'b_zo2', 'g_zo2']}
+    lamb = calc_lamb(pres, temp, ovmr, o2vmr, n2vmr, **rates)
 
     debudict['L_esc'] = L_esc
     debudict['MM'] = MM
@@ -147,7 +149,7 @@ def precalc_interp_v1(coeffs = None, ctag = ctag, alt2 = 51, n_top = 65):
     return interp_coeffs
 
 
-def new_param_full_allgrids_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, ctag = ctag, interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None, debug_allgr = False, extrap_co2col = True, debug_starthigh = None, alt2up = 51, n_top = 65, zofac = 1.):
+def new_param_full_allgrids_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs = None, ctag = ctag, interp_coeffs = None, debug_Lesc = None, debug_alpha = None, debug = False, debug_co2interp = None, debug_allgr = False, extrap_co2col = True, debug_starthigh = None, alt2up = 51, n_top = 65, **kwargs):
     """
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
@@ -196,7 +198,7 @@ def new_param_full_allgrids_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr
 
 
     ########## Call new param
-    resu = new_param_full_v1(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, ctag = ctag, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha, alt2 = alt2up, n_top = n_top, debug = debug, zofac = zofac)
+    resu = new_param_full_v1(temp_rg, surf_temp, pres_rg, co2vmr_rg, ovmr_rg, o2vmr_rg, n2vmr_rg, coeffs = coeffs, ctag = ctag, interp_coeffs = interp_coeffs, extrap_co2col = extrap_co2col, debug_alpha = debug_alpha, alt2 = alt2up, n_top = n_top, debug = debug, **kwargs)
 
     if debug:
         hr_calc_fin, cose = resu
@@ -205,7 +207,8 @@ def new_param_full_allgrids_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr
 
     ##### INTERPOLATE OUTPUT TO ORIGINAL GRID ####
 
-    spl = spline(x_ref, hr_calc_fin, extrapolate = True)
+    ok = ~np.isnan(hr_calc_fin)
+    spl = spline(x_ref[ok], hr_calc_fin[ok], extrapolate = True)
     hr_calc = spl(x)
 
     if debug:
@@ -361,21 +364,34 @@ def coeff_from_interp_lin(int_fun, co2_prof, use_co2mean = False):
     return coeff
 
 
-def calc_lamb(pres, temp, ovmr, o2vmr, n2vmr, zofac = 1.):
+def calc_lamb(pres, temp, ovmr, o2vmr, n2vmr, **kwargs):
     """
-    Calculates the lambda used in the transition formula.
+    Calculates the lambda used in the transition formula. Can take in input the coefficients for the collisional rates of atomic oxygen (_zo), N2 (_zn2), O2 (_zo2).
+
+    Rates are in the form: z = a * np.sqrt(T) + b * np.exp(-g * T**(-1./3))
+
+    For example, to change a and b for the atomic oxygen, set a_zo and b_zo when calling this function.
+
     """
+
+    rates = {'a_zo' : 3.5e-13, 'b_zo' : 2.32e-9, 'g_zo' : 76.75, 'a_zn2' : 7e-17, 'b_zn2' : 6.7e-10, 'g_zn2' : 83.8, 'a_zo2' : 7e-17, 'b_zo2' : 1.0e-9, 'g_zo2' : 83.8}
+
+    rates.update(kwargs)
+
     n_dens = num_density(pres, temp)
 
     ###################### Rate coefficients ######################
     t13 = temp**(-1./3)
 
-    # Collisional rate between CO2 and O:
-    zo = zofac*3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13) # use Granada parametrization
-    #ZCO2O = KO Fomichev value
-    # Collisional rates between CO2 and N2/O2:
-    zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
-    zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
+    # Collisional rates (O, N2, O2):
+    #zo = zofac*(3.5e-13*np.sqrt(temp)+2.32e-9*np.exp(-76.75*t13))
+    #zn2=7e-17*np.sqrt(temp)+6.7e-10*np.exp(-83.8*t13)
+    #zo2=7e-17*np.sqrt(temp)+1.0e-9*np.exp(-83.8*t13)
+
+    zo = rates['a_zo']*np.sqrt(temp) + rates['b_zo']*np.exp(-rates['g_zo']*t13)
+    zn2 = rates['a_zn2']*np.sqrt(temp) + rates['b_zn2']*np.exp(-rates['g_zn2']*t13)
+    zo2 = rates['a_zo2']*np.sqrt(temp) + rates['b_zo2']*np.exp(-rates['g_zo2']*t13)
+
 
     lamb = 1.5988/(1.5988 + n_dens*(n2vmr*zn2 + o2vmr*zo2 + ovmr*zo))
 
