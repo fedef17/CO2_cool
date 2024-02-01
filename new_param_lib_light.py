@@ -14,6 +14,8 @@ from scipy import interpolate
 from scipy.interpolate import PchipInterpolator as spline
 from scipy.interpolate import interp1d
 
+import warnings
+
 #import pickle
 
 ############################################################
@@ -64,11 +66,13 @@ def new_param_full_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, coeffs 
                 coeffs[ke] = np.load(thisdir + 'data/coeffs_{}_{}.npy'.format(ctag, ke))
             
         print('interpolating for co2! this should be done calling npl.precalc_interp_v1() just once')
-        interp_coeffs = precalc_interp_v1(coeffs = coeffs, ctag = ctag)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            interp_coeffs = precalc_interp_v1(coeffs = coeffs, ctag = ctag)
 
     debudict = dict()
 
-    print('Coeffs from interpolation!')
+    #print('Coeffs from interpolation!')
     calc_coeffs = dict()
     for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
         int_fun = interp_coeffs[(nam, 'int_fun')]
@@ -133,7 +137,7 @@ def precalc_interp_v1(coeffs = None, ctag = ctag, alt2 = 51, n_top = 65):
 
     interp_coeffs = dict()
     for nam in ['acoeff', 'bcoeff', 'asurf', 'bsurf']:
-        print(nam)
+        #print(nam)
         int_fun, signc = interp_coeff_logco2(coeffs[nam], coeffs['co2profs'])
         interp_coeffs[(nam, 'int_fun')] = int_fun
         interp_coeffs[(nam, 'signc')] = signc
@@ -154,7 +158,7 @@ def new_param_full_allgrids_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr
     Wrapper for new_param_full that takes in input vectors on arbitrary grids.
     """
     
-    print('USING NEW PARAM with Fomichev approach')
+    #print('USING NEW PARAM with Fomichev approach')
 
     if interp_coeffs is None:
         print('Precalculate interp function for faster calculations')

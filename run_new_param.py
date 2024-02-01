@@ -5,21 +5,12 @@ import numpy as np
 import sys
 import os
 import argparse
-#import matplotlib.pyplot as plt
-
-#import pickle
 
 import new_param_lib_light as npl
 import yaml
 
+import warnings
 ###############################################################
-
-# if len(sys.argv) < 2:
-#     print("Usage: python run_new_param.py input_file")
-#     sys.exit(1)  # Exit with an error code
-
-# input_file = sys.argv[1]
-#input_file = thisdir + 'input.dat'
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description='Command line argument example')
@@ -55,45 +46,39 @@ thisdir = os.path.dirname(os.path.abspath(__file__)) + '/'
 if not os.path.exists(thisdir + 'data/'):
     raise ValueError('data dir not found in data/')
 
+# Load coefficients tables
 ctag = '{}-{}-{}'.format(vfit, afit, n_top)
-# coeff_file = thisdir + 'data/coeffs_finale_{}.p'.format(ctag)
-# coeffs = pickle.load(open(coeff_file, 'rb'))
-# print(coeffs.keys())
-# for ke in coeffs.keys():
-#     print(ke, coeffs[ke].shape)
-#     np.save(thisdir + 'data/coeffs_{}_{}.npy'.format(ctag, ke), coeffs[ke])
-
 coeffs = dict()
 for ke in ['uco2', 'bsurf', 'co2profs', 'asurf', 'Lesc', 'alpha', 'acoeff', 'bcoeff']:
     coeffs[ke] = np.load(thisdir + 'data/coeffs_{}_{}.npy'.format(ctag, ke))
 
-#   Alt     X        T          O         O2         N2        CO2         O3    AM
-
+# Load input atmosphere
 datamat = np.loadtxt(input_file, comments = '#')
-
-alts = datamat[:, 0]
-X = datamat[:, 1]
-
-pres = 1000.*np.exp(-X)
-
-temp = datamat[:, 2]
+pres = datamat[:, 0]
+X = np.log(1000./pres)
+temp = datamat[:, 1]
+co2vmr = datamat[:, 2]
 ovmr = datamat[:, 3]
 o2vmr = datamat[:, 4]
 n2vmr = datamat[:, 5]
-co2vmr = datamat[:, 6]
 
+#with warnings.catch_warnings():
+warnings.simplefilter("ignore") # suppress runtime warning due to zeros in the coeff matrix (for i > n_top)
+
+# Calculate interpolating functions for coefficients
 interp_coeffs = npl.precalc_interp_v1(coeffs = coeffs, n_top = n_top)
 
+# Run param
 cr_new = npl.new_param_full_allgrids_v1(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, n_top = n_top, **rates)
 
+## Write to output file
 outfile = thisdir + 'output.dat'
-
-comment = '# Output of new param: Alt (km), X, pres (hPa), CR (K/day)\n# \n'
+comment = '# Output of new param: X, pres (hPa), CR (K/day)\n# \n'
 print(comment)
 
 with open(outfile, 'w') as ofil:
     ofil.write(comment)
-    for al, xi, pr, cr in zip(alts, X, pres, cr_new):
-        strin = '{:8.2f} {:8.2f} {:12.3e} {:10.2f}\n'
-        print(strin.format(al, xi, pr, cr))
-        ofil.write(strin.format(al, xi, pr, cr))
+    for xi, pr, cr in zip(X, pres, cr_new):
+        strin = '{:8.2f} {:12.3e} {:10.2f}\n'
+        print(strin.format(xi, pr, cr))
+        ofil.write(strin.format(xi, pr, cr))
