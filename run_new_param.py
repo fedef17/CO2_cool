@@ -16,8 +16,10 @@ import warnings
 parser = argparse.ArgumentParser(description='Command line argument example')
 
 mod_rates = False
+surf_temp = None
 parser.add_argument('input_file')
 parser.add_argument('--mod_rates', dest = 'mod_rates', action='store_true', default = False)
+parser.add_argument('--surf_temp', dest = 'surf_temp', action='store', default = None)
 
 args = parser.parse_args()
 print(args)
@@ -69,7 +71,13 @@ warnings.simplefilter("ignore") # suppress runtime warning due to zeros in the c
 interp_coeffs = npl.precalc_interp_v1(coeffs = coeffs, n_top = n_top)
 
 # Run param
-cr_new = npl.new_param_full_allgrids_v1(temp, temp[0], pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, n_top = n_top, **rates)
+if args.surf_temp is not None:
+    surf_temp = float(args.surf_temp)
+    print(f'Set surf_temp: {surf_temp}')
+else:
+    surf_temp = temp[0]
+
+cr_new = npl.new_param_full_allgrids_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, n_top = n_top, **rates)
 
 ## Write to output file
 outfile = thisdir + 'output.dat'

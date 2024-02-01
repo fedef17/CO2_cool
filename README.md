@@ -9,7 +9,8 @@ New parametrization of CO2 heating rate in 15um band in non-LTE conditions.
 
 - Alternatively, use `import new_param_lib_light as npl` in a Python script or notebook. You can then use the `npl.new_param_full_allgrids_v1()` directly in the script.
 
-- Inputs needed: vertical profiles of pressure, temperature, VMRs of CO2, O, O2, N2. Profiles from ground to top, temperature in K, pressure in hPa, vmrs in absolute fraction (not ppm). Surface temperature is also needed, the run script assumes that the first level in the input file is at the ground, so T_surf = temp[0]. This can be changed in a direct function call to npl.new_param_full_allgrids_v1().
+- Inputs needed: surface temperature, vertical profiles of pressure, temperature, VMRs of CO2, O, O2, N2. Profiles from ground to top, temperature in K, pressure in hPa, vmrs in absolute fraction (not ppm). 
+Surface temperature can be specified in the command line using the argument `--surf_temp VALUE`, e.g. `python run_new_param.py my_input_file --surf_temp 290.6`. If not given, the run script assumes that the first level in the temperature profile is equal to the surface temperature (surf_temp = temp[0]).
 
 ## To test:
 - After installation, run: `python run_new_param.py input.dat`. The output in output.dat should be the same as in the output_test.dat.
