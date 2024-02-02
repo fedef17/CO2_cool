@@ -20,6 +20,7 @@ surf_temp = None
 parser.add_argument('input_file')
 parser.add_argument('--mod_rates', dest = 'mod_rates', action='store_true', default = False)
 parser.add_argument('--surf_temp', dest = 'surf_temp', action='store', default = None)
+parser.add_argument('--output', dest = 'output', action='store', default = 'output.dat')
 
 args = parser.parse_args()
 print(args)
@@ -80,7 +81,7 @@ else:
 cr_new = npl.new_param_full_allgrids_v1(temp, surf_temp, pres, co2vmr, ovmr, o2vmr, n2vmr, interp_coeffs = interp_coeffs, n_top = n_top, **rates)
 
 ## Write to output file
-outfile = thisdir + 'output.dat'
+outfile = thisdir + args.output
 comment = '# Output of new param: X, pres (hPa), CR (K/day)\n# \n'
 print(comment)
 
