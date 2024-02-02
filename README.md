@@ -28,7 +28,7 @@ New parametrization of CO2 heating rate in 15um band in non-LTE conditions.
     - for CO2-O2: a_zo2, b_zo2, g_zo2  (default: 7.0e-17, 1.0e-9, 83.8)
     - for CO2-N2: a_zn2, b_zn2, g_zn2  (default: 7.0e-17, 6.7e-10, 83.8)
 
-- You can specify different values for some or all these coeffs in the mod_rates.yml file. Then, to use the new rates, run the script with the '--mod_rates' option, like `python run_new_param.py input.dat --mod_rates`. If using the function directly, set the coeffs as keyword arguments in the call to npl.new_param_full_allgrids_v1() (e.g. "a_zo = 1.75e-13"). Default values are:
+- You can specify different values for some or all these coeffs in the mod_rates.yml file. Then, to use the new rates, run the script with the '--mod_rates' option, like `python run_new_param.py input.dat --mod_rates`. If using the function directly, set the coeffs as keyword arguments in the call to npl.new_param_full_allgrids_v1() (e.g. "a_zo = 1.75e-13").
 
 
 
